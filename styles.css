@@ -136,6 +136,36 @@ body {
     gap: 100px;
 }
 
+/* Gantt Tasks */
+.gantt-task {
+    position: absolute;
+    border: 1px solid;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    transition: transform 0.1s;
+    /* ensure tasks render above grid and markers */
+    z-index: 20;
+}
+
+.gantt-task:hover {
+    transform: scale(1.01);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.gantt-task-content {
+    padding: 2px 4px;
+    font-size: 0.75rem;
+    line-height: 1.1;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Optional: add slight text shadow for readability */
+    text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+}
+
 /* Print View Setup */
 @media print {
     .navbar, .toolbar, .tag-filters, .analytics-panel, .btn {

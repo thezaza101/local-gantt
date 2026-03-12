@@ -39,6 +39,7 @@
             </select>
         </div>
         <div class="btn-group">
+            <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary">Add Task</button>
             <button type="button" id="newPlanBtn" class="btn btn-sm btn-outline-secondary">New Plan</button>
             <button type="button" id="renamePlanBtn" class="btn btn-sm btn-outline-secondary">Rename</button>
             <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary">Duplicate</button>
@@ -90,6 +91,84 @@
     <script src="analytics.js"></script>
     <script src="ui.js"></script>
     <script src="app.js"></script>
+
+    <!-- Task Modal -->
+    <div class="modal fade" id="taskModal" tabindex="-1" aria-labelledby="taskModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="taskModalLabel">Task Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="taskForm">
+                        <input type="hidden" id="originalTaskId">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="taskId" class="form-label">Task ID</label>
+                                <input type="text" class="form-control" id="taskId" required>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="taskTitle" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="taskTitle" required>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="taskDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="taskDescription" rows="2"></textarea>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="taskStartDate" class="form-label">Start Date</label>
+                                <input type="date" class="form-control" id="taskStartDate" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="taskEndDate" class="form-label">End Date</label>
+                                <input type="date" class="form-control" id="taskEndDate" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="taskRow" class="form-label">Row Number</label>
+                                <input type="number" class="form-control" id="taskRow" min="0" value="1" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="taskTags" class="form-label">Tags (comma-separated)</label>
+                                <input type="text" class="form-control" id="taskTags">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="taskFillColor" class="form-label">Fill Color</label>
+                                <input type="color" class="form-control form-control-color" id="taskFillColor" value="#4da3ff" title="Choose your color">
+                            </div>
+                            <div class="col-md-3">
+                                <label for="taskBorderColor" class="form-label">Border Color</label>
+                                <input type="color" class="form-control form-control-color" id="taskBorderColor" value="#1c6ed5" title="Choose your color">
+                            </div>
+                        </div>
+                        <h6 class="border-bottom pb-2">Effort</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="taskEffortDesign" class="form-label">Design</label>
+                                <input type="number" class="form-control" id="taskEffortDesign" min="0" value="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="taskEffortDev" class="form-label">Dev</label>
+                                <input type="number" class="form-control" id="taskEffortDev" min="0" value="0">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="taskEffortTest" class="form-label">Test</label>
+                                <input type="number" class="form-control" id="taskEffortTest" min="0" value="0">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveTaskBtn">Save Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Local Bootstrap JS -->
     <script src="vendor/bootstrap.bundle.min.js"></script>

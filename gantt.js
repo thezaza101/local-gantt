@@ -4,6 +4,8 @@ class Gantt {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.cellWidth = 40; // width of each day column in pixels
+        this.rowHeight = 40; // height of each row in pixels
+        this.taskMargin = 5; // top/bottom margin for tasks
     }
 
     render(plan) {
@@ -104,13 +106,86 @@ class Gantt {
                     <!-- Markers -->
                     ${markersHtml}
 
-                    <!-- Rows Container (For later phases) -->
+                    <!-- Rows Container -->
                     <div class="gantt-rows mt-2 position-relative z-1" style="min-height: 300px;">
-                        <!-- Tasks will go here -->
+                        ${this.generateTasksHtml(plan, startDate, endDate)}
                     </div>
                 </div>
             </div>
         `;
+
+        // Bind events for tasks
+        this.bindTaskEvents();
+    }
+
+    generateTasksHtml(plan, planStartDate, planEndDate) {
+        if (!plan.tasks || plan.tasks.length === 0) return '';
+
+        let tasksHtml = '';
+        plan.tasks.forEach(task => {
+            const taskStart = new Date(task.startDate);
+            const taskEnd = new Date(task.endDate);
+
+            // Skip invalid dates
+            if (isNaN(taskStart) || isNaN(taskEnd) || taskStart > taskEnd) return;
+
+            // Check if task is within plan timeline
+            if (taskEnd < planStartDate || taskStart > planEndDate) return;
+
+            // Calculate start and end offsets relative to plan timeline
+            const effectiveStart = taskStart < planStartDate ? planStartDate : taskStart;
+            const effectiveEnd = taskEnd > planEndDate ? planEndDate : taskEnd;
+
+            const startDaysOffset = Math.floor((effectiveStart - planStartDate) / (1000 * 60 * 60 * 24));
+            // Include the end day fully, so we add 1
+            const durationDays = Math.floor((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)) + 1;
+
+            const leftPos = startDaysOffset * this.cellWidth;
+            const width = durationDays * this.cellWidth;
+
+            // Determine vertical position based on row
+            const rowIndex = (task.row !== undefined && task.row > 0) ? task.row - 1 : 0;
+            const topPos = rowIndex * this.rowHeight + this.taskMargin;
+            const taskHeight = this.rowHeight - (this.taskMargin * 2);
+
+            const fillColor = task.fillColor || '#4da3ff';
+            const borderColor = task.borderColor || '#1c6ed5';
+
+            const safeTitle = this.escapeHtml(task.title || 'Untitled');
+            const safeId = this.escapeHtml(task.id || '');
+
+            tasksHtml += `
+                <div class="gantt-task" data-task-id="${safeId}" style="
+                    left: ${leftPos}px;
+                    width: ${width}px;
+                    top: ${topPos}px;
+                    height: ${taskHeight}px;
+                    background-color: ${fillColor};
+                    border-color: ${borderColor};
+                ">
+                    <div class="gantt-task-content">
+                        <strong>${safeId}</strong><br>
+                        ${safeTitle}
+                    </div>
+                </div>
+            `;
+        });
+
+        return tasksHtml;
+    }
+
+    bindTaskEvents() {
+        if (!this.container) return;
+
+        const tasks = this.container.querySelectorAll('.gantt-task');
+        tasks.forEach(taskEl => {
+            taskEl.addEventListener('click', (e) => {
+                const taskId = taskEl.getAttribute('data-task-id');
+                if (taskId && window.UIController) {
+                    window.UIController.openTaskModal(taskId);
+                }
+            });
+        });
     }
 
     repeatString(str, count) {

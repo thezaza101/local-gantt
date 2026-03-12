@@ -113,6 +113,45 @@ class Planner {
         return true;
     }
 
+    addTask(task) {
+        const plan = this.getCurrentPlan();
+        if (!plan) return false;
+
+        if (!plan.tasks) {
+            plan.tasks = [];
+        }
+
+        // Check for duplicate ID within the plan
+        if (plan.tasks.some(t => t.id === task.id)) {
+            return false;
+        }
+
+        plan.tasks.push(task);
+        return true;
+    }
+
+    updateTask(taskId, updatedTask) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        const taskIndex = plan.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
+            // Check if the new ID (if changed) conflicts with another task
+            if (taskId !== updatedTask.id && plan.tasks.some(t => t.id === updatedTask.id)) {
+                return false;
+            }
+            plan.tasks[taskIndex] = updatedTask;
+            return true;
+        }
+        return false;
+    }
+
+    getTaskById(taskId) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return null;
+        return plan.tasks.find(t => t.id === taskId) || null;
+    }
+
     duplicatePlan() {
         const currentPlan = this.getCurrentPlan();
         if (!currentPlan) return false;
