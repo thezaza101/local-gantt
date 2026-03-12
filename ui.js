@@ -131,6 +131,118 @@ class UI {
                 }
             });
         }
+
+        // Add Task Button
+        const addTaskBtn = document.getElementById("addTaskBtn");
+        if (addTaskBtn) {
+            addTaskBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (!currentPlan) return;
+                this.openTaskModal();
+            });
+        }
+
+        // Save Task Button
+        const saveTaskBtn = document.getElementById("saveTaskBtn");
+        if (saveTaskBtn) {
+            saveTaskBtn.addEventListener("click", () => {
+                this.saveTask();
+            });
+        }
+    }
+
+    saveTask() {
+        const id = document.getElementById('taskId').value.trim();
+        const title = document.getElementById('taskTitle').value.trim();
+        const startDate = document.getElementById('taskStartDate').value;
+        const endDate = document.getElementById('taskEndDate').value;
+
+        if (!id || !title || !startDate || !endDate) {
+            alert("Please fill in all required fields (ID, Title, Start Date, End Date).");
+            return;
+        }
+
+        if (new Date(startDate) > new Date(endDate)) {
+            alert("Start date cannot be after end date.");
+            return;
+        }
+
+        const taskData = {
+            id: id,
+            title: title,
+            description: document.getElementById('taskDescription').value,
+            startDate: startDate,
+            endDate: endDate,
+            row: parseInt(document.getElementById('taskRow').value, 10) || 1,
+            fillColor: document.getElementById('taskFillColor').value,
+            borderColor: document.getElementById('taskBorderColor').value,
+            tags: document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag),
+            effort: {
+                design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
+                dev: parseFloat(document.getElementById('taskEffortDev').value) || 0,
+                test: parseFloat(document.getElementById('taskEffortTest').value) || 0
+            }
+        };
+
+        const originalTaskId = document.getElementById('originalTaskId').value;
+        let success = false;
+
+        if (originalTaskId) {
+            success = this.planner.updateTask(originalTaskId, taskData);
+            if (!success) alert("Failed to update task. Task ID might be a duplicate.");
+        } else {
+            success = this.planner.addTask(taskData);
+            if (!success) alert("Failed to add task. Task ID must be unique within the plan.");
+        }
+
+        if (success) {
+            const taskModalEl = document.getElementById('taskModal');
+            const taskModal = bootstrap.Modal.getInstance(taskModalEl);
+            if (taskModal) {
+                taskModal.hide();
+            }
+            this.updateUI();
+        }
+    }
+
+    openTaskModal(taskId = null) {
+        // We will implement modal logic in the next step
+        console.log("Opening task modal for task ID:", taskId);
+        const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
+
+        const form = document.getElementById('taskForm');
+        form.reset();
+
+        if (taskId) {
+            const task = this.planner.getTaskById(taskId);
+            if (task) {
+                document.getElementById('taskId').value = task.id;
+                document.getElementById('taskId').readOnly = true; // or not, but editing ID requires care
+                document.getElementById('originalTaskId').value = task.id;
+
+                document.getElementById('taskTitle').value = task.title || '';
+                document.getElementById('taskDescription').value = task.description || '';
+                document.getElementById('taskStartDate').value = task.startDate || '';
+                document.getElementById('taskEndDate').value = task.endDate || '';
+                document.getElementById('taskRow').value = task.row !== undefined ? task.row : 1;
+                document.getElementById('taskFillColor').value = task.fillColor || '#4da3ff';
+                document.getElementById('taskBorderColor').value = task.borderColor || '#1c6ed5';
+                document.getElementById('taskTags').value = (task.tags || []).join(', ');
+
+                document.getElementById('taskEffortDesign').value = task.effort ? task.effort.design || 0 : 0;
+                document.getElementById('taskEffortDev').value = task.effort ? task.effort.dev || 0 : 0;
+                document.getElementById('taskEffortTest').value = task.effort ? task.effort.test || 0 : 0;
+            }
+        } else {
+            document.getElementById('taskId').value = '';
+            document.getElementById('taskId').readOnly = false;
+            document.getElementById('originalTaskId').value = '';
+
+            document.getElementById('taskFillColor').value = '#4da3ff';
+            document.getElementById('taskBorderColor').value = '#1c6ed5';
+        }
+
+        taskModal.show();
     }
 
     updateUI() {
@@ -161,11 +273,13 @@ class UI {
         }
 
         const hasPlans = plans.length > 0;
+        const addTaskBtn = document.getElementById("addTaskBtn");
         const renamePlanBtn = document.getElementById("renamePlanBtn");
         const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
         const deletePlanBtn = document.getElementById("deletePlanBtn");
         const addMarkerBtn = document.getElementById("addMarkerBtn");
 
+        if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
         if (renamePlanBtn) renamePlanBtn.disabled = !hasPlans;
         if (duplicatePlanBtn) duplicatePlanBtn.disabled = !hasPlans;
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
