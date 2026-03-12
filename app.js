@@ -10,9 +10,6 @@ function initApp() {
     // Initialize state
     window.PlannerState = new Planner();
 
-    // Initialize Gantt Engine
-    window.GanttEngine = new Gantt('gantt-chart-container');
-
     // Initialize UI
     window.UIController = new UI();
 

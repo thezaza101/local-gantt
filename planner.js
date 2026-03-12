@@ -94,25 +94,6 @@ class Planner {
         return false;
     }
 
-    addMarker(dateStr, label, color = '#ff4d4d') {
-        const plan = this.getCurrentPlan();
-        if (!plan) return false;
-
-        if (!plan.markers) {
-            plan.markers = [];
-        }
-
-        plan.markers.push({
-            date: dateStr,
-            label: label,
-            color: color
-        });
-
-        // Sort markers by date to keep them organized
-        plan.markers.sort((a, b) => new Date(a.date) - new Date(b.date));
-        return true;
-    }
-
     duplicatePlan() {
         const currentPlan = this.getCurrentPlan();
         if (!currentPlan) return false;
