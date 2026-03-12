@@ -13,6 +13,9 @@ function initApp() {
     // Initialize Gantt Engine
     window.GanttEngine = new Gantt('gantt-chart-container');
 
+    // Initialize Analytics
+    window.AnalyticsEngine = new Analytics(window.PlannerState);
+
     // Initialize UI
     window.UIController = new UI();
 
