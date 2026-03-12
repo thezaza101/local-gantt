@@ -142,7 +142,7 @@ body {
     border: 1px solid;
     border-radius: 4px;
     overflow: hidden;
-    cursor: pointer;
+    cursor: grab;
     box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     transition: transform 0.1s;
     /* ensure tasks render above grid and markers */
@@ -152,6 +152,34 @@ body {
 .gantt-task:hover {
     transform: scale(1.01);
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.gantt-task.dragging,
+.gantt-task.resizing {
+    cursor: grabbing;
+    opacity: 0.8;
+    z-index: 100;
+    transition: none;
+    transform: none;
+}
+
+.gantt-resize-handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: ew-resize;
+    z-index: 30;
+    /* Optional: uncomment to see handles */
+    /* background: rgba(0,0,0,0.1); */
+}
+
+.gantt-resize-handle.left {
+    left: 0;
+}
+
+.gantt-resize-handle.right {
+    right: 0;
 }
 
 .gantt-task-content {
