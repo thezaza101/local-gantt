@@ -50,15 +50,101 @@ class UI {
                 console.log("File exported.");
             });
         }
+
+        // Plan Actions
+        const newPlanBtn = document.getElementById("newPlanBtn");
+        if (newPlanBtn) {
+            newPlanBtn.addEventListener("click", () => {
+                const name = prompt("Enter new plan name:");
+                if (name && name.trim() !== "") {
+                    this.planner.addPlan(name.trim());
+                    this.updateUI();
+                }
+            });
+        }
+
+        const renamePlanBtn = document.getElementById("renamePlanBtn");
+        if (renamePlanBtn) {
+            renamePlanBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (currentPlan) {
+                    const newName = prompt("Enter new name for the plan:", currentPlan.name);
+                    if (newName && newName.trim() !== "") {
+                        this.planner.renamePlan(newName.trim());
+                        this.updateUI();
+                    }
+                }
+            });
+        }
+
+        const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
+        if (duplicatePlanBtn) {
+            duplicatePlanBtn.addEventListener("click", () => {
+                if (this.planner.duplicatePlan()) {
+                    this.updateUI();
+                }
+            });
+        }
+
+        const deletePlanBtn = document.getElementById("deletePlanBtn");
+        if (deletePlanBtn) {
+            deletePlanBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (currentPlan && confirm(`Are you sure you want to delete plan "${currentPlan.name}"?`)) {
+                    if (this.planner.deletePlan()) {
+                        this.updateUI();
+                    }
+                }
+            });
+        }
+
+        // Plan Selector
+        const planSelector = document.getElementById("planSelector");
+        if (planSelector) {
+            planSelector.addEventListener("change", (e) => {
+                const newIndex = parseInt(e.target.value, 10);
+                if (!isNaN(newIndex)) {
+                    this.planner.setCurrentPlanIndex(newIndex);
+                    this.updateUI();
+                }
+            });
+        }
     }
 
     updateUI() {
-        // Update placeholders
-        const currentPlanDisplay = document.getElementById("currentPlanDisplay");
-        const plan = this.planner.getCurrentPlan();
+        const planSelector = document.getElementById("planSelector");
+        const plans = this.planner.getState().plans || [];
 
-        if (currentPlanDisplay && plan) {
-            currentPlanDisplay.textContent = plan.name || "Unnamed Plan";
+        if (planSelector) {
+            planSelector.innerHTML = "";
+
+            if (plans.length === 0) {
+                const option = document.createElement("option");
+                option.value = "";
+                option.disabled = true;
+                option.selected = true;
+                option.textContent = "No plans available";
+                planSelector.appendChild(option);
+            } else {
+                plans.forEach((plan, index) => {
+                    const option = document.createElement("option");
+                    option.value = index;
+                    option.textContent = plan.name || "Unnamed Plan";
+                    if (index === this.planner.currentPlanIndex) {
+                        option.selected = true;
+                    }
+                    planSelector.appendChild(option);
+                });
+            }
         }
+
+        const hasPlans = plans.length > 0;
+        const renamePlanBtn = document.getElementById("renamePlanBtn");
+        const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
+        const deletePlanBtn = document.getElementById("deletePlanBtn");
+
+        if (renamePlanBtn) renamePlanBtn.disabled = !hasPlans;
+        if (duplicatePlanBtn) duplicatePlanBtn.disabled = !hasPlans;
+        if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
     }
 }

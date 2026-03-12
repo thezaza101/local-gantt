@@ -13,5 +13,8 @@ function initApp() {
     // Initialize UI
     window.UIController = new UI();
 
+    // Initial UI update
+    window.UIController.updateUI();
+
     console.log("App ready.");
 }
