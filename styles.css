@@ -1,0 +1,101 @@
+/* Base Application Styles */
+
+:root {
+    --primary-color: #0d6efd;
+    --border-color: #dee2e6;
+    --background-color: #f8f9fa;
+    --toolbar-height: 56px;
+    --font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Layout Utilities */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow: hidden;
+}
+
+.main-content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+    padding: 1rem;
+}
+
+/* Components Areas */
+.planner-area {
+    display: flex;
+    flex-direction: column;
+    flex: 3;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    margin-right: 1rem;
+    overflow: hidden;
+}
+
+.gantt-chart-container {
+    flex: 2;
+    overflow: auto;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem;
+    background-color: #fafafa;
+}
+
+.capacity-graph-container {
+    flex: 1;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.analytics-panel {
+    flex: 1;
+    background-color: white;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+/* Toolbars */
+.toolbar {
+    background-color: white;
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.5rem 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.tag-filters {
+    padding: 0.5rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    background-color: #fcfcfc;
+}
+
+/* Print View Setup */
+@media print {
+    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn {
+        display: none !important;
+    }
+
+    .main-content {
+        padding: 0;
+    }
+
+    .planner-area {
+        margin: 0;
+        border: none;
+    }
+}

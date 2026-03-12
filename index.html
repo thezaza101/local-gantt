@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser-Based Work Planning</title>
+    <!-- Local Bootstrap CSS -->
+    <link href="vendor/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link href="styles.css" rel="stylesheet">
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Work Planner</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item d-flex gap-2">
+                        <button id="importBtn" class="btn btn-outline-light btn-sm">Import JSON</button>
+                        <button id="exportBtn" class="btn btn-outline-light btn-sm">Export JSON</button>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Toolbar / Plan Selector -->
+    <div class="toolbar d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <label for="planSelector" class="form-label mb-0 fw-bold">Plan:</label>
+            <select class="form-select form-select-sm w-auto" id="planSelector">
+                <option value="" disabled selected id="currentPlanDisplay">Select a Plan</option>
+            </select>
+        </div>
+        <div class="btn-group">
+            <button type="button" class="btn btn-sm btn-outline-secondary">New Plan</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">Duplicate</button>
+            <button type="button" class="btn btn-sm btn-outline-secondary">Delete</button>
+        </div>
+    </div>
+
+    <!-- Tag Filters -->
+    <div class="tag-filters d-flex gap-2 align-items-center">
+        <span class="fw-bold text-muted small">Tags:</span>
+        <button class="btn btn-sm btn-light border rounded-pill text-muted px-3">Backend</button>
+        <button class="btn btn-sm btn-light border rounded-pill text-muted px-3">Frontend</button>
+        <button class="btn btn-sm btn-light border rounded-pill text-muted px-3">Data</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+        <!-- Planner Area (Gantt + Capacity Graph) -->
+        <div class="planner-area d-flex flex-column">
+            <div class="gantt-chart-container p-4 d-flex align-items-center justify-content-center">
+                <div class="text-center text-muted">
+                    <h5>Gantt Chart Area</h5>
+                    <p class="small">Timeline and tasks will render here</p>
+                </div>
+            </div>
+            <div class="capacity-graph-container p-4 d-flex align-items-center justify-content-center border-top bg-light">
+                <div class="text-center text-muted">
+                    <h5>Capacity vs Demand Graph</h5>
+                    <p class="small">Graph visualization will render here</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Panel -->
+        <div class="analytics-panel p-4 d-flex flex-column align-items-center justify-content-center">
+             <div class="text-center text-muted">
+                 <h5>Analytics Panel</h5>
+                 <p class="small">Effort summaries and tag metrics will render here</p>
+             </div>
+        </div>
+    </div>
+
+    <!-- Core App Logic -->
+    <script src="storage.js"></script>
+    <script src="planner.js"></script>
+    <script src="gantt.js"></script>
+    <script src="capacity.js"></script>
+    <script src="analytics.js"></script>
+    <script src="ui.js"></script>
+    <script src="app.js"></script>
+
+    <!-- Local Bootstrap JS -->
+    <script src="vendor/bootstrap.bundle.min.js"></script>
+</body>
+</html>

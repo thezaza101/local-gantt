@@ -1,0 +1,59 @@
+{
+  "meta": {
+    "fileVersion": 1
+  },
+  "settings": {
+    "baseLink": "https://jira.company.com/browse/"
+  },
+  "plans": [
+    {
+      "id": "planA",
+      "name": "Baseline Plan",
+      "timeline": {
+        "startDate": "2026-01-01",
+        "endDate": "2026-06-30"
+      },
+      "markers": [
+        {
+          "date": "2026-03-15",
+          "label": "Beta Release",
+          "color": "#ff4d4d"
+        }
+      ],
+      "capacity": {
+        "granularity": "month",
+        "entries": [
+          {
+            "startDate": "2026-01-01",
+            "endDate": "2026-03-31",
+            "capacity": 40
+          },
+          {
+            "startDate": "2026-04-01",
+            "endDate": "2026-06-30",
+            "capacity": 32
+          }
+        ]
+      },
+      "demandAdjustmentPercent": 20,
+      "tasks": [
+        {
+          "id": "TASK-101",
+          "title": "Authentication",
+          "description": "Login system",
+          "startDate": "2026-01-10",
+          "endDate": "2026-01-25",
+          "row": 1,
+          "fillColor": "#4da3ff",
+          "borderColor": "#1c6ed5",
+          "tags": ["backend", "security"],
+          "effort": {
+            "design": 3,
+            "dev": 8,
+            "test": 4
+          }
+        }
+      ]
+    }
+  ]
+}
