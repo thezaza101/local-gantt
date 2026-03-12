@@ -194,6 +194,39 @@ body {
     text-shadow: 0 1px 1px rgba(0,0,0,0.3);
 }
 
+/* Task Controls */
+.gantt-task-controls {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    display: none;
+    gap: 4px;
+    z-index: 40;
+}
+
+.gantt-task:hover .gantt-task-controls {
+    display: flex;
+}
+
+.gantt-task-control-btn {
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 3px;
+    padding: 2px 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    line-height: 1;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gantt-task-control-btn:hover {
+    background: rgba(255, 255, 255, 1);
+    transform: scale(1.1);
+}
+
 /* Print View Setup */
 @media print {
     .navbar, .toolbar, .tag-filters, .analytics-panel, .btn {

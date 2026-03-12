@@ -152,6 +152,44 @@ class Planner {
         return plan.tasks.find(t => t.id === taskId) || null;
     }
 
+    deleteTask(taskId) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        const taskIndex = plan.tasks.findIndex(t => t.id === taskId);
+        if (taskIndex !== -1) {
+            plan.tasks.splice(taskIndex, 1);
+            return true;
+        }
+        return false;
+    }
+
+    duplicateTask(taskId) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        const taskToDuplicate = plan.tasks.find(t => t.id === taskId);
+        if (!taskToDuplicate) return false;
+
+        // Clone the task (deep copy)
+        const clonedTask = JSON.parse(JSON.stringify(taskToDuplicate));
+
+        // Let's generate a TBD ID. We might have multiple TBDs, so we'll append a random suffix to make it unique within the plan
+        const generateTaskId = () => 'TBD-' + Math.floor(1000 + Math.random() * 9000);
+        let newId = 'TBD';
+
+        // Ensure the ID is unique
+        while (plan.tasks.some(t => t.id === newId)) {
+             newId = generateTaskId();
+        }
+
+        clonedTask.id = newId;
+        clonedTask.title = taskToDuplicate.title + " (Copy)";
+
+        plan.tasks.push(clonedTask);
+        return true;
+    }
+
     duplicatePlan() {
         const currentPlan = this.getCurrentPlan();
         if (!currentPlan) return false;

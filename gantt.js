@@ -168,6 +168,11 @@ class Gantt {
                         <strong>${safeId}</strong><br>
                         ${safeTitle}
                     </div>
+                    <div class="gantt-task-controls">
+                        <button class="gantt-task-control-btn duplicate-btn" title="Duplicate Task">⧉</button>
+                        <button class="gantt-task-control-btn delete-btn" title="Delete Task">🗑</button>
+                        <button class="gantt-task-control-btn link-btn" title="Open Link">🔗</button>
+                    </div>
                     <div class="gantt-resize-handle right" data-resize="right"></div>
                 </div>
             `;
@@ -319,6 +324,11 @@ class Gantt {
 
         tasks.forEach(taskEl => {
             taskEl.addEventListener('mousedown', (e) => {
+                // Ignore clicks on task control buttons
+                if (e.target.closest('.gantt-task-control-btn')) {
+                    return;
+                }
+
                 // Determine if we clicked a resize handle or the task body
                 activeTaskEl = taskEl;
                 activeTaskId = taskEl.getAttribute('data-task-id');
@@ -343,6 +353,49 @@ class Gantt {
                 document.addEventListener('mousemove', onMouseMove);
                 document.addEventListener('mouseup', onMouseUp);
             });
+
+            // Handle control buttons
+            const duplicateBtn = taskEl.querySelector('.duplicate-btn');
+            const deleteBtn = taskEl.querySelector('.delete-btn');
+            const linkBtn = taskEl.querySelector('.link-btn');
+            const taskId = taskEl.getAttribute('data-task-id');
+
+            if (duplicateBtn) {
+                duplicateBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent triggering task drag/click
+                    if (window.PlannerState.duplicateTask(taskId)) {
+                        if (window.UIController) {
+                            window.UIController.updateUI();
+                        } else {
+                            this.render(window.PlannerState.getCurrentPlan());
+                        }
+                    }
+                });
+            }
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent triggering task drag/click
+                    if (confirm(`Are you sure you want to delete task "${taskId}"?`)) {
+                        if (window.PlannerState.deleteTask(taskId)) {
+                            if (window.UIController) {
+                                window.UIController.updateUI();
+                            } else {
+                                this.render(window.PlannerState.getCurrentPlan());
+                            }
+                        }
+                    }
+                });
+            }
+
+            if (linkBtn) {
+                linkBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // prevent triggering task drag/click
+                    const baseLink = window.PlannerState.getState().settings?.baseLink;
+                    const url = baseLink ? baseLink + taskId : taskId;
+                    window.open(url, '_blank');
+                });
+            }
         });
     }
 
