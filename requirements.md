@@ -1,478 +1,437 @@
-The only external library allowed is **Bootstrap** for layout and styling.
+# Browser-Based Work Planning & Capacity Tool
+
+## Consolidated Phased Implementation Plan
 
 ---
 
-# Phased Implementation Plan
+# 1. System Overview
 
-Browser-Only Work Planning Tool
+The tool is a **portable planning system** combining:
 
-## Technology Stack
+* Gantt planning
+* work item tracking
+* tagging
+* effort modelling
+* capacity planning
+* scenario comparison
 
-**Frontend**
+The application runs entirely in the browser and stores plans in **JSON files**.
+
+---
+
+# Core Capabilities
+
+## Planning
+
+* date-based Gantt chart
+* draggable tasks
+* multiple tasks per row
+* timeline markers
+* customizable task colours
+
+## Work Management
+
+* task duplication
+* task deletion
+* tag filtering
+* external ticket linking
+
+## Capacity Planning
+
+* capacity defined between date ranges
+* capacity granularity (monthly/weekly)
+* demand calculation from effort
+* configurable demand reduction %
+
+## Analytics
+
+* capacity vs demand graph
+* effort by tag
+* effort by type
+
+## Scenario Management
+
+* multiple plans within one file
+* plan switching
+* plan duplication
+
+## Output
+
+* JSON import/export
+* print-friendly view
+
+---
+
+# 2. System Architecture
+
+### Technology Stack
+
+Frontend:
 
 * HTML
 * Vanilla JavaScript
-* Bootstrap (for layout/components)
+* Bootstrap
 
-**Data**
+No frameworks, no backend.
 
-* JSON file save/load
-* Local in-memory state
+---
 
-**Architecture**
+### Suggested File Structure
 
-```text
+```
 index.html
 app.js
 planner.js
 gantt.js
+capacity.js
 analytics.js
 storage.js
-style.css
-```
-
-No backend, no build system required.
-
----
-
-# Phase 1 — Core Skeleton & Data Model
-
-## Objective
-
-Create a working shell that can **create, display, save, and load tasks**.
-
-## Features
-
-### Basic UI Layout
-
-Using Bootstrap grid.
-
-Layout:
-
-```
-Navbar
-----------------------------------
-
-Toolbar (filters / actions)
-
-----------------------------------
-
-Timeline Area (Gantt)
-
-----------------------------------
-
-Analytics Panel
+ui.js
+styles.css
 ```
 
 ---
 
-### Data Model
+# 3. Core Data Model
 
-Define the internal structure.
+All application data lives in a **single JSON file**.
+
+---
+
+# Root File Structure
 
 ```json
 {
   "meta": {
-    "name": "Project Plan",
-    "version": 1
+    "fileVersion": 1
   },
   "settings": {
-    "baseLink": ""
+    "baseLink": "https://jira.company.com/browse/"
   },
-  "timelines": [],
+  "plans": []
+}
+```
+
+---
+
+# Plan Model
+
+Each plan represents a **scenario**.
+
+```json
+{
+  "id": "planA",
+  "name": "Baseline Plan",
+  "timeline": {
+    "startDate": "2026-01-01",
+    "endDate": "2026-06-30"
+  },
+  "markers": [],
+  "capacity": {
+    "granularity": "month",
+    "entries": []
+  },
+  "demandAdjustmentPercent": 20,
   "tasks": []
 }
 ```
 
 ---
 
-### Task Structure
+# Task Model
 
 ```json
 {
   "id": "TASK-101",
   "title": "Authentication",
-  "description": "",
+  "description": "Implement login system",
+  "startDate": "2026-01-10",
+  "endDate": "2026-01-25",
+  "row": 1,
+  "fillColor": "#4da3ff",
+  "borderColor": "#1c6ed5",
+  "tags": ["backend", "security"],
   "effort": {
-    "design": 0,
-    "dev": 0,
-    "test": 0
-  },
-  "tags": [],
-  "timeline": {
-    "start": 0,
-    "end": 1
+    "design": 3,
+    "dev": 8,
+    "test": 4
   }
 }
 ```
 
----
-
-### Task Creation
-
-Button:
+Total effort:
 
 ```
-Add Task
+design + dev + test
 ```
-
-Opens Bootstrap modal:
-
-Fields
-
-* ID
-* Title
-* Description
-* Design effort
-* Dev effort
-* Test effort
-* Tags
 
 ---
 
-### Basic Gantt Rendering
+# Marker Model
 
-Render simple blocks.
+Markers represent milestones.
 
-Block content:
+```json
+{
+  "date": "2026-03-15",
+  "label": "Beta Release",
+  "color": "#ff4d4d"
+}
+```
+
+Displayed as **vertical lines across the chart**.
+
+---
+
+# Capacity Model
+
+Capacity ranges define available effort.
+
+```json
+{
+  "startDate": "2026-01-01",
+  "endDate": "2026-03-31",
+  "capacity": 40
+}
+```
+
+Example meaning:
+
+```
+Jan: 40
+Feb: 40
+Mar: 40
+```
+
+---
+
+# Capacity Granularity
+
+Stored as:
+
+```
+month
+week
+quarter
+```
+
+Determines graph grouping.
+
+---
+
+# 4. Effort and Demand Calculation
+
+---
+
+# Task Effort
+
+```
+TotalEffort = design + dev + test
+```
+
+---
+
+# Effort Distribution
+
+Effort is spread across the task duration.
+
+```
+effortPerDay = totalEffort / durationDays
+```
+
+---
+
+# Demand Adjustment
+
+Demand is reduced using configurable percentage.
+
+Formula:
+
+```
+Demand = TotalEffort × (1 - adjustmentPercent)
+```
+
+Example:
+
+```
+TotalEffort = 100
+Adjustment = 20%
+
+Demand = 80
+```
+
+---
+
+# Period Aggregation
+
+Effort is grouped based on **capacity granularity**.
+
+Example (monthly):
+
+```
+Jan demand
+Feb demand
+Mar demand
+```
+
+---
+
+# Capacity Expansion
+
+Capacity ranges expand into periods.
+
+Example:
+
+```
+Jan–Mar = 40
+```
+
+becomes
+
+```
+Jan 40
+Feb 40
+Mar 40
+```
+
+---
+
+# Final Demand vs Capacity Table
+
+| Period | Capacity | Demand |
+| ------ | -------- | ------ |
+| Jan    | 40       | 22     |
+| Feb    | 40       | 31     |
+| Mar    | 40       | 18     |
+
+---
+
+# 5. User Interface Layout
+
+Using **Bootstrap grid system**.
+
+---
+
+# Layout
+
+```
+Navbar
+--------------------------------------
+
+Plan Selector + Toolbar
+
+--------------------------------------
+
+Tag Filters
+
+--------------------------------------
+
+Gantt Chart
+
+--------------------------------------
+
+Capacity vs Demand Graph
+
+--------------------------------------
+
+Analytics Panel
+```
+
+---
+
+# 6. Gantt Chart Behaviour
+
+---
+
+# Task Block Appearance
+
+Each block shows only:
 
 ```
 TASK-101
 Authentication
 ```
 
-Blocks are positioned with CSS.
+Styled using:
+
+```
+background-color = fillColor
+border-color = borderColor
+```
+
+---
+
+# Task Controls
+
+Inside block:
+
+```
+⧉ duplicate
+🗑 delete
+```
+
+---
+
+# Dragging Behaviour
+
+Tasks support:
+
+| Action          | Result                |
+| --------------- | --------------------- |
+| Drag left/right | change start/end date |
+| Drag up/down    | change row            |
+| Resize edges    | change duration       |
+
+Multiple tasks may exist on the same row.
+
+---
+
+# Row Calculation
+
+Row determined by vertical position.
+
+```
+row = floor(mouseY / rowHeight)
+```
+
+---
+
+# 7. External Ticket Links
+
+Double-clicking a task opens external system.
 
 Example:
-
-```
-position: absolute
-left = start
-width = duration
-```
-
----
-
-### Save / Load
-
-#### Export
-
-Download JSON using:
-
-```
-Blob + download link
-```
-
-Button:
-
-```
-Export Plan
-```
-
----
-
-#### Import
-
-Upload JSON file.
-
-Button:
-
-```
-Import Plan
-```
-
----
-
-# Phase 2 — Timeline System
-
-## Objective
-
-Support **custom timelines and snapping increments**.
-
----
-
-## Features
-
-### Timeline Definition
-
-User can define:
-
-* name
-* labels
-* increment
-
-Example:
-
-```
-Sprint Timeline
-Increment: 0.5
-Labels:
-S1 S2 S3 S4
-```
-
----
-
-### Timeline Rendering
-
-Grid generated dynamically.
-
-Example:
-
-```
-| S1 | S2 | S3 | S4 |
-```
-
-Each cell width fixed.
-
----
-
-### Snap Logic
-
-Tasks snap to increments.
-
-```
-snap = round(value / increment) * increment
-```
-
-Example increments:
-
-```
-0.5
-1
-0.25
-```
-
----
-
-### Timeline Switching
-
-User can switch views:
-
-```
-Sprint View
-Month View
-```
-
----
-
-# Phase 3 — Drag & Resize Gantt Blocks
-
-## Objective
-
-Make tasks **interactive and draggable**.
-
----
-
-## Features
-
-### Dragging Tasks
-
-Mouse interaction.
-
-```
-mousedown → begin drag
-mousemove → update position
-mouseup → snap to increment
-```
-
----
-
-### Resizing Tasks
-
-Right edge draggable.
-
-Updates:
-
-```
-timeline.end
-```
-
----
-
-### Vertical Layout
-
-Tasks stacked automatically.
-
-Algorithm:
-
-```
-detect overlap
-push to next row
-```
-
----
-
-### Hover Tooltip
-
-Shows full task info.
-
-Example:
-
-```
-TASK-101
-Authentication
-
-Design: 2
-Dev: 5
-Test: 3
-Tags: backend
-```
-
-Bootstrap tooltip used.
-
----
-
-# Phase 4 — Task Actions
-
-## Objective
-
-Add block actions for editing, duplication, and deletion.
-
----
-
-## Block Buttons
-
-Displayed inside each task.
-
-```
-⧉ Duplicate
-🗑 Delete
-```
-
-Bootstrap icons optional.
-
----
-
-### Duplicate
-
-Creates new task.
-
-Rules:
-
-```
-copy title
-copy effort
-copy tags
-copy duration
-generate new ID
-```
-
-User prompted to change ID.
-
----
-
-### Delete
-
-Confirmation dialog.
-
-```
-Delete TASK-101?
-```
-
----
-
-### Edit Task
-
-Clicking block opens modal.
-
-Allows editing:
-
-* title
-* description
-* effort
-* tags
-
----
-
-# Phase 5 — External Link Integration
-
-## Objective
-
-Enable quick navigation to external systems.
-
----
-
-### Base Link Setting
-
-Example:
-
-```
-https://jira.company.com/browse/
-```
-
-Stored in:
-
-```
-settings.baseLink
-```
-
----
-
-### Double Click Behaviour
-
-Double-clicking block opens:
 
 ```
 baseLink + taskID
 ```
 
-Example:
+Example result:
 
 ```
 https://jira.company.com/browse/TASK-101
 ```
 
-Uses:
-
-```
-window.open(url)
-```
-
 ---
 
-# Phase 6 — Tag System
+# 8. Tag System
 
-## Objective
-
-Allow categorisation and filtering.
-
----
-
-### Tag Creation
-
-Tags stored in task:
-
-```
-tags: ["backend","security"]
-```
-
-UI:
-
-```
-tag input with autocomplete
-```
-
----
-
-### Tag Colours
-
-Each tag assigned colour.
+Tasks may contain tags.
 
 Example:
 
 ```
-backend = blue
-frontend = green
-data = purple
+backend
+frontend
+security
+data
 ```
-
-Small coloured stripe shown on block.
 
 ---
 
-### Tag Filters
+# Tag Filters
 
-Toolbar:
+Toolbar buttons:
 
 ```
 [Backend] [Frontend] [Data]
@@ -488,205 +447,319 @@ multi-select
 
 ---
 
-# Phase 7 — Effort Analytics
+# 9. Timeline Markers
 
-## Objective
-
-Add analytics based on tags and effort.
-
----
-
-## Effort Calculation
-
-Total effort:
-
-```
-design + dev + test
-```
-
----
-
-### Effort by Tag
-
-Example output:
-
-```
-Backend      42
-Frontend     18
-Security      9
-```
-
----
-
-### Effort by Type
-
-```
-Design   14
-Dev      53
-Test     27
-```
-
----
-
-### Effort by Timeline Period
+Markers appear as **vertical lines across the chart**.
 
 Example:
 
 ```
-Sprint 1   15
-Sprint 2   20
-Sprint 3   12
+|----|----|----|
+     │
+     │ Beta Release
+     │
+```
+
+Markers include:
+
+```
+date
+label
+colour
 ```
 
 ---
 
-### Analytics UI
+# 10. Capacity Entry Interface
 
-Bootstrap cards.
+Capacity entered as ranges.
 
-Example:
+Table example:
 
-```
---------------------------------
-Effort by Tag
---------------------------------
+| Start | End    | Capacity |
+| ----- | ------ | -------- |
+| Jan 1 | Mar 31 | 40       |
+| Apr 1 | Jun 30 | 32       |
 
-Backend   █████████
-Frontend  █████
-Data      ███
-```
-
----
-
-# Phase 8 — Capacity Planning Timeline
-
-## Objective
-
-Support second timeline for **capacity planning**.
-
----
-
-### Capacity Model
-
-Example:
+Buttons:
 
 ```
-Jan 40
-Feb 35
-Mar 30
-```
-
-Stored as:
-
-```
-capacity[timeline][period]
+Add Range
+Delete Range
 ```
 
 ---
 
-### Effort vs Capacity
+# 11. Capacity vs Demand Graph
 
-Example:
+Graph located at bottom.
 
-```
-Sprint 1  18 / 20
-Sprint 2  23 / 15 ⚠
-Sprint 3  10 / 25
-```
-
----
-
-### Visual Indicators
-
-Colour states:
+Displays:
 
 ```
-green = under capacity
-yellow = near capacity
-red = over capacity
+capacity vs demand over time
 ```
 
 ---
 
-# Phase 9 — UX Improvements
+# Graph Axes
 
-## Objective
-
-Polish usability.
-
----
-
-### Keyboard Shortcuts
-
-Examples:
+X-axis:
 
 ```
-N = new task
-Del = delete task
-D = duplicate task
+periods (month/week)
+```
+
+Y-axis:
+
+```
+effort units
 ```
 
 ---
 
-### Zoom Levels
+# Graph Style
 
-Timeline zoom:
-
-```
-Week
-Sprint
-Month
-```
-
----
-
-### Task Search
-
-Search by:
+Capacity:
 
 ```
-ID
-Title
-Tag
+solid bars
+```
+
+Demand:
+
+```
+line or alternate bars
 ```
 
 ---
 
-# Phase 10 — Advanced Planning Features (Optional)
+# Overcapacity Highlighting
 
-## Effort Heatmap
+When:
 
-Background shading showing workload intensity.
+```
+demand > capacity
+```
+
+Period shown in red.
 
 ---
 
-## Dependency Lines
+# 12. Multiple Plan Management
 
-Tasks can depend on other tasks.
-
-```
-TASK-101 → [D1]
-
-[D1] → TASK-105 
-```
-
+Plans allow **scenario modelling**.
 
 ---
 
-## Scenario Planning
+# Plan Selector
 
-Multiple plans inside file.
+Dropdown in toolbar.
 
 ```
-Plan A
-Plan B
-Plan C
+Plan: [Baseline ▼]
 ```
 
 ---
 
-## Print view
+# Plan Actions
 
-be able to print the selected plan in single page.
+```
+New Plan
+Duplicate Plan
+Delete Plan
+Rename Plan
+```
 
-If you'd like, I can also show you **one architectural decision that will make this 10× easier to build**: a **very simple internal "planner state engine" (~80 lines)** that cleanly manages tasks, timelines, filters, and analytics. Without that, the JavaScript can become messy very quickly.
+---
+
+# Plan Switching
+
+Switching plans:
+
+1. save current state
+2. load selected plan
+3. redraw UI
+
+---
+
+# 13. Save / Load Plans
+
+---
+
+# Export
+
+```
+Export JSON
+```
+
+Downloads:
+
+```
+planning-file.json
+```
+
+---
+
+# Import
+
+```
+Import JSON
+```
+
+Loads full file including all plans.
+
+---
+
+# 14. Print View
+
+Print mode removes editing UI.
+
+Uses:
+
+```
+@media print
+```
+
+Print shows:
+
+```
+timeline
+tasks
+markers
+legend
+capacity graph
+```
+
+Suggested page layout:
+
+```
+A4 landscape
+```
+
+---
+
+# 15. Implementation Phases
+
+---
+
+# Phase 1 — Application Shell
+
+Implement:
+
+* Bootstrap layout
+* file data model
+* plan loading
+* basic UI skeleton
+
+---
+
+# Phase 2 — Plan Management
+
+Implement:
+
+* plan selector
+* create/duplicate/delete plans
+* plan switching
+
+---
+
+# Phase 3 — Date-Based Timeline
+
+Implement:
+
+* start/end timeline
+* date grid rendering
+* marker rendering
+
+---
+
+# Phase 4 — Task Management
+
+Implement:
+
+* create/edit tasks
+* task modal
+* task rendering
+
+---
+
+# Phase 5 — Drag and Resize System
+
+Implement:
+
+* horizontal dragging
+* vertical row dragging
+* resize edges
+
+---
+
+# Phase 6 — Task Controls
+
+Implement:
+
+* duplicate
+* delete
+* external link double-click
+
+---
+
+# Phase 7 — Tag System
+
+Implement:
+
+* tag entry
+* tag filters
+* highlight mode
+
+---
+
+# Phase 8 — Capacity Planning
+
+Implement:
+
+* capacity range entry
+* granularity setting
+* capacity expansion logic
+
+---
+
+# Phase 9 — Demand Calculation Engine
+
+Implement:
+
+* effort distribution
+* demand adjustment factor
+* period aggregation
+
+---
+
+# Phase 10 — Capacity vs Demand Graph
+
+Implement:
+
+* canvas graph rendering
+* overcapacity highlighting
+
+---
+
+# Phase 11 — Save / Load
+
+Implement:
+
+* JSON export
+* JSON import
+* validation
+
+---
+
+# Phase 12 — Print View
+
+Implement:
+
+* print CSS
+* print button
+* clean layout
+
+---
+
