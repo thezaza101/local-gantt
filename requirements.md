@@ -685,4 +685,8 @@ Plan C
 
 ---
 
+## Print view
+
+be able to print the selected plan in single page.
+
 If you'd like, I can also show you **one architectural decision that will make this 10× easier to build**: a **very simple internal "planner state engine" (~80 lines)** that cleanly manages tasks, timelines, filters, and analytics. Without that, the JavaScript can become messy very quickly.
