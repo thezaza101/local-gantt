@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planner Tool</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-dark bg-dark mb-3">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">Project Planner</span>
+    </div>
+  </nav>
+
+  <!-- Toolbar -->
+  <div class="container-fluid mb-3">
+    <div class="row align-items-center">
+      <div class="col-auto">
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+          Add Task
+        </button>
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-secondary" id="exportBtn">Export Plan</button>
+      </div>
+      <div class="col-auto">
+        <input class="form-control" type="file" id="importFile" accept=".json" style="display: none;">
+        <button type="button" class="btn btn-secondary" id="importBtn">Import Plan</button>
+      </div>
+      <div class="col-auto ms-auto d-flex align-items-center">
+        <label for="zoomFactor" class="me-2 mb-0 fw-bold">Zoom:</label>
+        <input type="number" id="zoomFactor" class="form-control" value="100" min="10" step="10" style="width: 100px;">
+      </div>
+    </div>
+  </div>
+
+  <!-- Timeline Area -->
+  <div class="container-fluid mb-3">
+    <div class="card">
+      <div class="card-header bg-light">
+        <strong>Timeline (Gantt)</strong>
+      </div>
+      <div class="card-body p-0 position-relative" style="overflow-x: auto; min-height: 200px;" id="ganttContainer">
+        <!-- Rendered blocks go here -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Analytics Panel -->
+  <div class="container-fluid">
+    <div class="card">
+      <div class="card-header bg-light">
+        <strong>Analytics</strong>
+      </div>
+      <div class="card-body" id="analyticsContainer">
+        <!-- Rendered analytics go here -->
+        <p class="text-muted">Analytics will appear here.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="addTaskModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="addTaskForm">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addTaskModalLabel">Add Task</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+
+            <div class="mb-3">
+              <label for="taskId" class="form-label">Task ID</label>
+              <input type="text" class="form-control" id="taskId" required placeholder="e.g. TASK-101">
+            </div>
+            <div class="mb-3">
+              <label for="taskTitle" class="form-label">Title</label>
+              <input type="text" class="form-control" id="taskTitle" required>
+            </div>
+            <div class="mb-3">
+              <label for="taskDesc" class="form-label">Description</label>
+              <textarea class="form-control" id="taskDesc" rows="2"></textarea>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col">
+                <label for="taskStart" class="form-label">Start</label>
+                <input type="number" class="form-control" id="taskStart" required value="0">
+              </div>
+              <div class="col">
+                <label for="taskEnd" class="form-label">End</label>
+                <input type="number" class="form-control" id="taskEnd" required value="1">
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col">
+                <label for="effortDesign" class="form-label">Design Effort</label>
+                <input type="number" class="form-control" id="effortDesign" value="0" min="0">
+              </div>
+              <div class="col">
+                <label for="effortDev" class="form-label">Dev Effort</label>
+                <input type="number" class="form-control" id="effortDev" value="0" min="0">
+              </div>
+              <div class="col">
+                <label for="effortTest" class="form-label">Test Effort</label>
+                <input type="number" class="form-control" id="effortTest" value="0" min="0">
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label for="taskTags" class="form-label">Tags (comma separated)</label>
+              <input type="text" class="form-control" id="taskTags" placeholder="e.g. backend, security">
+            </div>
+
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" class="btn btn-primary">Save Task</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/bootstrap.bundle.min.js"></script>
+  <script src="planner.js"></script>
+  <script src="storage.js"></script>
+  <script src="gantt.js"></script>
+  <script src="analytics.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
