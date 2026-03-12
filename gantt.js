@@ -163,10 +163,12 @@ class Gantt {
                     background-color: ${fillColor};
                     border-color: ${borderColor};
                 ">
+                    <div class="gantt-resize-handle left" data-resize="left"></div>
                     <div class="gantt-task-content">
                         <strong>${safeId}</strong><br>
                         ${safeTitle}
                     </div>
+                    <div class="gantt-resize-handle right" data-resize="right"></div>
                 </div>
             `;
         });
@@ -178,12 +180,168 @@ class Gantt {
         if (!this.container) return;
 
         const tasks = this.container.querySelectorAll('.gantt-task');
-        tasks.forEach(taskEl => {
-            taskEl.addEventListener('click', (e) => {
-                const taskId = taskEl.getAttribute('data-task-id');
-                if (taskId && window.UIController) {
-                    window.UIController.openTaskModal(taskId);
+
+        let isDragging = false;
+        let isResizing = false;
+        let resizeDirection = null; // 'left' or 'right'
+        let startX = 0;
+        let startY = 0;
+        let initialLeft = 0;
+        let initialTop = 0;
+        let initialWidth = 0;
+        let activeTaskEl = null;
+        let activeTaskId = null;
+        let hasMoved = false; // to distinguish click from drag
+        const MOVE_THRESHOLD = 3;
+
+        const onMouseMove = (e) => {
+            if (!activeTaskEl) return;
+
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+
+            if (!hasMoved && (Math.abs(deltaX) > MOVE_THRESHOLD || Math.abs(deltaY) > MOVE_THRESHOLD)) {
+                hasMoved = true;
+                if (isDragging) activeTaskEl.classList.add('dragging');
+                if (isResizing) activeTaskEl.classList.add('resizing');
+            }
+
+            if (!hasMoved) return;
+
+            if (isDragging) {
+                // Drag task block (update left and top)
+                let newLeft = initialLeft + deltaX;
+                let newTop = initialTop + deltaY;
+
+                // Optional: basic bounds checking visually
+                if (newLeft < 0) newLeft = 0;
+                if (newTop < this.taskMargin) newTop = this.taskMargin;
+
+                activeTaskEl.style.left = `${newLeft}px`;
+                activeTaskEl.style.top = `${newTop}px`;
+            } else if (isResizing) {
+                if (resizeDirection === 'left') {
+                    // Update left and width
+                    let newLeft = initialLeft + deltaX;
+                    let newWidth = initialWidth - deltaX;
+
+                    if (newWidth < this.cellWidth) {
+                        // Max drag right (cannot be smaller than 1 day)
+                        newWidth = this.cellWidth;
+                        newLeft = initialLeft + (initialWidth - this.cellWidth);
+                    }
+                    if (newLeft < 0) {
+                        // Max drag left (cannot go beyond timeline start)
+                        newLeft = 0;
+                        newWidth = initialWidth + initialLeft;
+                    }
+
+                    activeTaskEl.style.left = `${newLeft}px`;
+                    activeTaskEl.style.width = `${newWidth}px`;
+                } else if (resizeDirection === 'right') {
+                    // Update width
+                    let newWidth = initialWidth + deltaX;
+                    if (newWidth < this.cellWidth) newWidth = this.cellWidth;
+
+                    activeTaskEl.style.width = `${newWidth}px`;
                 }
+            }
+        };
+
+        const onMouseUp = (e) => {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+
+            if (!activeTaskEl) return;
+
+            activeTaskEl.classList.remove('dragging', 'resizing');
+
+            if (hasMoved) {
+                // Handle the drop/resize finish
+                const plan = window.PlannerState.getCurrentPlan();
+                if (plan) {
+                    const task = plan.tasks.find(t => t.id === activeTaskId);
+                    if (task) {
+                        const finalLeft = parseFloat(activeTaskEl.style.left);
+                        const finalWidth = parseFloat(activeTaskEl.style.width);
+                        const finalTop = parseFloat(activeTaskEl.style.top);
+
+                        // Snap to grid calculations
+                        const snappedDaysOffset = Math.round(finalLeft / this.cellWidth);
+                        const snappedDurationDays = Math.round(finalWidth / this.cellWidth);
+
+                        // Row calculation (minimum row 1)
+                        const snappedRowIndex = Math.max(0, Math.round((finalTop - this.taskMargin) / this.rowHeight));
+                        const newRow = snappedRowIndex + 1;
+
+                        // Parse the YYYY-MM-DD string as local time to avoid timezone offset issues
+                        const [year, month, day] = plan.timeline.startDate.split('-');
+                        const planStartDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+
+                        // Calculate new start and end dates based on offset
+                        const newStartDate = new Date(planStartDate);
+                        newStartDate.setDate(planStartDate.getDate() + snappedDaysOffset);
+
+                        const newEndDate = new Date(newStartDate);
+                        newEndDate.setDate(newStartDate.getDate() + snappedDurationDays - 1); // duration includes start day
+
+                        // Format dates to YYYY-MM-DD
+                        const formatDate = (date) => {
+                            const yyyy = date.getFullYear();
+                            const mm = String(date.getMonth() + 1).padStart(2, '0');
+                            const dd = String(date.getDate()).padStart(2, '0');
+                            return `${yyyy}-${mm}-${dd}`;
+                        };
+
+                        task.startDate = formatDate(newStartDate);
+                        task.endDate = formatDate(newEndDate);
+                        task.row = newRow;
+
+                        // Force re-render with snapped positions
+                        this.render(plan);
+                    }
+                }
+            } else {
+                // It was just a click, open modal
+                if (window.UIController) {
+                    window.UIController.openTaskModal(activeTaskId);
+                }
+            }
+
+            // Reset state
+            isDragging = false;
+            isResizing = false;
+            resizeDirection = null;
+            activeTaskEl = null;
+            activeTaskId = null;
+            hasMoved = false;
+        };
+
+        tasks.forEach(taskEl => {
+            taskEl.addEventListener('mousedown', (e) => {
+                // Determine if we clicked a resize handle or the task body
+                activeTaskEl = taskEl;
+                activeTaskId = taskEl.getAttribute('data-task-id');
+                startX = e.clientX;
+                startY = e.clientY;
+                initialLeft = parseFloat(taskEl.style.left) || 0;
+                initialTop = parseFloat(taskEl.style.top) || 0;
+                initialWidth = parseFloat(taskEl.style.width) || 0;
+                hasMoved = false;
+
+                if (e.target.classList.contains('gantt-resize-handle')) {
+                    isResizing = true;
+                    resizeDirection = e.target.getAttribute('data-resize'); // 'left' or 'right'
+                } else {
+                    // Clicked the task body
+                    isDragging = true;
+                }
+
+                // Prevent text selection during drag
+                e.preventDefault();
+
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
             });
         });
     }
