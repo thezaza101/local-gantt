@@ -217,7 +217,7 @@ class UI {
             const task = this.planner.getTaskById(taskId);
             if (task) {
                 document.getElementById('taskId').value = task.id;
-                document.getElementById('taskId').readOnly = true; // or not, but editing ID requires care
+                document.getElementById('taskId').readOnly = false; // allow editing ID
                 document.getElementById('originalTaskId').value = task.id;
 
                 document.getElementById('taskTitle').value = task.title || '';
