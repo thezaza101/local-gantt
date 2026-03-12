@@ -149,6 +149,55 @@ class UI {
                 this.saveTask();
             });
         }
+
+        // Tag Filter Events
+        const tagFiltersContainer = document.getElementById('tagFiltersContainer');
+        if (tagFiltersContainer) {
+            tagFiltersContainer.addEventListener('change', (e) => {
+                if (e.target.matches('.tag-checkbox')) {
+                    this.updateTagFiltersState();
+                } else if (e.target.matches('.tag-match-mode-radio') || e.target.matches('.tag-visual-mode-radio')) {
+                    this.updateTagFiltersState();
+                }
+            });
+
+            tagFiltersContainer.addEventListener('click', (e) => {
+                if (e.target.id === 'selectAllTagsBtn') {
+                    const checkboxes = tagFiltersContainer.querySelectorAll('.tag-checkbox');
+                    checkboxes.forEach(cb => cb.checked = true);
+                    this.updateTagFiltersState();
+                } else if (e.target.id === 'unselectAllTagsBtn') {
+                    const checkboxes = tagFiltersContainer.querySelectorAll('.tag-checkbox');
+                    checkboxes.forEach(cb => cb.checked = false);
+                    this.updateTagFiltersState();
+                }
+            });
+        }
+    }
+
+    updateTagFiltersState() {
+        const container = document.getElementById('tagFiltersContainer');
+        if (!container) return;
+
+        const selectedTags = Array.from(container.querySelectorAll('.tag-checkbox:checked')).map(cb => cb.value);
+
+        let matchMode = 'any';
+        const matchModeEl = container.querySelector('.tag-match-mode-radio:checked');
+        if (matchModeEl) matchMode = matchModeEl.value;
+
+        let visualMode = 'show';
+        const visualModeEl = container.querySelector('.tag-visual-mode-radio:checked');
+        if (visualModeEl) visualMode = visualModeEl.value;
+
+        this.planner.setFilterState({
+            selectedTags,
+            matchMode,
+            visualMode
+        });
+
+        if (window.GanttEngine) {
+            window.GanttEngine.render(this.planner.getCurrentPlan());
+        }
     }
 
     saveTask() {
@@ -285,9 +334,92 @@ class UI {
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
 
+        this.renderTagFilters();
+
         // Trigger Gantt re-render if it exists
         if (window.GanttEngine) {
             window.GanttEngine.render(this.planner.getCurrentPlan());
         }
+    }
+
+    renderTagFilters() {
+        const container = document.getElementById('tagFiltersContainer');
+        if (!container || !window.AnalyticsEngine) return;
+
+        const uniqueTags = window.AnalyticsEngine.getUniqueTags();
+        const filterState = this.planner.getFilterState();
+
+        if (uniqueTags.length === 0) {
+            container.innerHTML = '<span class="text-muted small">No tags in current plan</span>';
+            return;
+        }
+
+        let html = `
+            <div class="d-flex align-items-center me-3">
+                <span class="fw-bold text-muted small me-2">Tags:</span>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" id="selectAllTagsBtn" style="font-size: 0.75rem;">All</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="unselectAllTagsBtn" style="font-size: 0.75rem;">None</button>
+            </div>
+            <div class="d-flex flex-wrap gap-2 me-3">
+        `;
+
+        // Prune phantom tags from filterState if they don't exist in the current plan
+        const validSelectedTags = filterState.selectedTags.filter(t => uniqueTags.includes(t));
+        if (validSelectedTags.length !== filterState.selectedTags.length) {
+            this.planner.setFilterState({ selectedTags: validSelectedTags });
+            // Re-fetch state after update
+            filterState.selectedTags = validSelectedTags;
+        }
+
+        const escapeHtml = (str) => {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        };
+
+        uniqueTags.forEach(tag => {
+            const isChecked = filterState.selectedTags.includes(tag) ? 'checked' : '';
+            const safeTagAttr = tag.replace(/"/g, '&quot;');
+            const safeTagText = escapeHtml(tag);
+            html += `
+                <div class="form-check form-check-inline m-0 d-flex align-items-center">
+                    <input class="form-check-input tag-checkbox me-1" type="checkbox" id="tagFilter_${safeTagAttr}" value="${safeTagAttr}" ${isChecked}>
+                    <label class="form-check-label small" for="tagFilter_${safeTagAttr}">${safeTagText}</label>
+                </div>
+            `;
+        });
+
+        html += `
+            </div>
+            <div class="d-flex align-items-center border-start ps-3 gap-3">
+                <div class="d-flex align-items-center gap-1">
+                    <span class="text-muted small">Match:</span>
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input tag-match-mode-radio" type="radio" name="tagMatchMode" id="matchModeAny" value="any" ${filterState.matchMode === 'any' ? 'checked' : ''}>
+                        <label class="form-check-label small" for="matchModeAny">Any (OR)</label>
+                    </div>
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input tag-match-mode-radio" type="radio" name="tagMatchMode" id="matchModeAll" value="all" ${filterState.matchMode === 'all' ? 'checked' : ''}>
+                        <label class="form-check-label small" for="matchModeAll">All (AND)</label>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-1 border-start ps-3">
+                    <span class="text-muted small">View:</span>
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeShow" value="show" ${filterState.visualMode === 'show' ? 'checked' : ''}>
+                        <label class="form-check-label small" for="visualModeShow">Show Only</label>
+                    </div>
+                    <div class="form-check form-check-inline m-0">
+                        <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeHighlight" value="highlight" ${filterState.visualMode === 'highlight' ? 'checked' : ''}>
+                        <label class="form-check-label small" for="visualModeHighlight">Highlight</label>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML = html;
     }
 }

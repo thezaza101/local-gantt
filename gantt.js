@@ -85,6 +85,11 @@ class Gantt {
             });
         }
 
+        const { html: tasksHtml, maxRow } = this.generateTasksHtml(plan, startDate, endDate);
+
+        // Calculate the required height to ensure the grid background goes down properly
+        const requiredHeight = Math.max(300, (maxRow + 2) * this.rowHeight); // At least 300px, or tall enough for the rows + padding
+
         this.container.innerHTML = `
             <div class="gantt-wrapper position-relative" style="width: 100%; height: 100%; overflow: auto;">
                 <div class="gantt-content" style="width: ${totalWidth}px; min-height: 100%; position: relative;">
@@ -107,8 +112,8 @@ class Gantt {
                     ${markersHtml}
 
                     <!-- Rows Container -->
-                    <div class="gantt-rows mt-2 position-relative z-1" style="min-height: 300px;">
-                        ${this.generateTasksHtml(plan, startDate, endDate)}
+                    <div class="gantt-rows mt-2 position-relative z-1" style="min-height: ${requiredHeight}px;">
+                        ${tasksHtml}
                     </div>
                 </div>
             </div>
@@ -119,9 +124,13 @@ class Gantt {
     }
 
     generateTasksHtml(plan, planStartDate, planEndDate) {
-        if (!plan.tasks || plan.tasks.length === 0) return '';
+        if (!plan.tasks || plan.tasks.length === 0) return { html: '', maxRow: 0 };
 
+        const filterState = window.PlannerState.getFilterState();
         let tasksHtml = '';
+
+        // Filter and collect tasks
+        const visibleTasks = [];
         plan.tasks.forEach(task => {
             const taskStart = new Date(task.startDate);
             const taskEnd = new Date(task.endDate);
@@ -132,6 +141,31 @@ class Gantt {
             // Check if task is within plan timeline
             if (taskEnd < planStartDate || taskStart > planEndDate) return;
 
+            const isMatch = window.AnalyticsEngine ?
+                window.AnalyticsEngine.taskMatchesTags(task, filterState.selectedTags, filterState.matchMode) : true;
+
+            // If mode is "show only" and it doesn't match, completely skip rendering this task
+            if (filterState.visualMode === 'show' && !isMatch) return;
+
+            visibleTasks.push({ task, isMatch, taskStart, taskEnd });
+        });
+
+        // Map visible rows to dense indices to hide empty rows
+        const uniqueRows = Array.from(new Set(visibleTasks.map(t => (t.task.row !== undefined && t.task.row > 0) ? t.task.row - 1 : 0))).sort((a, b) => a - b);
+        const rowMap = new Map();
+        uniqueRows.forEach((row, index) => {
+            // In highlight mode, we don't compact rows to avoid tasks jumping around,
+            // but in show mode, we do compact them.
+            if (filterState.visualMode === 'show') {
+                rowMap.set(row, index);
+            } else {
+                rowMap.set(row, row);
+            }
+        });
+
+        let maxRow = 0;
+
+        visibleTasks.forEach(({ task, isMatch, taskStart, taskEnd }) => {
             // Calculate start and end offsets relative to plan timeline
             const effectiveStart = taskStart < planStartDate ? planStartDate : taskStart;
             const effectiveEnd = taskEnd > planEndDate ? planEndDate : taskEnd;
@@ -143,16 +177,26 @@ class Gantt {
             const leftPos = startDaysOffset * this.cellWidth;
             const width = durationDays * this.cellWidth;
 
-            // Determine vertical position based on row
-            const rowIndex = (task.row !== undefined && task.row > 0) ? task.row - 1 : 0;
-            const topPos = rowIndex * this.rowHeight + this.taskMargin;
+            // Determine vertical position based on mapped row
+            const rawRowIndex = (task.row !== undefined && task.row > 0) ? task.row - 1 : 0;
+            const mappedRowIndex = rowMap.has(rawRowIndex) ? rowMap.get(rawRowIndex) : rawRowIndex;
+
+            const topPos = mappedRowIndex * this.rowHeight + this.taskMargin;
             const taskHeight = this.rowHeight - (this.taskMargin * 2);
+
+            if (mappedRowIndex > maxRow) {
+                maxRow = mappedRowIndex;
+            }
 
             const fillColor = task.fillColor || '#4da3ff';
             const borderColor = task.borderColor || '#1c6ed5';
 
             const safeTitle = this.escapeHtml(task.title || 'Untitled');
             const safeId = this.escapeHtml(task.id || '');
+
+            // Apply visual mode styles if it's highlight mode and it doesn't match
+            const opacityStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'opacity: 0.3;' : '';
+            const pointerEventsStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'pointer-events: none;' : '';
 
             tasksHtml += `
                 <div class="gantt-task" data-task-id="${safeId}" style="
@@ -162,6 +206,8 @@ class Gantt {
                     height: ${taskHeight}px;
                     background-color: ${fillColor};
                     border-color: ${borderColor};
+                    ${opacityStyle}
+                    ${pointerEventsStyle}
                 ">
                     <div class="gantt-resize-handle left" data-resize="left"></div>
                     <div class="gantt-task-content">
@@ -178,7 +224,7 @@ class Gantt {
             `;
         });
 
-        return tasksHtml;
+        return { html: tasksHtml, maxRow };
     }
 
     bindTaskEvents() {

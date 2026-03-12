@@ -12,6 +12,21 @@ class Planner {
             plans: []
         };
         this.currentPlanIndex = -1;
+
+        // Tag filter state
+        this.filterState = {
+            selectedTags: [],
+            matchMode: 'any', // 'any' or 'all'
+            visualMode: 'show' // 'show' or 'highlight'
+        };
+    }
+
+    getFilterState() {
+        return this.filterState;
+    }
+
+    setFilterState(newState) {
+        this.filterState = { ...this.filterState, ...newState };
     }
 
     getCurrentPlan() {
