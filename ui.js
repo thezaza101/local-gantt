@@ -109,6 +109,28 @@ class UI {
                 }
             });
         }
+
+        // Add Marker Button (For testing phase 3)
+        const addMarkerBtn = document.getElementById("addMarkerBtn");
+        if (addMarkerBtn) {
+            addMarkerBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (!currentPlan) return;
+
+                const label = prompt("Enter marker label:");
+                if (!label) return;
+
+                const dateStr = prompt("Enter marker date (YYYY-MM-DD):", currentPlan.timeline.startDate);
+                if (!dateStr || isNaN(new Date(dateStr).getTime())) {
+                    alert("Invalid date");
+                    return;
+                }
+
+                if (this.planner.addMarker(dateStr, label)) {
+                    this.updateUI();
+                }
+            });
+        }
     }
 
     updateUI() {
@@ -142,9 +164,16 @@ class UI {
         const renamePlanBtn = document.getElementById("renamePlanBtn");
         const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
         const deletePlanBtn = document.getElementById("deletePlanBtn");
+        const addMarkerBtn = document.getElementById("addMarkerBtn");
 
         if (renamePlanBtn) renamePlanBtn.disabled = !hasPlans;
         if (duplicatePlanBtn) duplicatePlanBtn.disabled = !hasPlans;
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
+        if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
+
+        // Trigger Gantt re-render if it exists
+        if (window.GanttEngine) {
+            window.GanttEngine.render(this.planner.getCurrentPlan());
+        }
     }
 }

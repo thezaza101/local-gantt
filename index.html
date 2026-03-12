@@ -43,6 +43,7 @@
             <button type="button" id="renamePlanBtn" class="btn btn-sm btn-outline-secondary">Rename</button>
             <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary">Duplicate</button>
             <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-secondary">Delete</button>
+            <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary">Add Marker</button>
         </div>
     </div>
 
@@ -58,7 +59,7 @@
     <div class="main-content">
         <!-- Planner Area (Gantt + Capacity Graph) -->
         <div class="planner-area d-flex flex-column">
-            <div class="gantt-chart-container p-4 d-flex align-items-center justify-content-center">
+            <div id="gantt-chart-container" class="gantt-chart-container p-4 d-flex align-items-center justify-content-center">
                 <div class="text-center text-muted">
                     <h5>Gantt Chart Area</h5>
                     <p class="small">Timeline and tasks will render here</p>

@@ -84,6 +84,58 @@ body {
     background-color: #fcfcfc;
 }
 
+/* Gantt Chart Custom Styles */
+.gantt-chart-container {
+    position: relative;
+    padding: 0; /* Override the default padding to allow grid to fill */
+}
+
+.gantt-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.gantt-month {
+    background-color: #f8f9fa;
+    padding: 2px 0;
+    font-size: 0.9em;
+}
+
+.gantt-day {
+    background-color: #fff;
+    color: #6c757d;
+}
+
+.gantt-grid-line {
+    border-color: #f0f0f0 !important;
+}
+
+.gantt-marker {
+    position: absolute;
+    top: 50px; /* Below headers */
+    bottom: 0;
+    width: 0;
+    z-index: 10;
+    pointer-events: none;
+}
+
+.gantt-marker-label {
+    position: absolute;
+    top: 0;
+    left: 4px;
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    white-space: nowrap;
+    font-size: 0.8em;
+    font-weight: bold;
+    opacity: 0.6;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    gap: 100px;
+}
+
 /* Print View Setup */
 @media print {
     .navbar, .toolbar, .tag-filters, .analytics-panel, .btn {
