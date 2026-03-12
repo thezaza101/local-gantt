@@ -110,6 +110,16 @@ class UI {
             });
         }
 
+        // Capacity Button
+        const capacityPlanBtn = document.getElementById("capacityPlanBtn");
+        if (capacityPlanBtn) {
+            capacityPlanBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (!currentPlan) return;
+                this.openCapacityModal();
+            });
+        }
+
         // Add Marker Button (For testing phase 3)
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         if (addMarkerBtn) {
@@ -147,6 +157,22 @@ class UI {
         if (saveTaskBtn) {
             saveTaskBtn.addEventListener("click", () => {
                 this.saveTask();
+            });
+        }
+
+        // Capacity Add Row Button
+        const addCapacityRowBtn = document.getElementById("addCapacityRowBtn");
+        if (addCapacityRowBtn) {
+            addCapacityRowBtn.addEventListener("click", () => {
+                this.addCapacityRow();
+            });
+        }
+
+        // Save Capacity Button
+        const saveCapacityBtn = document.getElementById("saveCapacityBtn");
+        if (saveCapacityBtn) {
+            saveCapacityBtn.addEventListener("click", () => {
+                this.saveCapacity();
             });
         }
 
@@ -294,6 +320,118 @@ class UI {
         taskModal.show();
     }
 
+    openCapacityModal() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const capacityModal = new bootstrap.Modal(document.getElementById('capacityModal'));
+
+        // Initialize fields
+        const granularitySelect = document.getElementById('capacityGranularity');
+        const demandAdjustmentInput = document.getElementById('demandAdjustmentPercent');
+        const capacityTableBody = document.getElementById('capacityTableBody');
+
+        // Set values from current plan or defaults
+        granularitySelect.value = (currentPlan.capacity && currentPlan.capacity.granularity) ? currentPlan.capacity.granularity : 'month';
+        demandAdjustmentInput.value = (currentPlan.demandAdjustmentPercent !== undefined) ? currentPlan.demandAdjustmentPercent : 20;
+
+        // Clear existing rows
+        capacityTableBody.innerHTML = '';
+
+        // Add rows for existing capacity entries
+        const entries = (currentPlan.capacity && currentPlan.capacity.entries) ? currentPlan.capacity.entries : [];
+        entries.forEach(entry => {
+            this.addCapacityRow(entry.startDate, entry.endDate, entry.capacity);
+        });
+
+        // Add one empty row if no entries exist
+        if (entries.length === 0) {
+            this.addCapacityRow();
+        }
+
+        capacityModal.show();
+    }
+
+    addCapacityRow(startDate = '', endDate = '', capacity = 0) {
+        const tbody = document.getElementById('capacityTableBody');
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+            <td><input type="date" class="form-control form-control-sm cap-start" value="${startDate}" required></td>
+            <td><input type="date" class="form-control form-control-sm cap-end" value="${endDate}" required></td>
+            <td><input type="number" class="form-control form-control-sm cap-val" value="${capacity}" min="0" required></td>
+            <td class="align-middle text-center">
+                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-cap-row-btn" title="Delete Row">&times;</button>
+            </td>
+        `;
+
+        // Bind delete event
+        const deleteBtn = tr.querySelector('.delete-cap-row-btn');
+        deleteBtn.addEventListener('click', () => {
+            tr.remove();
+        });
+
+        tbody.appendChild(tr);
+    }
+
+    saveCapacity() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const granularitySelect = document.getElementById('capacityGranularity');
+        const demandAdjustmentInput = document.getElementById('demandAdjustmentPercent');
+        const tbody = document.getElementById('capacityTableBody');
+
+        const entries = [];
+        let hasErrors = false;
+
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const startInput = row.querySelector('.cap-start');
+            const endInput = row.querySelector('.cap-end');
+            const valInput = row.querySelector('.cap-val');
+
+            const startDate = startInput.value;
+            const endDate = endInput.value;
+            const capacity = parseFloat(valInput.value);
+
+            if (startDate && endDate) {
+                if (new Date(startDate) > new Date(endDate)) {
+                    hasErrors = true;
+                    alert("Start date cannot be after end date in capacity ranges.");
+                } else {
+                    entries.push({ startDate, endDate, capacity: isNaN(capacity) ? 0 : capacity });
+                }
+            }
+        });
+
+        if (hasErrors) return;
+
+        // Update planner state
+        if (!currentPlan.capacity) currentPlan.capacity = {};
+        currentPlan.capacity.granularity = granularitySelect.value;
+        currentPlan.capacity.entries = entries;
+        currentPlan.demandAdjustmentPercent = parseFloat(demandAdjustmentInput.value) || 0;
+
+        // Save back to Planner State to update
+        this.planner.updatePlanSettings(currentPlan);
+
+        // Calculate and log expanded capacity
+        if (window.CapacityEngine) {
+            const expanded = window.CapacityEngine.calculateExpandedCapacity(currentPlan);
+            console.log("Calculated Expanded Capacity:", expanded);
+        }
+
+        // Close modal
+        const capacityModalEl = document.getElementById('capacityModal');
+        const capacityModal = bootstrap.Modal.getInstance(capacityModalEl);
+        if (capacityModal) {
+            capacityModal.hide();
+        }
+
+        this.updateUI();
+    }
+
     updateUI() {
         const planSelector = document.getElementById("planSelector");
         const plans = this.planner.getState().plans || [];
@@ -327,12 +465,14 @@ class UI {
         const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
         const deletePlanBtn = document.getElementById("deletePlanBtn");
         const addMarkerBtn = document.getElementById("addMarkerBtn");
+        const capacityPlanBtn = document.getElementById("capacityPlanBtn");
 
         if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
         if (renamePlanBtn) renamePlanBtn.disabled = !hasPlans;
         if (duplicatePlanBtn) duplicatePlanBtn.disabled = !hasPlans;
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
+        if (capacityPlanBtn) capacityPlanBtn.disabled = !hasPlans;
 
         this.renderTagFilters();
 

@@ -145,6 +145,16 @@ class Planner {
         return true;
     }
 
+    updatePlanSettings(updatedPlanData) {
+        const plan = this.getCurrentPlan();
+        if (!plan) return false;
+
+        if (updatedPlanData.capacity) plan.capacity = updatedPlanData.capacity;
+        if (updatedPlanData.demandAdjustmentPercent !== undefined) plan.demandAdjustmentPercent = updatedPlanData.demandAdjustmentPercent;
+
+        return true;
+    }
+
     updateTask(taskId, updatedTask) {
         const plan = this.getCurrentPlan();
         if (!plan || !plan.tasks) return false;

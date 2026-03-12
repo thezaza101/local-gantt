@@ -13,6 +13,9 @@ function initApp() {
     // Initialize Gantt Engine
     window.GanttEngine = new Gantt('gantt-chart-container');
 
+    // Initialize Capacity Engine
+    window.CapacityEngine = new Capacity();
+
     // Initialize Analytics
     window.AnalyticsEngine = new Analytics(window.PlannerState);
 
