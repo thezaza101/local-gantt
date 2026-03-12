@@ -45,6 +45,7 @@
             <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary">Duplicate</button>
             <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-secondary">Delete</button>
             <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary">Add Marker</button>
+            <button type="button" id="capacityPlanBtn" class="btn btn-sm btn-outline-info">Capacity</button>
         </div>
     </div>
 
@@ -162,6 +163,55 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="saveTaskBtn">Save Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Capacity Modal -->
+    <div class="modal fade" id="capacityModal" tabindex="-1" aria-labelledby="capacityModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="capacityModalLabel">Capacity Planning</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="capacityForm">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="capacityGranularity" class="form-label">Granularity</label>
+                                <select class="form-select" id="capacityGranularity">
+                                    <option value="month">Month</option>
+                                    <option value="week">Week</option>
+                                    <option value="quarter">Quarter</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="demandAdjustmentPercent" class="form-label">Demand Adjustment (%)</label>
+                                <input type="number" class="form-control" id="demandAdjustmentPercent" min="0" max="100" value="20">
+                            </div>
+                        </div>
+                        <h6 class="border-bottom pb-2 mt-4">Capacity Ranges</h6>
+                        <table class="table table-sm mt-3" id="capacityTable">
+                            <thead>
+                                <tr>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Capacity</th>
+                                    <th style="width: 50px;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="capacityTableBody">
+                                <!-- Capacity rows injected here -->
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="addCapacityRowBtn">+ Add Range</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveCapacityBtn">Save</button>
                 </div>
             </div>
         </div>

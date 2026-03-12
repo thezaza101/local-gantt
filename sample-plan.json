@@ -26,21 +26,26 @@
         }
       ],
       "capacity": {
-        "granularity": "month",
+        "granularity": "week",
         "entries": [
           {
             "startDate": "2026-01-01",
-            "endDate": "2026-03-31",
-            "capacity": 40
+            "endDate": "2026-02-28",
+            "capacity": 120
           },
           {
-            "startDate": "2026-04-01",
+            "startDate": "2026-03-01",
+            "endDate": "2026-04-30",
+            "capacity": 100
+          },
+          {
+            "startDate": "2026-05-01",
             "endDate": "2026-06-30",
-            "capacity": 32
+            "capacity": 80
           }
         ]
       },
-      "demandAdjustmentPercent": 20,
+      "demandAdjustmentPercent": 15,
       "tasks": [
         {
           "id": "TASK-101",
