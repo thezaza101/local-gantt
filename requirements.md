@@ -1,1376 +1,688 @@
-Below is a \*\*structured phased implementation plan\*\* that builds your tool incrementally while keeping it \*\*browser-only, dependency-light, and usable early\*\*. The goal is that \*\*every phase results in a working tool\*\*, not just partial components.
-
-
-
-The only external library allowed is \*\*Bootstrap\*\* for layout and styling.
-
-
+The only external library allowed is **Bootstrap** for layout and styling.
 
 ---
 
-
-
-\# Phased Implementation Plan
-
-
+# Phased Implementation Plan
 
 Browser-Only Work Planning Tool
 
+## Technology Stack
 
+**Frontend**
 
-\## Technology Stack
+* HTML
+* Vanilla JavaScript
+* Bootstrap (for layout/components)
 
+**Data**
 
+* JSON file save/load
+* Local in-memory state
 
-\*\*Frontend\*\*
-
-
-
-\* HTML
-
-\* Vanilla JavaScript
-
-\* Bootstrap (for layout/components)
-
-
-
-\*\*Data\*\*
-
-
-
-\* JSON file save/load
-
-\* Local in-memory state
-
-
-
-\*\*Architecture\*\*
-
-
+**Architecture**
 
 ```text
-
 index.html
-
 app.js
-
 planner.js
-
 gantt.js
-
 analytics.js
-
 storage.js
-
 style.css
-
 ```
-
-
 
 No backend, no build system required.
 
-
-
 ---
 
+# Phase 1 — Core Skeleton & Data Model
 
+## Objective
 
-\# Phase 1 — Core Skeleton \& Data Model
+Create a working shell that can **create, display, save, and load tasks**.
 
+## Features
 
-
-\## Objective
-
-
-
-Create a working shell that can \*\*create, display, save, and load tasks\*\*.
-
-
-
-\## Features
-
-
-
-\### Basic UI Layout
-
-
+### Basic UI Layout
 
 Using Bootstrap grid.
 
-
-
 Layout:
 
-
-
 ```
-
 Navbar
-
 ----------------------------------
-
-
 
 Toolbar (filters / actions)
 
-
-
 ----------------------------------
-
-
 
 Timeline Area (Gantt)
 
-
-
 ----------------------------------
 
-
-
 Analytics Panel
-
 ```
-
-
 
 ---
 
-
-
-\### Data Model
-
-
+### Data Model
 
 Define the internal structure.
 
-
-
 ```json
-
 {
-
-&nbsp; "meta": {
-
-&nbsp;   "name": "Project Plan",
-
-&nbsp;   "version": 1
-
-&nbsp; },
-
-&nbsp; "settings": {
-
-&nbsp;   "baseLink": ""
-
-&nbsp; },
-
-&nbsp; "timelines": \[],
-
-&nbsp; "tasks": \[]
-
+  "meta": {
+    "name": "Project Plan",
+    "version": 1
+  },
+  "settings": {
+    "baseLink": ""
+  },
+  "timelines": [],
+  "tasks": []
 }
-
 ```
-
-
 
 ---
 
-
-
-\### Task Structure
-
-
+### Task Structure
 
 ```json
-
 {
-
-&nbsp; "id": "TASK-101",
-
-&nbsp; "title": "Authentication",
-
-&nbsp; "description": "",
-
-&nbsp; "effort": {
-
-&nbsp;   "design": 0,
-
-&nbsp;   "dev": 0,
-
-&nbsp;   "test": 0
-
-&nbsp; },
-
-&nbsp; "tags": \[],
-
-&nbsp; "timeline": {
-
-&nbsp;   "start": 0,
-
-&nbsp;   "end": 1
-
-&nbsp; }
-
+  "id": "TASK-101",
+  "title": "Authentication",
+  "description": "",
+  "effort": {
+    "design": 0,
+    "dev": 0,
+    "test": 0
+  },
+  "tags": [],
+  "timeline": {
+    "start": 0,
+    "end": 1
+  }
 }
-
 ```
-
-
 
 ---
 
-
-
-\### Task Creation
-
-
+### Task Creation
 
 Button:
 
-
-
 ```
-
 Add Task
-
 ```
-
-
 
 Opens Bootstrap modal:
 
-
-
 Fields
 
-
-
-\* ID
-
-\* Title
-
-\* Description
-
-\* Design effort
-
-\* Dev effort
-
-\* Test effort
-
-\* Tags
-
-
+* ID
+* Title
+* Description
+* Design effort
+* Dev effort
+* Test effort
+* Tags
 
 ---
 
-
-
-\### Basic Gantt Rendering
-
-
+### Basic Gantt Rendering
 
 Render simple blocks.
 
-
-
 Block content:
 
-
-
 ```
-
 TASK-101
-
 Authentication
-
 ```
-
-
 
 Blocks are positioned with CSS.
 
-
-
 Example:
 
-
-
 ```
-
 position: absolute
-
 left = start
-
 width = duration
-
 ```
-
-
 
 ---
 
+### Save / Load
 
-
-\### Save / Load
-
-
-
-\#### Export
-
-
+#### Export
 
 Download JSON using:
 
-
-
 ```
-
 Blob + download link
-
 ```
-
-
 
 Button:
 
-
-
 ```
-
 Export Plan
-
 ```
-
-
 
 ---
 
-
-
-\#### Import
-
-
+#### Import
 
 Upload JSON file.
 
-
-
 Button:
 
-
-
 ```
-
 Import Plan
-
 ```
 
+---
 
+# Phase 2 — Timeline System
+
+## Objective
+
+Support **custom timelines and snapping increments**.
 
 ---
 
+## Features
 
-
-\# Phase 2 — Timeline System
-
-
-
-\## Objective
-
-
-
-Support \*\*custom timelines and snapping increments\*\*.
-
-
-
----
-
-
-
-\## Features
-
-
-
-\### Timeline Definition
-
-
+### Timeline Definition
 
 User can define:
 
-
-
-\* name
-
-\* labels
-
-\* increment
-
-
+* name
+* labels
+* increment
 
 Example:
 
-
-
 ```
-
 Sprint Timeline
-
 Increment: 0.5
-
 Labels:
-
 S1 S2 S3 S4
-
 ```
-
-
 
 ---
 
-
-
-\### Timeline Rendering
-
-
+### Timeline Rendering
 
 Grid generated dynamically.
 
-
-
 Example:
 
-
-
 ```
-
 | S1 | S2 | S3 | S4 |
-
 ```
-
-
 
 Each cell width fixed.
 
-
-
 ---
 
-
-
-\### Snap Logic
-
-
+### Snap Logic
 
 Tasks snap to increments.
 
-
-
 ```
-
-snap = round(value / increment) \* increment
-
+snap = round(value / increment) * increment
 ```
-
-
 
 Example increments:
 
-
-
 ```
-
 0.5
-
 1
-
 0.25
-
 ```
-
-
 
 ---
 
-
-
-\### Timeline Switching
-
-
+### Timeline Switching
 
 User can switch views:
 
-
-
 ```
-
 Sprint View
-
 Month View
-
 ```
 
+---
 
+# Phase 3 — Drag & Resize Gantt Blocks
+
+## Objective
+
+Make tasks **interactive and draggable**.
 
 ---
 
+## Features
 
-
-\# Phase 3 — Drag \& Resize Gantt Blocks
-
-
-
-\## Objective
-
-
-
-Make tasks \*\*interactive and draggable\*\*.
-
-
-
----
-
-
-
-\## Features
-
-
-
-\### Dragging Tasks
-
-
+### Dragging Tasks
 
 Mouse interaction.
 
-
-
 ```
-
 mousedown → begin drag
-
 mousemove → update position
-
 mouseup → snap to increment
-
 ```
-
-
 
 ---
 
-
-
-\### Resizing Tasks
-
-
+### Resizing Tasks
 
 Right edge draggable.
 
-
-
 Updates:
 
-
-
 ```
-
 timeline.end
-
 ```
-
-
 
 ---
 
-
-
-\### Vertical Layout
-
-
+### Vertical Layout
 
 Tasks stacked automatically.
 
-
-
 Algorithm:
 
-
-
 ```
-
 detect overlap
-
 push to next row
-
 ```
-
-
 
 ---
 
-
-
-\### Hover Tooltip
-
-
+### Hover Tooltip
 
 Shows full task info.
 
-
-
 Example:
 
-
-
 ```
-
 TASK-101
-
 Authentication
 
-
-
 Design: 2
-
 Dev: 5
-
 Test: 3
-
 Tags: backend
-
 ```
-
-
 
 Bootstrap tooltip used.
 
-
-
 ---
 
+# Phase 4 — Task Actions
 
-
-\# Phase 4 — Task Actions
-
-
-
-\## Objective
-
-
+## Objective
 
 Add block actions for editing, duplication, and deletion.
 
-
-
 ---
 
-
-
-\## Block Buttons
-
-
+## Block Buttons
 
 Displayed inside each task.
 
-
-
 ```
-
 ⧉ Duplicate
-
 🗑 Delete
-
 ```
-
-
 
 Bootstrap icons optional.
 
-
-
 ---
 
-
-
-\### Duplicate
-
-
+### Duplicate
 
 Creates new task.
 
-
-
 Rules:
 
-
-
 ```
-
 copy title
-
 copy effort
-
 copy tags
-
 copy duration
-
 generate new ID
-
 ```
-
-
 
 User prompted to change ID.
 
-
-
 ---
 
-
-
-\### Delete
-
-
+### Delete
 
 Confirmation dialog.
 
-
-
 ```
-
 Delete TASK-101?
-
 ```
-
-
 
 ---
 
-
-
-\### Edit Task
-
-
+### Edit Task
 
 Clicking block opens modal.
 
-
-
 Allows editing:
 
-
-
-\* title
-
-\* description
-
-\* effort
-
-\* tags
-
-
+* title
+* description
+* effort
+* tags
 
 ---
 
+# Phase 5 — External Link Integration
 
-
-\# Phase 5 — External Link Integration
-
-
-
-\## Objective
-
-
+## Objective
 
 Enable quick navigation to external systems.
 
-
-
 ---
 
-
-
-\### Base Link Setting
-
-
+### Base Link Setting
 
 Example:
 
-
-
 ```
-
 https://jira.company.com/browse/
-
 ```
-
-
 
 Stored in:
 
-
-
 ```
-
 settings.baseLink
-
 ```
-
-
 
 ---
 
-
-
-\### Double Click Behaviour
-
-
+### Double Click Behaviour
 
 Double-clicking block opens:
 
-
-
 ```
-
 baseLink + taskID
-
 ```
-
-
 
 Example:
 
-
-
 ```
-
 https://jira.company.com/browse/TASK-101
-
 ```
-
-
 
 Uses:
 
-
-
 ```
-
 window.open(url)
-
 ```
-
-
 
 ---
 
+# Phase 6 — Tag System
 
-
-\# Phase 6 — Tag System
-
-
-
-\## Objective
-
-
+## Objective
 
 Allow categorisation and filtering.
 
-
-
 ---
 
-
-
-\### Tag Creation
-
-
+### Tag Creation
 
 Tags stored in task:
 
-
-
 ```
-
-tags: \["backend","security"]
-
+tags: ["backend","security"]
 ```
-
-
 
 UI:
 
-
-
 ```
-
 tag input with autocomplete
-
 ```
-
-
 
 ---
 
-
-
-\### Tag Colours
-
-
+### Tag Colours
 
 Each tag assigned colour.
 
-
-
 Example:
 
-
-
 ```
-
 backend = blue
-
 frontend = green
-
 data = purple
-
 ```
-
-
 
 Small coloured stripe shown on block.
 
-
-
 ---
 
-
-
-\### Tag Filters
-
-
+### Tag Filters
 
 Toolbar:
 
-
-
 ```
-
-\[Backend] \[Frontend] \[Data]
-
+[Backend] [Frontend] [Data]
 ```
-
-
 
 Modes:
 
-
-
 ```
-
 show only
-
 highlight
-
 multi-select
-
 ```
-
-
 
 ---
 
+# Phase 7 — Effort Analytics
 
-
-\# Phase 7 — Effort Analytics
-
-
-
-\## Objective
-
-
+## Objective
 
 Add analytics based on tags and effort.
 
-
-
 ---
 
-
-
-\## Effort Calculation
-
-
+## Effort Calculation
 
 Total effort:
 
-
-
 ```
-
 design + dev + test
-
 ```
-
-
 
 ---
 
-
-
-\### Effort by Tag
-
-
+### Effort by Tag
 
 Example output:
 
-
-
 ```
-
 Backend      42
-
 Frontend     18
-
 Security      9
-
 ```
-
-
 
 ---
 
-
-
-\### Effort by Type
-
-
+### Effort by Type
 
 ```
-
 Design   14
-
 Dev      53
-
 Test     27
-
 ```
-
-
 
 ---
 
-
-
-\### Effort by Timeline Period
-
-
+### Effort by Timeline Period
 
 Example:
 
-
-
 ```
-
 Sprint 1   15
-
 Sprint 2   20
-
 Sprint 3   12
-
 ```
-
-
 
 ---
 
-
-
-\### Analytics UI
-
-
+### Analytics UI
 
 Bootstrap cards.
 
-
-
 Example:
 
-
-
 ```
-
 --------------------------------
-
 Effort by Tag
-
 --------------------------------
-
-
 
 Backend   █████████
-
 Frontend  █████
-
 Data      ███
-
 ```
 
+---
 
+# Phase 8 — Capacity Planning Timeline
+
+## Objective
+
+Support second timeline for **capacity planning**.
 
 ---
 
-
-
-\# Phase 8 — Capacity Planning Timeline
-
-
-
-\## Objective
-
-
-
-Support second timeline for \*\*capacity planning\*\*.
-
-
-
----
-
-
-
-\### Capacity Model
-
-
+### Capacity Model
 
 Example:
 
-
-
 ```
-
 Jan 40
-
 Feb 35
-
 Mar 30
-
 ```
-
-
 
 Stored as:
 
-
-
 ```
-
-capacity\[timeline]\[period]
-
+capacity[timeline][period]
 ```
-
-
 
 ---
 
-
-
-\### Effort vs Capacity
-
-
+### Effort vs Capacity
 
 Example:
 
-
-
 ```
-
 Sprint 1  18 / 20
-
 Sprint 2  23 / 15 ⚠
-
 Sprint 3  10 / 25
-
 ```
-
-
 
 ---
 
-
-
-\### Visual Indicators
-
-
+### Visual Indicators
 
 Colour states:
 
-
-
 ```
-
 green = under capacity
-
 yellow = near capacity
-
 red = over capacity
-
 ```
-
-
 
 ---
 
+# Phase 9 — UX Improvements
 
-
-\# Phase 9 — UX Improvements
-
-
-
-\## Objective
-
-
+## Objective
 
 Polish usability.
 
-
-
 ---
 
-
-
-\### Keyboard Shortcuts
-
-
+### Keyboard Shortcuts
 
 Examples:
 
-
-
 ```
-
 N = new task
-
 Del = delete task
-
 D = duplicate task
-
 ```
-
-
 
 ---
 
-
-
-\### Zoom Levels
-
-
+### Zoom Levels
 
 Timeline zoom:
 
-
-
 ```
-
 Week
-
 Sprint
-
 Month
-
 ```
-
-
 
 ---
 
-
-
-\### Task Search
-
-
+### Task Search
 
 Search by:
 
-
-
 ```
-
 ID
-
 Title
-
 Tag
-
 ```
-
-
 
 ---
 
+# Phase 10 — Advanced Planning Features (Optional)
 
-
-\# Phase 10 — Advanced Planning Features (Optional)
-
-
-
-\## Effort Heatmap
-
-
+## Effort Heatmap
 
 Background shading showing workload intensity.
 
-
-
 ---
 
-
-
-\## Dependency Lines
-
-
+## Dependency Lines
 
 Tasks can depend on other tasks.
 
-
-
 ```
+TASK-101 → [D1]
 
-TASK-101 → TASK-105
-
+[D1] → TASK-105 
 ```
-
-
-
-Draw arrow. (make it show/hideable)
-
 
 
 ---
 
-
-
-\## Scenario Planning
-
-
+## Scenario Planning
 
 Multiple plans inside file.
 
-
-
 ```
-
 Plan A
-
 Plan B
-
 Plan C
-
 ```
-
-
 
 ---
 
-
-
+If you'd like, I can also show you **one architectural decision that will make this 10× easier to build**: a **very simple internal "planner state engine" (~80 lines)** that cleanly manages tasks, timelines, filters, and analytics. Without that, the JavaScript can become messy very quickly.
