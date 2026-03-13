@@ -7,7 +7,23 @@ class Planner {
                 fileVersion: 1
             },
             settings: {
-                baseLink: "https://jira.company.com/browse/"
+                baseLink: "https://jira.company.com/browse/",
+                fillLegends: [
+                    {
+                        id: 'default_fill',
+                        label: 'Default Fill',
+                        color: '#4da3ff',
+                        tag: 'fill-default'
+                    }
+                ],
+                borderLegends: [
+                    {
+                        id: 'default_border',
+                        label: 'Default Border',
+                        color: '#1c6ed5',
+                        tag: 'border-default'
+                    }
+                ]
             },
             plans: []
         };
@@ -264,6 +280,36 @@ class Planner {
         }
         console.error("Invalid state provided to loadState.");
         return false;
+    }
+
+    getFillLegends() {
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.fillLegends) {
+            this.file.settings.fillLegends = [
+                {
+                    id: 'default_fill',
+                    label: 'Default Fill',
+                    color: '#4da3ff',
+                    tag: 'fill-default'
+                }
+            ];
+        }
+        return this.file.settings.fillLegends;
+    }
+
+    getBorderLegends() {
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.borderLegends) {
+            this.file.settings.borderLegends = [
+                {
+                    id: 'default_border',
+                    label: 'Default Border',
+                    color: '#1c6ed5',
+                    tag: 'border-default'
+                }
+            ];
+        }
+        return this.file.settings.borderLegends;
     }
 
     getState() {
