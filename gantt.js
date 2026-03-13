@@ -346,6 +346,16 @@ class Gantt {
             const fillColor = task.fillColor || '#4da3ff';
             const borderColor = task.borderColor || '#1c6ed5';
 
+            // Check if there is a status and corresponding color
+            let statusBorderStyle = '';
+            const plannerState = window.PlannerState || (window.UIController ? window.UIController.planner : null);
+            if (task.status && plannerState && typeof plannerState.getStatusColors === 'function') {
+                const statusColors = plannerState.getStatusColors();
+                if (statusColors[task.status]) {
+                    statusBorderStyle = `--status-shadow: inset 3px 0 0 ${statusColors[task.status]};`;
+                }
+            }
+
             const safeTitle = this.escapeHtml(task.title || 'Untitled');
             const safeId = this.escapeHtml(task.id || '');
 
@@ -361,6 +371,7 @@ class Gantt {
                     height: ${taskHeight}px;
                     background-color: ${fillColor};
                     border-color: ${borderColor};
+                    ${statusBorderStyle}
                     ${opacityStyle}
                     ${pointerEventsStyle}
                 ">

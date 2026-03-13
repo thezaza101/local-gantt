@@ -38,6 +38,21 @@ class Planner {
 
         // UI View State (Not saved to file)
         this.zoomLevel = 'daily'; // 'daily', 'weekly', 'fortnight', 'monthly'
+
+        // Task Status Definitions
+        this.statusColors = {
+            'Not started': '#808080',
+            'Refined': '#ADD8E6',
+            'Committed': '#800080',
+            'In progress': '#0000FF',
+            'On hold': '#FF0000',
+            'Blocked': '#FF0000',
+            'Completed': '#008000'
+        };
+    }
+
+    getStatusColors() {
+        return this.statusColors;
     }
 
     getZoomLevel() {

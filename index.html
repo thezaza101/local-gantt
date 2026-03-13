@@ -160,17 +160,32 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="taskStatus" class="form-label">Status</label>
+                                <select class="form-select" id="taskStatus">
+                                    <option value="">None</option>
+                                    <option value="Not started">Not started</option>
+                                    <option value="Refined">Refined</option>
+                                    <option value="Committed">Committed</option>
+                                    <option value="In progress">In progress</option>
+                                    <option value="On hold">On hold</option>
+                                    <option value="Blocked">Blocked</option>
+                                    <option value="Completed">Completed</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8">
                                 <label for="taskTags" class="form-label">Tags (comma-separated)</label>
                                 <input type="text" class="form-control" id="taskTags">
                             </div>
-                            <div class="col-md-3">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
                                 <label for="taskFillLegend" class="form-label">Fill Legend</label>
                                 <select class="form-select" id="taskFillLegend">
                                     <!-- Populated dynamically -->
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label for="taskBorderLegend" class="form-label">Border Legend</label>
                                 <select class="form-select" id="taskBorderLegend">
                                     <!-- Populated dynamically -->
