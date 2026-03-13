@@ -363,7 +363,9 @@ class Analytics {
                                 <h6 class="mb-0 text-muted">Effort by Tag</h6>
                             </div>
                             <div class="card-body d-flex flex-column">
-                                <canvas id="chartEffortByTag"></canvas>
+                                <div style="height: 150px; position: relative;">
+                                    <canvas id="chartEffortByTag"></canvas>
+                                </div>
                                 ${this.renderEffortByTagTable(effortByTagData)}
                             </div>
                         </div>
@@ -374,7 +376,7 @@ class Analytics {
                                 <h6 class="mb-0 text-muted">Effort by Type</h6>
                             </div>
                             <div class="card-body d-flex flex-column justify-content-center align-items-center">
-                                <div style="width: 80%;">
+                                <div style="width: 80%; height: 250px; position: relative;">
                                     <canvas id="chartEffortByType"></canvas>
                                 </div>
                             </div>
