@@ -64,11 +64,8 @@
                     <p class="small">Timeline and tasks will render here</p>
                 </div>
             </div>
-            <div class="capacity-graph-container p-4 d-flex align-items-center justify-content-center border-top bg-light">
-                <div class="text-center text-muted">
-                    <h5>Capacity vs Demand Graph</h5>
-                    <p class="small">Graph visualization will render here</p>
-                </div>
+            <div class="capacity-graph-container p-4 d-flex align-items-center justify-content-center border-top bg-light w-100">
+                <canvas id="capacityGraphCanvas"></canvas>
             </div>
         </div>
 
@@ -81,12 +78,16 @@
         </div>
     </div>
 
+    <!-- Vendor JS -->
+    <script src="vendor/chart.umd.js"></script>
+
     <!-- Core App Logic -->
     <script src="storage.js"></script>
     <script src="planner.js"></script>
     <script src="gantt.js"></script>
     <script src="capacity.js"></script>
     <script src="analytics.js"></script>
+    <script src="graph.js"></script>
     <script src="ui.js"></script>
     <script src="app.js"></script>
 

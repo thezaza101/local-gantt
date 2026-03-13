@@ -19,6 +19,9 @@ function initApp() {
     // Initialize Analytics
     window.AnalyticsEngine = new Analytics(window.PlannerState);
 
+    // Initialize Graph Engine
+    window.GraphEngine = new GraphEngine('capacityGraphCanvas');
+
     // Initialize UI
     window.UIController = new UI();
 

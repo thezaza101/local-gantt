@@ -224,6 +224,11 @@ class UI {
         if (window.GanttEngine) {
             window.GanttEngine.render(this.planner.getCurrentPlan());
         }
+
+        // Trigger Graph re-render if it exists
+        if (window.GraphEngine) {
+            window.GraphEngine.render(this.planner.getCurrentPlan());
+        }
     }
 
     saveTask() {
@@ -479,6 +484,11 @@ class UI {
         // Trigger Gantt re-render if it exists
         if (window.GanttEngine) {
             window.GanttEngine.render(this.planner.getCurrentPlan());
+        }
+
+        // Trigger Graph re-render if it exists
+        if (window.GraphEngine) {
+            window.GraphEngine.render(this.planner.getCurrentPlan());
         }
     }
 
