@@ -805,7 +805,6 @@ class UI {
         }
 
         // Handle cleanup when Edit modal closes to re-open Management modal if needed
-        const editModalEl = document.getElementById('markerEditModal');
         const handleEditModalHidden = () => {
             editModalEl.removeEventListener('hidden.bs.modal', handleEditModalHidden);
             this.openMarkerManagementModal();
