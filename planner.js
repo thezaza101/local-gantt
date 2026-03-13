@@ -174,7 +174,6 @@ class Planner {
                 delete updatedMarker.row;
             } else if (updatedMarker.type === 'horizontal') {
                 delete updatedMarker.date;
-                delete updatedMarker.repeats; // Horizontal doesn't support repeats
             }
 
             plan.markers[markerIndex] = updatedMarker;

@@ -178,16 +178,13 @@ class UI {
             radio.addEventListener('change', (e) => {
                 const dateContainer = document.getElementById('markerDateContainer');
                 const rowContainer = document.getElementById('markerRowContainer');
-                const repeatsContainer = document.getElementById('markerRepeatsContainer');
 
                 if (e.target.value === 'vertical') {
                     dateContainer.style.display = 'block';
                     rowContainer.style.display = 'none';
-                    repeatsContainer.style.display = 'block';
                 } else {
                     dateContainer.style.display = 'none';
                     rowContainer.style.display = 'block';
-                    repeatsContainer.style.display = 'none';
                 }
             });
         });
@@ -556,8 +553,9 @@ class UI {
                 } else {
                     document.getElementById('markerTypeVertical').checked = true;
                     document.getElementById('markerDate').value = marker.date || currentPlan.timeline.startDate;
-                    document.getElementById('markerRepeats').checked = marker.repeats !== false;
                 }
+
+                document.getElementById('markerRepeats').checked = marker.repeats !== false;
 
                 // Trigger change to update visibility
                 const checkedType = document.querySelector('.marker-type-radio:checked');
@@ -601,7 +599,6 @@ class UI {
                 return;
             }
             markerData.date = date;
-            markerData.repeats = document.getElementById('markerRepeats').checked;
         } else {
             const row = parseInt(document.getElementById('markerRow').value, 10);
             if (isNaN(row) || row < 1) {
@@ -610,6 +607,8 @@ class UI {
             }
             markerData.row = row;
         }
+
+        markerData.repeats = document.getElementById('markerRepeats').checked;
 
         const markerId = document.getElementById('markerId').value;
         let success = false;

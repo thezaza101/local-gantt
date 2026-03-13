@@ -82,10 +82,14 @@ class Gantt {
                     // Top position should be just above the row tasks
                     const topPos = mappedRowIndex * this.rowHeight + (this.taskMargin / 2);
 
+                    const repeats = marker.repeats !== false; // default to true if undefined
+                    const labelContent = repeats ? this.repeatString(safeLabel, 20) : `<span>${safeLabel}</span>`;
+                    const repeatClass = repeats ? 'repeats' : 'no-repeats';
+
                     markersHtml += `
                         <div class="gantt-marker-horizontal ${importanceClass}" style="top: ${topPos}px; border-top-color: ${markerColor}; width: ${totalWidth}px;">
-                            <div class="gantt-marker-horizontal-label" style="color: ${markerColor}; background-color: rgba(255,255,255,0.8);">
-                                ${safeLabel}
+                            <div class="gantt-marker-horizontal-label ${repeatClass}" style="color: ${markerColor};">
+                                ${labelContent}
                             </div>
                         </div>
                     `;

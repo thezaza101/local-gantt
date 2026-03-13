@@ -179,9 +179,26 @@ body {
     top: -10px;
     left: 10px;
     white-space: nowrap;
+    line-height: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+}
+
+.gantt-marker-horizontal-label.repeats {
+    width: 100%;
+    gap: 150px;
+}
+
+.gantt-marker-horizontal-label.no-repeats {
+    width: auto;
+    gap: 0;
+}
+
+.gantt-marker-horizontal-label span {
+    background-color: rgba(255,255,255,0.8);
     padding: 0 4px;
     border-radius: 4px;
-    line-height: 1;
 }
 
 /* Gantt Tasks */
