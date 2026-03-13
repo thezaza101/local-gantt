@@ -46,6 +46,7 @@
             <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-secondary">Delete</button>
             <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary">Add Marker</button>
             <button type="button" id="capacityPlanBtn" class="btn btn-sm btn-outline-info">Capacity</button>
+            <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark">Legends</button>
         </div>
     </div>
 
@@ -135,13 +136,11 @@
                                 <label for="taskTags" class="form-label">Tags (comma-separated)</label>
                                 <input type="text" class="form-control" id="taskTags">
                             </div>
-                            <div class="col-md-3">
-                                <label for="taskFillColor" class="form-label">Fill Color</label>
-                                <input type="color" class="form-control form-control-color" id="taskFillColor" value="#4da3ff" title="Choose your color">
-                            </div>
-                            <div class="col-md-3">
-                                <label for="taskBorderColor" class="form-label">Border Color</label>
-                                <input type="color" class="form-control form-control-color" id="taskBorderColor" value="#1c6ed5" title="Choose your color">
+                            <div class="col-md-6">
+                                <label for="taskLegend" class="form-label">Legend</label>
+                                <select class="form-select" id="taskLegend">
+                                    <!-- Populated dynamically -->
+                                </select>
                             </div>
                         </div>
                         <h6 class="border-bottom pb-2">Effort</h6>
@@ -164,6 +163,39 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="saveTaskBtn">Save Task</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Legends Modal -->
+    <div class="modal fade" id="legendsModal" tabindex="-1" aria-labelledby="legendsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="legendsModalLabel">Configure Task Legends</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm" id="legendsTable">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Fill Color</th>
+                                <th>Border Color</th>
+                                <th>Associated Tag</th>
+                                <th style="width: 80px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="legendsTableBody">
+                            <!-- Legends rows injected here -->
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addLegendRowBtn">+ Add Legend</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="saveLegendsBtn">Save Legends</button>
                 </div>
             </div>
         </div>

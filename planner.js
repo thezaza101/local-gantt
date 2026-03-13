@@ -7,7 +7,16 @@ class Planner {
                 fileVersion: 1
             },
             settings: {
-                baseLink: "https://jira.company.com/browse/"
+                baseLink: "https://jira.company.com/browse/",
+                legends: [
+                    {
+                        id: 'default',
+                        label: 'Default',
+                        fillColor: '#4da3ff',
+                        borderColor: '#1c6ed5',
+                        tag: 'default'
+                    }
+                ]
             },
             plans: []
         };
@@ -263,6 +272,54 @@ class Planner {
             return true;
         }
         console.error("Invalid state provided to loadState.");
+        return false;
+    }
+
+    getLegends() {
+        // Ensure legends exist (for backward compatibility with older files)
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.legends) {
+            this.file.settings.legends = [
+                {
+                    id: 'default',
+                    label: 'Default',
+                    fillColor: '#4da3ff',
+                    borderColor: '#1c6ed5',
+                    tag: 'default'
+                }
+            ];
+        }
+        return this.file.settings.legends;
+    }
+
+    addLegend(legend) {
+        const legends = this.getLegends();
+        // Generate a simple ID if not provided
+        if (!legend.id) {
+            legend.id = 'legend_' + Math.random().toString(36).substring(2, 9);
+        }
+        legends.push(legend);
+        return true;
+    }
+
+    updateLegend(id, updatedLegend) {
+        const legends = this.getLegends();
+        const index = legends.findIndex(l => l.id === id);
+        if (index !== -1) {
+            legends[index] = { ...legends[index], ...updatedLegend };
+            return true;
+        }
+        return false;
+    }
+
+    deleteLegend(id) {
+        if (id === 'default') return false; // Cannot delete default legend
+        const legends = this.getLegends();
+        const index = legends.findIndex(l => l.id === id);
+        if (index !== -1) {
+            legends.splice(index, 1);
+            return true;
+        }
         return false;
     }
 

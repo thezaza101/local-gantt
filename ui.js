@@ -120,6 +120,29 @@ class UI {
             });
         }
 
+        // Legends Button
+        const legendsBtn = document.getElementById("legendsBtn");
+        if (legendsBtn) {
+            legendsBtn.addEventListener("click", () => {
+                this.openLegendsModal();
+            });
+        }
+
+        // Legends Modals actions
+        const addLegendRowBtn = document.getElementById("addLegendRowBtn");
+        if (addLegendRowBtn) {
+            addLegendRowBtn.addEventListener("click", () => {
+                this.addLegendRow();
+            });
+        }
+
+        const saveLegendsBtn = document.getElementById("saveLegendsBtn");
+        if (saveLegendsBtn) {
+            saveLegendsBtn.addEventListener("click", () => {
+                this.saveLegends();
+            });
+        }
+
         // Add Marker Button (For testing phase 3)
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         if (addMarkerBtn) {
@@ -247,6 +270,35 @@ class UI {
             return;
         }
 
+        const legendId = document.getElementById('taskLegend').value;
+        const legends = this.planner.getLegends();
+        const selectedLegend = legends.find(l => l.id === legendId) || legends.find(l => l.id === 'default');
+
+        const originalTaskId = document.getElementById('originalTaskId').value;
+
+        let existingTags = document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+
+        if (originalTaskId) {
+            const originalTask = this.planner.getTaskById(originalTaskId);
+            if (originalTask && originalTask.legendId) {
+                const oldLegend = legends.find(l => l.id === originalTask.legendId);
+                // Remove the old legend's tag if it exists in the user's input
+                if (oldLegend && oldLegend.tag) {
+                    existingTags = existingTags.filter(t => t !== oldLegend.tag);
+                }
+            }
+        }
+
+        // Add the new legend's tag if not already present
+        if (selectedLegend && selectedLegend.tag) {
+             if (!existingTags.includes(selectedLegend.tag)) {
+                 existingTags.push(selectedLegend.tag);
+             }
+        }
+
+        // Ensure tags are unique
+        const uniqueTags = [...new Set(existingTags)];
+
         const taskData = {
             id: id,
             title: title,
@@ -254,9 +306,10 @@ class UI {
             startDate: startDate,
             endDate: endDate,
             row: parseInt(document.getElementById('taskRow').value, 10) || 1,
-            fillColor: document.getElementById('taskFillColor').value,
-            borderColor: document.getElementById('taskBorderColor').value,
-            tags: document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag),
+            legendId: selectedLegend ? selectedLegend.id : 'default',
+            fillColor: selectedLegend ? selectedLegend.fillColor : '#4da3ff',
+            borderColor: selectedLegend ? selectedLegend.borderColor : '#1c6ed5',
+            tags: uniqueTags,
             effort: {
                 design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
                 dev: parseFloat(document.getElementById('taskEffortDev').value) || 0,
@@ -264,7 +317,6 @@ class UI {
             }
         };
 
-        const originalTaskId = document.getElementById('originalTaskId').value;
         let success = false;
 
         if (originalTaskId) {
@@ -293,6 +345,17 @@ class UI {
         const form = document.getElementById('taskForm');
         form.reset();
 
+        // Populate the legend dropdown
+        const taskLegendSelect = document.getElementById('taskLegend');
+        taskLegendSelect.innerHTML = '';
+        const legends = this.planner.getLegends();
+        legends.forEach(legend => {
+            const option = document.createElement('option');
+            option.value = legend.id;
+            option.textContent = legend.label;
+            taskLegendSelect.appendChild(option);
+        });
+
         if (taskId) {
             const task = this.planner.getTaskById(taskId);
             if (task) {
@@ -305,9 +368,13 @@ class UI {
                 document.getElementById('taskStartDate').value = task.startDate || '';
                 document.getElementById('taskEndDate').value = task.endDate || '';
                 document.getElementById('taskRow').value = task.row !== undefined ? task.row : 1;
-                document.getElementById('taskFillColor').value = task.fillColor || '#4da3ff';
-                document.getElementById('taskBorderColor').value = task.borderColor || '#1c6ed5';
                 document.getElementById('taskTags').value = (task.tags || []).join(', ');
+
+                if (task.legendId && legends.some(l => l.id === task.legendId)) {
+                    taskLegendSelect.value = task.legendId;
+                } else {
+                    taskLegendSelect.value = 'default';
+                }
 
                 document.getElementById('taskEffortDesign').value = task.effort ? task.effort.design || 0 : 0;
                 document.getElementById('taskEffortDev').value = task.effort ? task.effort.dev || 0 : 0;
@@ -318,11 +385,113 @@ class UI {
             document.getElementById('taskId').readOnly = false;
             document.getElementById('originalTaskId').value = '';
 
-            document.getElementById('taskFillColor').value = '#4da3ff';
-            document.getElementById('taskBorderColor').value = '#1c6ed5';
+            taskLegendSelect.value = 'default';
         }
 
         taskModal.show();
+    }
+
+    openLegendsModal() {
+        const legendsModal = new bootstrap.Modal(document.getElementById('legendsModal'));
+        const tbody = document.getElementById('legendsTableBody');
+        tbody.innerHTML = '';
+
+        const legends = this.planner.getLegends();
+        legends.forEach(legend => {
+            this.addLegendRow(legend);
+        });
+
+        legendsModal.show();
+    }
+
+    addLegendRow(legend = null) {
+        const tbody = document.getElementById('legendsTableBody');
+        const tr = document.createElement('tr');
+
+        const isDefault = legend && legend.id === 'default';
+
+        tr.innerHTML = `
+            <td>
+                <input type="hidden" class="leg-id" value="${legend ? legend.id : ''}">
+                <input type="text" class="form-control form-control-sm leg-label" value="${legend ? this.escapeHtml(legend.label) : ''}" required ${isDefault ? 'readonly' : ''}>
+            </td>
+            <td><input type="color" class="form-control form-control-color form-control-sm leg-fill" value="${legend ? legend.fillColor : '#4da3ff'}" title="Fill Color"></td>
+            <td><input type="color" class="form-control form-control-color form-control-sm leg-border" value="${legend ? legend.borderColor : '#1c6ed5'}" title="Border Color"></td>
+            <td><input type="text" class="form-control form-control-sm leg-tag" value="${legend ? this.escapeHtml(legend.tag) : ''}" required ${isDefault ? 'readonly' : ''}></td>
+            <td class="align-middle text-center">
+                ${!isDefault ? '<button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-leg-row-btn" title="Delete Row">&times;</button>' : ''}
+            </td>
+        `;
+
+        if (!isDefault) {
+            const deleteBtn = tr.querySelector('.delete-leg-row-btn');
+            deleteBtn.addEventListener('click', () => {
+                tr.remove();
+            });
+        }
+
+        tbody.appendChild(tr);
+    }
+
+    saveLegends() {
+        const tbody = document.getElementById('legendsTableBody');
+        const rows = tbody.querySelectorAll('tr');
+
+        // We will rebuild the legends array
+        const newLegends = [];
+
+        rows.forEach(row => {
+            const idInput = row.querySelector('.leg-id');
+            const labelInput = row.querySelector('.leg-label');
+            const fillInput = row.querySelector('.leg-fill');
+            const borderInput = row.querySelector('.leg-border');
+            const tagInput = row.querySelector('.leg-tag');
+
+            const id = idInput.value;
+            const label = labelInput.value.trim();
+            const fillColor = fillInput.value;
+            const borderColor = borderInput.value;
+            const tag = tagInput.value.trim();
+
+            if (label && tag) {
+                newLegends.push({
+                    id: id || ('legend_' + Math.random().toString(36).substring(2, 9)),
+                    label: label,
+                    fillColor: fillColor,
+                    borderColor: borderColor,
+                    tag: tag
+                });
+            }
+        });
+
+        // Ensure default legend is present
+        if (!newLegends.some(l => l.id === 'default')) {
+             newLegends.unshift({
+                 id: 'default',
+                 label: 'Default',
+                 fillColor: '#4da3ff',
+                 borderColor: '#1c6ed5',
+                 tag: 'default'
+             });
+        }
+
+        this.planner.file.settings.legends = newLegends;
+
+        const legendsModalEl = document.getElementById('legendsModal');
+        const legendsModal = bootstrap.Modal.getInstance(legendsModalEl);
+        if (legendsModal) {
+            legendsModal.hide();
+        }
+    }
+
+    escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 
     openCapacityModal() {
