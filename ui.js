@@ -154,23 +154,40 @@ class UI {
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         if (addMarkerBtn) {
             addMarkerBtn.addEventListener("click", () => {
-                const currentPlan = this.planner.getCurrentPlan();
-                if (!currentPlan) return;
-
-                const label = prompt("Enter marker label:");
-                if (!label) return;
-
-                const dateStr = prompt("Enter marker date (YYYY-MM-DD):", currentPlan.timeline.startDate);
-                if (!dateStr || isNaN(new Date(dateStr).getTime())) {
-                    alert("Invalid date");
-                    return;
-                }
-
-                if (this.planner.addMarker(dateStr, label)) {
-                    this.updateUI();
-                }
+                this.openMarkerManagementModal();
             });
         }
+
+        const addNewMarkerBtn = document.getElementById("addNewMarkerBtn");
+        if (addNewMarkerBtn) {
+            addNewMarkerBtn.addEventListener("click", () => {
+                this.openMarkerEditModal();
+            });
+        }
+
+        const saveMarkerBtn = document.getElementById("saveMarkerBtn");
+        if (saveMarkerBtn) {
+            saveMarkerBtn.addEventListener("click", () => {
+                this.saveMarker();
+            });
+        }
+
+        // Marker type radio buttons toggle fields
+        const markerTypeRadios = document.querySelectorAll('.marker-type-radio');
+        markerTypeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                const dateContainer = document.getElementById('markerDateContainer');
+                const rowContainer = document.getElementById('markerRowContainer');
+
+                if (e.target.value === 'vertical') {
+                    dateContainer.style.display = 'block';
+                    rowContainer.style.display = 'none';
+                } else {
+                    dateContainer.style.display = 'none';
+                    rowContainer.style.display = 'block';
+                }
+            });
+        });
 
         // Add Task Button
         const addTaskBtn = document.getElementById("addTaskBtn");
@@ -432,6 +449,186 @@ class UI {
         }
 
         taskModal.show();
+    }
+
+    openMarkerManagementModal() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const modal = new bootstrap.Modal(document.getElementById('markerManagementModal'));
+        this.renderMarkerTable();
+        modal.show();
+    }
+
+    renderMarkerTable() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const tbody = document.getElementById('markerTableBody');
+        tbody.innerHTML = '';
+
+        const markers = currentPlan.markers || [];
+        if (markers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No markers added yet.</td></tr>';
+            return;
+        }
+
+        markers.forEach(marker => {
+            const tr = document.createElement('tr');
+
+            let positionHtml = '';
+            if (marker.type === 'vertical') {
+                positionHtml = `Date: ${marker.date}`;
+            } else {
+                positionHtml = `Before Row: ${marker.row}`;
+            }
+
+            tr.innerHTML = `
+                <td class="align-middle">${this.escapeHtml(marker.label)}</td>
+                <td class="align-middle"><span class="badge bg-secondary">${marker.type || 'vertical'}</span></td>
+                <td class="align-middle">${positionHtml}</td>
+                <td class="align-middle">
+                    <div style="width: 20px; height: 20px; background-color: ${marker.color}; border-radius: 4px; border: 1px solid #ccc;"></div>
+                </td>
+                <td class="align-middle">${marker.importance || 'minor'}</td>
+                <td class="align-middle">
+                    <button class="btn btn-sm btn-outline-primary py-0 px-2 edit-marker-btn" data-id="${marker.id}">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger py-0 px-2 delete-marker-btn" data-id="${marker.id}">&times;</button>
+                </td>
+            `;
+
+            const editBtn = tr.querySelector('.edit-marker-btn');
+            editBtn.addEventListener('click', () => {
+                this.openMarkerEditModal(marker.id);
+            });
+
+            const deleteBtn = tr.querySelector('.delete-marker-btn');
+            deleteBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to delete this marker?')) {
+                    if (this.planner.deleteMarker(marker.id)) {
+                        this.renderMarkerTable();
+                        this.updateUI();
+                    }
+                }
+            });
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    openMarkerEditModal(markerId = null) {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const mngModalEl = document.getElementById('markerManagementModal');
+        const mngModal = bootstrap.Modal.getInstance(mngModalEl);
+        if (mngModal) {
+            mngModal.hide(); // Hide the management modal so they don't stack weirdly
+        }
+
+        const editModal = new bootstrap.Modal(document.getElementById('markerEditModal'));
+        const form = document.getElementById('markerForm');
+        form.reset();
+
+        document.getElementById('markerId').value = '';
+        document.getElementById('markerTypeVertical').checked = true;
+
+        // Trigger change event to set correct field visibility
+        document.getElementById('markerTypeVertical').dispatchEvent(new Event('change'));
+
+        document.getElementById('markerDate').value = currentPlan.timeline.startDate;
+        document.getElementById('markerColor').value = '#ff4d4d';
+
+        if (markerId) {
+            const marker = (currentPlan.markers || []).find(m => m.id === markerId);
+            if (marker) {
+                document.getElementById('markerId').value = marker.id;
+                document.getElementById('markerLabel').value = marker.label || '';
+                document.getElementById('markerColor').value = marker.color || '#ff4d4d';
+                document.getElementById('markerImportance').value = marker.importance || 'minor';
+
+                if (marker.type === 'horizontal') {
+                    document.getElementById('markerTypeHorizontal').checked = true;
+                    document.getElementById('markerRow').value = marker.row || 1;
+                } else {
+                    document.getElementById('markerTypeVertical').checked = true;
+                    document.getElementById('markerDate').value = marker.date || currentPlan.timeline.startDate;
+                }
+
+                document.getElementById('markerRepeats').checked = marker.repeats !== false;
+
+                // Trigger change to update visibility
+                const checkedType = document.querySelector('.marker-type-radio:checked');
+                if (checkedType) checkedType.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Handle cleanup when Edit modal closes to re-open Management modal if needed
+        const editModalEl = document.getElementById('markerEditModal');
+        const handleEditModalHidden = () => {
+            editModalEl.removeEventListener('hidden.bs.modal', handleEditModalHidden);
+            this.openMarkerManagementModal();
+        };
+        editModalEl.addEventListener('hidden.bs.modal', handleEditModalHidden);
+
+        editModal.show();
+    }
+
+    saveMarker() {
+        const label = document.getElementById('markerLabel').value.trim();
+        if (!label) {
+            alert("Marker label is required.");
+            return;
+        }
+
+        const type = document.querySelector('.marker-type-radio:checked').value;
+        const color = document.getElementById('markerColor').value;
+        const importance = document.getElementById('markerImportance').value;
+
+        const markerData = {
+            type: type,
+            label: label,
+            color: color,
+            importance: importance
+        };
+
+        if (type === 'vertical') {
+            const date = document.getElementById('markerDate').value;
+            if (!date) {
+                alert("Date is required for vertical markers.");
+                return;
+            }
+            markerData.date = date;
+        } else {
+            const row = parseInt(document.getElementById('markerRow').value, 10);
+            if (isNaN(row) || row < 1) {
+                alert("Valid row number (>= 1) is required for horizontal markers.");
+                return;
+            }
+            markerData.row = row;
+        }
+
+        markerData.repeats = document.getElementById('markerRepeats').checked;
+
+        const markerId = document.getElementById('markerId').value;
+        let success = false;
+
+        if (markerId) {
+            success = this.planner.updateMarker(markerId, markerData);
+        } else {
+            success = this.planner.addMarker(markerData);
+        }
+
+        if (success) {
+            const editModalEl = document.getElementById('markerEditModal');
+            const editModal = bootstrap.Modal.getInstance(editModalEl);
+            if (editModal) {
+                editModal.hide(); // This will trigger the 'hidden' event which re-opens management modal
+            }
+            this.updateUI();
+        } else {
+            alert("Failed to save marker.");
+        }
     }
 
     openLegendsModal() {

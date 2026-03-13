@@ -123,7 +123,34 @@ body {
     width: 0;
     z-index: 10;
     pointer-events: none;
+    border-left-style: solid;
+    border-left-width: 2px;
 }
+
+.gantt-marker-horizontal {
+    position: absolute;
+    left: 0;
+    height: 0;
+    z-index: 10;
+    pointer-events: none;
+    border-top-style: dashed;
+    border-top-width: 2px;
+}
+
+/* Importance Variants */
+.marker-major { border-width: 3px !important; }
+.marker-minor { border-width: 2px !important; }
+.marker-note { border-width: 1px !important; opacity: 0.6; }
+
+.marker-major .gantt-marker-label,
+.marker-major .gantt-marker-horizontal-label { font-size: 0.9em; font-weight: 800; opacity: 0.8; }
+
+.marker-minor .gantt-marker-label,
+.marker-minor .gantt-marker-horizontal-label { font-size: 0.8em; font-weight: bold; opacity: 0.6; }
+
+.marker-note .gantt-marker-label,
+.marker-note .gantt-marker-horizontal-label { font-size: 0.75em; font-weight: normal; opacity: 0.5; }
+
 
 .gantt-marker-label {
     position: absolute;
@@ -132,14 +159,46 @@ body {
     writing-mode: vertical-rl;
     text-orientation: mixed;
     white-space: nowrap;
-    font-size: 0.8em;
-    font-weight: bold;
-    opacity: 0.6;
-    height: 100%;
     overflow: hidden;
     display: flex;
     flex-direction: row;
+}
+
+.gantt-marker-label.repeats {
+    height: 100%;
     gap: 100px;
+}
+
+.gantt-marker-label.no-repeats {
+    height: auto;
+    gap: 0;
+}
+
+.gantt-marker-horizontal-label {
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    white-space: nowrap;
+    line-height: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+}
+
+.gantt-marker-horizontal-label.repeats {
+    width: 100%;
+    gap: 150px;
+}
+
+.gantt-marker-horizontal-label.no-repeats {
+    width: auto;
+    gap: 0;
+}
+
+.gantt-marker-horizontal-label span {
+    background-color: rgba(255,255,255,0.8);
+    padding: 0 4px;
+    border-radius: 4px;
 }
 
 /* Gantt Tasks */

@@ -223,6 +223,114 @@
         </div>
     </div>
 
+    <!-- Marker Management Modal -->
+    <div class="modal fade" id="markerManagementModal" tabindex="-1" aria-labelledby="markerManagementModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="markerManagementModalLabel">Manage Markers</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="addNewMarkerBtn">+ Add New Marker</button>
+                    <table class="table table-sm" id="markerTable">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Type</th>
+                                <th>Position</th>
+                                <th>Color</th>
+                                <th>Importance</th>
+                                <th style="width: 100px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="markerTableBody">
+                            <!-- Marker rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Marker Modal -->
+    <div class="modal fade" id="markerEditModal" tabindex="-1" aria-labelledby="markerEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="markerEditModalLabel">Marker Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="markerForm">
+                        <input type="hidden" id="markerId">
+
+                        <div class="mb-3">
+                            <label for="markerLabel" class="form-label">Label</label>
+                            <input type="text" class="form-control" id="markerLabel" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Type</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input marker-type-radio" type="radio" name="markerType" id="markerTypeVertical" value="vertical" checked>
+                                    <label class="form-check-label" for="markerTypeVertical">Vertical (Date)</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input marker-type-radio" type="radio" name="markerType" id="markerTypeHorizontal" value="horizontal">
+                                    <label class="form-check-label" for="markerTypeHorizontal">Horizontal (Row)</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="markerDateContainer">
+                            <label for="markerDate" class="form-label">Date</label>
+                            <input type="date" class="form-control" id="markerDate">
+                        </div>
+
+                        <div class="mb-3" id="markerRowContainer" style="display: none;">
+                            <label for="markerRow" class="form-label">Appears Before Row</label>
+                            <input type="number" class="form-control" id="markerRow" min="1" value="1">
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="markerImportance" class="form-label">Importance</label>
+                                <select class="form-select" id="markerImportance">
+                                    <option value="major">Major</option>
+                                    <option value="minor">Minor</option>
+                                    <option value="note">Note</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="markerColor" class="form-label">Color</label>
+                                <input type="color" class="form-control form-control-color w-100" id="markerColor" value="#ff4d4d">
+                            </div>
+                        </div>
+
+                        <div class="mb-3" id="markerRepeatsContainer">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="markerRepeats" checked>
+                                <label class="form-check-label" for="markerRepeats">
+                                    Repeat label along line
+                                </label>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveMarkerBtn">Save Marker</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Capacity Modal -->
     <div class="modal fade" id="capacityModal" tabindex="-1" aria-labelledby="capacityModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">

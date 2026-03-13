@@ -61,34 +61,60 @@ class Gantt {
             currentMonthHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;">${currentMonthName}</div>`;
         }
 
+        const { html: tasksHtml, maxRow, rowMap } = this.generateTasksHtml(plan, startDate, endDate);
+
+        // Calculate the required height to ensure the grid background goes down properly
+        const requiredHeight = Math.max(300, (maxRow + 2) * this.rowHeight); // At least 300px, or tall enough for the rows + padding
+
         // Generate markers
         let markersHtml = '';
         if (plan.markers && plan.markers.length > 0) {
             plan.markers.forEach(marker => {
-                const markerDate = new Date(marker.date);
-                if (!isNaN(markerDate) && markerDate >= startDate && markerDate <= endDate) {
-                    const daysOffset = Math.floor((markerDate - startDate) / (1000 * 60 * 60 * 24));
-                    const leftPos = daysOffset * this.cellWidth;
+                const markerColor = marker.color || '#ff4d4d';
+                const safeLabel = this.escapeHtml(marker.label || 'Marker');
+                const importanceClass = marker.importance ? `marker-${marker.importance}` : 'marker-minor';
+
+                if (marker.type === 'horizontal') {
+                    // Map the requested row to the visual row if filtering/compacting
+                    const rawRowIndex = (marker.row !== undefined && marker.row > 0) ? marker.row - 1 : 0;
+                    const mappedRowIndex = rowMap.has(rawRowIndex) ? rowMap.get(rawRowIndex) : rawRowIndex;
                     
-                    const markerColor = marker.color || '#ff4d4d';
-                    
-                    const safeLabel = this.escapeHtml(marker.label || 'Marker');
+                    // Top position should be just above the row tasks
+                    const topPos = mappedRowIndex * this.rowHeight + (this.taskMargin / 2);
+
+                    const repeats = marker.repeats !== false; // default to true if undefined
+                    const labelContent = repeats ? this.repeatString(safeLabel, 20) : `<span>${safeLabel}</span>`;
+                    const repeatClass = repeats ? 'repeats' : 'no-repeats';
 
                     markersHtml += `
-                        <div class="gantt-marker" style="left: ${leftPos + (this.cellWidth/2)}px; border-left: 2px solid ${markerColor};">
-                            <div class="gantt-marker-label" style="color: ${markerColor};">
-                                ${this.repeatString(safeLabel, 20)}
+                        <div class="gantt-marker-horizontal ${importanceClass}" style="top: ${topPos}px; border-top-color: ${markerColor}; width: ${totalWidth}px;">
+                            <div class="gantt-marker-horizontal-label ${repeatClass}" style="color: ${markerColor};">
+                                ${labelContent}
                             </div>
                         </div>
                     `;
+                } else {
+                    // Vertical marker
+                    const markerDate = new Date(marker.date);
+                    if (!isNaN(markerDate) && markerDate >= startDate && markerDate <= endDate) {
+                        const daysOffset = Math.floor((markerDate - startDate) / (1000 * 60 * 60 * 24));
+                        const leftPos = daysOffset * this.cellWidth;
+
+                        const repeats = marker.repeats !== false; // default to true if undefined
+                        const labelContent = repeats ? this.repeatString(safeLabel, 20) : `<span>${safeLabel}</span>`;
+                        const repeatClass = repeats ? 'repeats' : 'no-repeats';
+
+                        markersHtml += `
+                            <div class="gantt-marker ${importanceClass}" style="left: ${leftPos + (this.cellWidth/2)}px; border-left-color: ${markerColor};">
+                                <div class="gantt-marker-label ${repeatClass}" style="color: ${markerColor};">
+                                    ${labelContent}
+                                </div>
+                            </div>
+                        `;
+                    }
                 }
             });
         }
-
-        const { html: tasksHtml, maxRow } = this.generateTasksHtml(plan, startDate, endDate);
-
-        // Calculate the required height to ensure the grid background goes down properly
-        const requiredHeight = Math.max(300, (maxRow + 2) * this.rowHeight); // At least 300px, or tall enough for the rows + padding
 
         this.container.innerHTML = `
             <div class="gantt-wrapper position-relative" style="width: 100%; height: 100%; overflow: auto;">
@@ -224,7 +250,7 @@ class Gantt {
             `;
         });
 
-        return { html: tasksHtml, maxRow };
+        return { html: tasksHtml, maxRow, rowMap };
     }
 
     bindTaskEvents() {

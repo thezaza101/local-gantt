@@ -15,14 +15,30 @@
       },
       "markers": [
         {
+          "id": "marker_alpha",
+          "type": "vertical",
           "date": "2026-02-15",
           "label": "Alpha Release",
-          "color": "#ffaa00"
+          "color": "#ffaa00",
+          "importance": "minor",
+          "repeats": false
         },
         {
+          "id": "marker_beta",
+          "type": "vertical",
           "date": "2026-04-15",
           "label": "Beta Release",
-          "color": "#ff4d4d"
+          "color": "#ff4d4d",
+          "importance": "major",
+          "repeats": true
+        },
+        {
+          "id": "marker_row_3",
+          "type": "horizontal",
+          "row": 3,
+          "label": "Frontend Domain",
+          "color": "#00cc66",
+          "importance": "note"
         }
       ],
       "capacity": {

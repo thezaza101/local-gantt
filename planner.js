@@ -126,7 +126,7 @@ class Planner {
         return false;
     }
 
-    addMarker(dateStr, label, color = '#ff4d4d') {
+    addMarker(markerData) {
         const plan = this.getCurrentPlan();
         if (!plan) return false;
 
@@ -134,15 +134,71 @@ class Planner {
             plan.markers = [];
         }
 
-        plan.markers.push({
-            date: dateStr,
-            label: label,
-            color: color
-        });
+        const newMarker = {
+            id: markerData.id || ('marker_' + Math.random().toString(36).substring(2, 9)),
+            type: markerData.type || 'vertical',
+            label: markerData.label || 'Marker',
+            color: markerData.color || '#ff4d4d',
+            importance: markerData.importance || 'minor', // 'major', 'minor', 'note'
+            repeats: markerData.repeats !== undefined ? markerData.repeats : true
+        };
 
-        // Sort markers by date to keep them organized
-        plan.markers.sort((a, b) => new Date(a.date) - new Date(b.date));
+        if (newMarker.type === 'vertical') {
+            newMarker.date = markerData.date || plan.timeline.startDate;
+        } else if (newMarker.type === 'horizontal') {
+            newMarker.row = parseInt(markerData.row, 10) || 1;
+        }
+
+        plan.markers.push(newMarker);
+
+        // Optional: sort vertical markers by date for consistency
+        plan.markers.sort((a, b) => {
+            if (a.type === 'vertical' && b.type === 'vertical') {
+                return new Date(a.date) - new Date(b.date);
+            }
+            return 0; // Don't strictly sort horizontal vs vertical here
+        });
         return true;
+    }
+
+    updateMarker(markerId, markerData) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.markers) return false;
+
+        const markerIndex = plan.markers.findIndex(m => m.id === markerId);
+        if (markerIndex !== -1) {
+            const updatedMarker = { ...plan.markers[markerIndex], ...markerData };
+
+            // Cleanup fields based on type
+            if (updatedMarker.type === 'vertical') {
+                delete updatedMarker.row;
+            } else if (updatedMarker.type === 'horizontal') {
+                delete updatedMarker.date;
+            }
+
+            plan.markers[markerIndex] = updatedMarker;
+
+            plan.markers.sort((a, b) => {
+                if (a.type === 'vertical' && b.type === 'vertical') {
+                    return new Date(a.date) - new Date(b.date);
+                }
+                return 0;
+            });
+            return true;
+        }
+        return false;
+    }
+
+    deleteMarker(markerId) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.markers) return false;
+
+        const markerIndex = plan.markers.findIndex(m => m.id === markerId);
+        if (markerIndex !== -1) {
+            plan.markers.splice(markerIndex, 1);
+            return true;
+        }
+        return false;
     }
 
     addTask(task) {
