@@ -11,43 +11,40 @@
 </head>
 <body>
 
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="#">Work Planner</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item d-flex gap-2">
-                        <button id="importBtn" class="btn btn-outline-light btn-sm">Import JSON</button>
-                        <button id="exportBtn" class="btn btn-outline-light btn-sm">Export JSON</button>
-                        <input type="file" id="fileInput" accept=".json" style="display: none;">
-                    </li>
-                </ul>
+    <!-- Toolbar / Plan Selector -->
+    <div class="toolbar d-flex justify-content-between align-items-center gap-3">
+
+        <!-- Data/File Group -->
+        <div class="btn-group" role="group" aria-label="Data and File Management">
+            <button id="importBtn" class="btn btn-outline-secondary btn-sm" title="Import a plan from a JSON file">Import JSON</button>
+            <button id="exportBtn" class="btn btn-outline-secondary btn-sm" title="Export the current plan to a JSON file">Export JSON</button>
+            <input type="file" id="fileInput" accept=".json" style="display: none;">
+        </div>
+
+        <!-- Plan Management Group -->
+        <div class="d-flex align-items-center gap-2">
+            <div class="d-flex align-items-center gap-2">
+                <label for="planSelector" class="form-label mb-0 fw-bold">Plan:</label>
+                <select class="form-select form-select-sm w-auto" id="planSelector" title="Select a plan to view or edit">
+                    <option value="" disabled selected id="currentPlanDisplay">Select a Plan</option>
+                </select>
+            </div>
+            <div class="btn-group" role="group" aria-label="Plan Management">
+                <button type="button" id="newPlanBtn" class="btn btn-sm btn-outline-secondary" title="Create a new plan">New Plan</button>
+                <button type="button" id="renamePlanBtn" class="btn btn-sm btn-outline-secondary" title="Rename the current plan">Rename</button>
+                <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary" title="Duplicate the current plan">Duplicate</button>
+                <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-danger" title="Delete the current plan">Delete</button>
             </div>
         </div>
-    </nav>
 
-    <!-- Toolbar / Plan Selector -->
-    <div class="toolbar d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-            <label for="planSelector" class="form-label mb-0 fw-bold">Plan:</label>
-            <select class="form-select form-select-sm w-auto" id="planSelector">
-                <option value="" disabled selected id="currentPlanDisplay">Select a Plan</option>
-            </select>
+        <!-- Plan Elements & Views Group -->
+        <div class="btn-group" role="group" aria-label="Plan Elements and Views">
+            <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary" title="Add a new task to the plan">Add Task</button>
+            <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Add a timeline marker">Add Marker</button>
+            <button type="button" id="capacityPlanBtn" class="btn btn-sm btn-outline-info" title="Manage capacity planning">Capacity</button>
+            <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark" title="Configure task colors and legends">Legends</button>
         </div>
-        <div class="btn-group">
-            <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary">Add Task</button>
-            <button type="button" id="newPlanBtn" class="btn btn-sm btn-outline-secondary">New Plan</button>
-            <button type="button" id="renamePlanBtn" class="btn btn-sm btn-outline-secondary">Rename</button>
-            <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary">Duplicate</button>
-            <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-secondary">Delete</button>
-            <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary">Add Marker</button>
-            <button type="button" id="capacityPlanBtn" class="btn btn-sm btn-outline-info">Capacity</button>
-            <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark">Legends</button>
-        </div>
+
     </div>
 
     <!-- Tag Filters and Zoom Controls -->
