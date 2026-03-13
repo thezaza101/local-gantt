@@ -9,6 +9,49 @@ class UI {
     }
 
     bindEvents() {
+        // Collapse/Expand functionality
+        const capacityToggleBtn = document.getElementById("capacityToggleBtn");
+        const capacityContainer = document.getElementById("capacityContainer");
+        const capacityChevron = document.getElementById("capacityChevron");
+
+        if (capacityToggleBtn) {
+            capacityToggleBtn.addEventListener("click", () => {
+                capacityContainer.classList.toggle("collapsed");
+                if (capacityContainer.classList.contains("collapsed")) {
+                    capacityChevron.textContent = "▲";
+                } else {
+                    capacityChevron.textContent = "▼";
+                }
+
+                // Trigger re-render to adjust to new space
+                if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
+                if (window.GraphEngine) {
+                    setTimeout(() => window.GraphEngine.render(this.planner.getCurrentPlan()), 50); // slight delay for layout recalculation
+                }
+            });
+        }
+
+        const analyticsToggleBtn = document.getElementById("analyticsToggleBtn");
+        const analyticsContainer = document.getElementById("analyticsContainer");
+        const analyticsChevron = document.getElementById("analyticsChevron");
+
+        if (analyticsToggleBtn) {
+            analyticsToggleBtn.addEventListener("click", () => {
+                analyticsContainer.classList.toggle("collapsed");
+                if (analyticsContainer.classList.contains("collapsed")) {
+                    analyticsChevron.textContent = "◀";
+                } else {
+                    analyticsChevron.textContent = "▶";
+                }
+
+                // Trigger re-render to adjust to new space
+                if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
+                if (window.GraphEngine) {
+                    setTimeout(() => window.GraphEngine.render(this.planner.getCurrentPlan()), 50);
+                }
+            });
+        }
+
         // Import JSON
         const importBtn = document.getElementById("importBtn");
         const fileInput = document.getElementById("fileInput");
