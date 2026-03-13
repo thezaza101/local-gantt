@@ -142,11 +142,15 @@ class Planner {
         return false;
     }
 
-    renamePlan(newName) {
-        if (!newName || !newName.trim()) return false;
+    updatePlanDetails(newName, newStartDate, newEndDate) {
+        if (!newName || !newName.trim() || !newStartDate || !newEndDate) return false;
         const plan = this.getCurrentPlan();
         if (plan) {
             plan.name = newName.trim();
+            if (plan.timeline) {
+                plan.timeline.startDate = newStartDate;
+                plan.timeline.endDate = newEndDate;
+            }
             return true;
         }
         return false;
@@ -241,6 +245,16 @@ class Planner {
         }
 
         plan.tasks.push(task);
+        return true;
+    }
+
+    updateSettings(newSettings) {
+        if (!this.file.settings) {
+            this.file.settings = {};
+        }
+        if (newSettings.baseLink !== undefined) {
+            this.file.settings.baseLink = newSettings.baseLink;
+        }
         return true;
     }
 
