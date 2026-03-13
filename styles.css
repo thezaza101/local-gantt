@@ -324,7 +324,25 @@ body {
 
 /* Print View Setup */
 @media print {
-    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn {
+    @page {
+        size: landscape;
+        margin: 0.5cm;
+    }
+
+    body {
+        height: auto;
+        overflow: visible;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+
+    .app-container, .main-content {
+        height: auto;
+        overflow: visible !important;
+        display: block; /* Disable flex for printing to allow normal document flow */
+    }
+
+    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn, .capacity-graph-container {
         display: none !important;
     }
 
@@ -335,5 +353,44 @@ body {
     .planner-area {
         margin: 0;
         border: none;
+        height: auto;
+        overflow: visible !important;
+        display: block;
+    }
+
+    .gantt-chart-container {
+        height: auto;
+        overflow: visible !important;
+        padding: 0;
+        border: none;
+        background-color: transparent;
+    }
+
+    .gantt-wrapper {
+        height: auto;
+        overflow: visible !important;
+    }
+
+    .gantt-content {
+        height: auto;
+        overflow: visible !important;
+    }
+
+    .gantt-rows {
+        height: auto !important; /* Allow the rows container to expand to fit tasks */
+        overflow: visible !important;
+        min-height: 0 !important; /* Disable any min-height calculations from JS */
+    }
+
+    .gantt-task-controls {
+        display: none !important; /* Do not show controls when printing */
+    }
+
+    #printTimestamp {
+        display: block !important;
+        text-align: right;
+        font-size: 0.8rem;
+        color: #666;
+        margin-bottom: 10px;
     }
 }

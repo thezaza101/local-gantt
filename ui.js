@@ -171,6 +171,29 @@ class UI {
             });
         }
 
+        // Print Gantt Button
+        const printGanttBtn = document.getElementById("printGanttBtn");
+        if (printGanttBtn) {
+            printGanttBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (currentPlan) {
+                    const printTimestamp = document.getElementById("printTimestamp");
+                    if (printTimestamp) {
+                        const now = new Date();
+                        const timestampStr = now.toLocaleString();
+                        printTimestamp.textContent = `Printed on: ${timestampStr} | Plan: ${currentPlan.name || 'Unnamed Plan'}`;
+                        printTimestamp.classList.remove('d-none');
+                    }
+                    window.print();
+
+                    // Hide the timestamp again after printing
+                    if (printTimestamp) {
+                        setTimeout(() => printTimestamp.classList.add('d-none'), 1000); // slight delay to ensure it stays during the print dialog
+                    }
+                }
+            });
+        }
+
         // Legends Modals actions
         const addFillLegendRowBtn = document.getElementById("addFillLegendRowBtn");
         if (addFillLegendRowBtn) {
@@ -973,6 +996,7 @@ class UI {
         const deletePlanBtn = document.getElementById("deletePlanBtn");
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         const capacityPlanBtn = document.getElementById("capacityPlanBtn");
+        const printGanttBtn = document.getElementById("printGanttBtn");
 
         if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
         if (renamePlanBtn) renamePlanBtn.disabled = !hasPlans;
@@ -980,6 +1004,7 @@ class UI {
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
         if (capacityPlanBtn) capacityPlanBtn.disabled = !hasPlans;
+        if (printGanttBtn) printGanttBtn.disabled = !hasPlans;
 
         this.renderTagFilters();
 
