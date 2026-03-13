@@ -37,12 +37,13 @@ body {
 .planner-area {
     display: flex;
     flex-direction: column;
-    flex: 3;
+    flex: 2 1 auto; /* Grow to take up available space, shrink if needed */
     background-color: white;
     border: 1px solid var(--border-color);
     border-radius: 0.25rem;
-    margin-right: 1rem;
+    margin-right: 0;
     overflow: hidden;
+    min-height: 200px;
 }
 
 .gantt-chart-container {
@@ -75,7 +76,8 @@ body {
 }
 
 .analytics-panel {
-    flex: 1;
+    flex: 1 1 auto; /* Grow to take up remaining space, shrink if needed */
+    max-height: 50%; /* Don't let it take over the whole screen */
     background-color: var(--background-color);
     border: 1px solid var(--border-color);
     border-radius: 0.25rem;
@@ -84,7 +86,8 @@ body {
 }
 
 .analytics-panel.collapsed {
-    flex: 0 0 auto;
+    flex: 0 0 auto; /* Don't grow when collapsed */
+    max-height: auto;
     min-height: 0;
 }
 
