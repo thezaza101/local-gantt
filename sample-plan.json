@@ -89,6 +89,7 @@
           "fillColor": "#ff9f4d",
           "borderColor": "#d57a1c",
           "tags": ["backend", "database"],
+          "dependencies": [],
           "effort": {
             "design": 1,
             "dev": 3,
@@ -105,6 +106,7 @@
           "fillColor": "#4dff88",
           "borderColor": "#1cd54c",
           "tags": ["frontend", "ui"],
+          "dependencies": ["TASK-101", "TASK-102"],
           "effort": {
             "design": 3,
             "dev": 5,
@@ -121,6 +123,7 @@
           "fillColor": "#b84dff",
           "borderColor": "#8e1cd5",
           "tags": ["backend", "frontend", "testing"],
+          "dependencies": ["TASK-103"],
           "effort": {
             "design": 1,
             "dev": 4,
@@ -137,6 +140,7 @@
           "fillColor": "#4dff88",
           "borderColor": "#1cd54c",
           "tags": ["frontend", "ui"],
+          "dependencies": ["TASK-104", "TASK-106"],
           "effort": {
             "design": 4,
             "dev": 8,
@@ -153,10 +157,45 @@
           "fillColor": "#4da3ff",
           "borderColor": "#1c6ed5",
           "tags": ["backend", "api"],
+          "dependencies": ["TASK-101"],
           "effort": {
             "design": 2,
             "dev": 7,
             "test": 3
+          }
+        },
+        {
+          "id": "TASK-107",
+          "title": "Setup CI/CD Pipeline",
+          "description": "Automated build and deployment",
+          "startDate": "2026-01-01",
+          "endDate": "2026-01-08",
+          "row": 5,
+          "fillColor": "#808080",
+          "borderColor": "#606060",
+          "tags": ["devops", "infrastructure"],
+          "dependencies": [],
+          "effort": {
+            "design": 1,
+            "dev": 5,
+            "test": 2
+          }
+        },
+        {
+          "id": "TASK-108",
+          "title": "Security Audit",
+          "description": "Review auth and API security",
+          "startDate": "2026-03-01",
+          "endDate": "2026-03-15",
+          "row": 4,
+          "fillColor": "#ff4d4d",
+          "borderColor": "#d51c1c",
+          "tags": ["security", "audit"],
+          "dependencies": ["TASK-104", "TASK-106"],
+          "effort": {
+            "design": 2,
+            "dev": 0,
+            "test": 10
           }
         }
       ]

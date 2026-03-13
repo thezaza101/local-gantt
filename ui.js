@@ -365,6 +365,11 @@ class UI {
                     this.updateTagFiltersState();
                 } else if (e.target.matches('.tag-match-mode-radio') || e.target.matches('.tag-visual-mode-radio')) {
                     this.updateTagFiltersState();
+                } else if (e.target.id === 'showDependenciesCheckbox') {
+                    this.planner.setShowDependencies(e.target.checked);
+                    if (window.GanttEngine) {
+                        window.GanttEngine.render(this.planner.getCurrentPlan());
+                    }
                 }
             });
 
@@ -540,6 +545,7 @@ class UI {
         const taskStatus = document.getElementById('taskStatus').value;
 
         let existingTags = document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
+        let dependencies = document.getElementById('taskDependencies').value.split(',').map(dep => dep.trim()).filter(dep => dep);
 
         if (originalTaskId) {
             const originalTask = this.planner.getTaskById(originalTaskId);
@@ -596,6 +602,7 @@ class UI {
             borderColor: selectedBorderLegend ? selectedBorderLegend.color : '#1c6ed5',
             status: taskStatus || null,
             tags: uniqueTags,
+            dependencies: dependencies,
             effort: {
                 design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
                 dev: parseFloat(document.getElementById('taskEffortDev').value) || 0,
@@ -671,6 +678,7 @@ class UI {
                 // Don't show the status tag in the "Tags" input field to avoid duplication
                 const tagsToDisplay = (task.tags || []).filter(t => !task.status || t.toLowerCase() !== task.status.toLowerCase());
                 document.getElementById('taskTags').value = tagsToDisplay.join(', ');
+                document.getElementById('taskDependencies').value = (task.dependencies || []).join(', ');
 
                 if (task.fillLegendId && fillLegends.some(l => l.id === task.fillLegendId)) {
                     taskFillLegendSelect.value = task.fillLegendId;
@@ -693,6 +701,7 @@ class UI {
             document.getElementById('taskId').readOnly = false;
             document.getElementById('originalTaskId').value = '';
             document.getElementById('taskStatus').value = '';
+            document.getElementById('taskDependencies').value = '';
 
             taskFillLegendSelect.value = 'default_fill';
             taskBorderLegendSelect.value = 'default_border';
@@ -1258,6 +1267,12 @@ class UI {
                     <div class="form-check form-check-inline m-0">
                         <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeHighlight" value="highlight" ${filterState.visualMode === 'highlight' ? 'checked' : ''}>
                         <label class="form-check-label small" for="visualModeHighlight">Highlight</label>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-1 border-start ps-3">
+                    <div class="form-check m-0">
+                        <input class="form-check-input" type="checkbox" id="showDependenciesCheckbox" ${this.planner.getShowDependencies() ? 'checked' : ''}>
+                        <label class="form-check-label small text-muted" for="showDependenciesCheckbox">Show Dependencies</label>
                     </div>
                 </div>
             </div>

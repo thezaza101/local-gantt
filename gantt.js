@@ -190,10 +190,16 @@ class Gantt {
             }
         }
 
-        const { html: tasksHtml, maxRow, rowMap } = this.generateTasksHtml(plan, startDate, endDate);
+        const { html: tasksHtml, maxRow, rowMap, renderedTasks } = this.generateTasksHtml(plan, startDate, endDate);
 
         // Calculate the required height to ensure the grid background goes down properly
         const requiredHeight = Math.max(300, (maxRow + 2) * this.rowHeight); // At least 300px, or tall enough for the rows + padding
+
+        // Generate dependencies SVG
+        let dependenciesHtml = '';
+        if (window.PlannerState && window.PlannerState.getShowDependencies()) {
+            dependenciesHtml = this.generateDependencyArrows(renderedTasks, requiredHeight, totalWidth);
+        }
 
         // Generate markers
         let markersHtml = '';
@@ -268,6 +274,7 @@ class Gantt {
 
                     <!-- Rows Container -->
                     <div class="gantt-rows mt-2 position-relative z-1" style="min-height: ${requiredHeight}px;">
+                        ${dependenciesHtml}
                         ${tasksHtml}
                     </div>
                 </div>
@@ -319,6 +326,7 @@ class Gantt {
         });
 
         let maxRow = 0;
+        const renderedTasks = [];
 
         visibleTasks.forEach(({ task, isMatch, taskStart, taskEnd }) => {
             // Calculate start and end offsets relative to plan timeline
@@ -363,6 +371,15 @@ class Gantt {
             const opacityStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'opacity: 0.3;' : '';
             const pointerEventsStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'pointer-events: none;' : '';
 
+            renderedTasks.push({
+                id: task.id,
+                dependencies: task.dependencies || [],
+                left: leftPos,
+                top: topPos,
+                width: width,
+                height: taskHeight
+            });
+
             tasksHtml += `
                 <div class="gantt-task" data-task-id="${safeId}" style="
                     left: ${leftPos}px;
@@ -390,7 +407,92 @@ class Gantt {
             `;
         });
 
-        return { html: tasksHtml, maxRow, rowMap };
+        return { html: tasksHtml, maxRow, rowMap, renderedTasks };
+    }
+
+    generateDependencyArrows(renderedTasks, containerHeight, containerWidth) {
+        if (!renderedTasks || renderedTasks.length === 0) return '';
+
+        let svgContent = '';
+        const taskMap = new Map();
+        renderedTasks.forEach(rt => taskMap.set(rt.id, rt));
+
+        renderedTasks.forEach(rt => {
+            if (rt.dependencies && rt.dependencies.length > 0) {
+                rt.dependencies.forEach(depId => {
+                    const depTask = taskMap.get(depId);
+                    if (depTask) {
+                        // Arrow from depTask to rt (dependent task)
+                        const startX = depTask.left + depTask.width;
+                        const startY = depTask.top + (depTask.height / 2);
+                        const endX = rt.left;
+                        const endY = rt.top + (rt.height / 2);
+
+                        let pathD = '';
+                        const r = 5; // corner radius
+
+                        // Right-angled path
+                        if (Math.abs(startY - endY) < 5) {
+                            // Same row, straight line
+                            pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                        } else {
+                            // Different rows, need right angles
+                            const midX = startX + 10;
+                            const midX2 = endX - 20;
+
+                            // To make corners rounded, we use arcs
+                            const yDir = endY > startY ? 1 : -1;
+
+                            if (endX > startX + 30) {
+                                // Normal case: dependent task is to the right
+                                pathD = `M ${startX} ${startY} ` +
+                                        `L ${midX2 - r} ${startY} ` +
+                                        `Q ${midX2} ${startY} ${midX2} ${startY + r * yDir} ` +
+                                        `L ${midX2} ${endY - r * yDir} ` +
+                                        `Q ${midX2} ${endY} ${midX2 + r} ${endY} ` +
+                                        `L ${endX} ${endY}`;
+                            } else {
+                                // Dependent task is to the left or directly below/above
+                                const dropY = startY + (depTask.height / 2) + 5 * yDir;
+
+                                pathD = `M ${startX} ${startY} ` +
+                                        `L ${startX + 10 - r} ${startY} ` +
+                                        `Q ${startX + 10} ${startY} ${startX + 10} ${startY + r * yDir} ` +
+                                        `L ${startX + 10} ${dropY - r * yDir} ` +
+                                        `Q ${startX + 10} ${dropY} ${startX + 10 - r} ${dropY} ` +
+                                        `L ${endX - 20 + r} ${dropY} ` +
+                                        `Q ${endX - 20} ${dropY} ${endX - 20} ${dropY + r * yDir} ` +
+                                        `L ${endX - 20} ${endY - r * yDir} ` +
+                                        `Q ${endX - 20} ${endY} ${endX - 20 + r} ${endY} ` +
+                                        `L ${endX} ${endY}`;
+                            }
+                        }
+
+                        svgContent += `
+                            <path d="${pathD}"
+                                  fill="none"
+                                  stroke="rgba(128, 128, 128, 0.5)"
+                                  stroke-width="3"
+                                  stroke-linejoin="round"
+                                  marker-end="url(#arrowhead)" />
+                        `;
+                    }
+                });
+            }
+        });
+
+        if (!svgContent) return '';
+
+        return `
+            <svg class="gantt-dependencies-svg" style="position: absolute; top: 0; left: 0; width: ${containerWidth}px; height: ${containerHeight}px; pointer-events: none; z-index: 25;">
+                <defs>
+                    <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                        <polygon points="0 0, 6 2, 0 4" fill="rgba(128, 128, 128, 0.5)" />
+                    </marker>
+                </defs>
+                ${svgContent}
+            </svg>
+        `;
     }
 
     bindTaskEvents() {

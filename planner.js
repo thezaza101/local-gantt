@@ -38,6 +38,7 @@ class Planner {
 
         // UI View State (Not saved to file)
         this.zoomLevel = 'daily'; // 'daily', 'weekly', 'fortnight', 'monthly'
+        this.showDependencies = false;
 
         // Task Status Definitions
         this.statusColors = {
@@ -69,6 +70,14 @@ class Planner {
 
     setFilterState(newState) {
         this.filterState = { ...this.filterState, ...newState };
+    }
+
+    getShowDependencies() {
+        return this.showDependencies;
+    }
+
+    setShowDependencies(show) {
+        this.showDependencies = show;
     }
 
     getCurrentPlan() {
