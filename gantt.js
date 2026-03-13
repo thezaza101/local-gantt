@@ -438,12 +438,12 @@ class Gantt {
                         } else {
                             // Different rows, need right angles
                             const midX = startX + 10;
-                            const midX2 = endX - 10;
+                            const midX2 = endX - 20;
 
                             // To make corners rounded, we use arcs
                             const yDir = endY > startY ? 1 : -1;
 
-                            if (endX > startX + 20) {
+                            if (endX > startX + 30) {
                                 // Normal case: dependent task is to the right
                                 pathD = `M ${startX} ${startY} ` +
                                         `L ${midX2 - r} ${startY} ` +
@@ -460,10 +460,10 @@ class Gantt {
                                         `Q ${startX + 10} ${startY} ${startX + 10} ${startY + r * yDir} ` +
                                         `L ${startX + 10} ${dropY - r * yDir} ` +
                                         `Q ${startX + 10} ${dropY} ${startX + 10 - r} ${dropY} ` +
-                                        `L ${endX - 10 + r} ${dropY} ` +
-                                        `Q ${endX - 10} ${dropY} ${endX - 10} ${dropY + r * yDir} ` +
-                                        `L ${endX - 10} ${endY - r * yDir} ` +
-                                        `Q ${endX - 10} ${endY} ${endX - 10 + r} ${endY} ` +
+                                        `L ${endX - 20 + r} ${dropY} ` +
+                                        `Q ${endX - 20} ${dropY} ${endX - 20} ${dropY + r * yDir} ` +
+                                        `L ${endX - 20} ${endY - r * yDir} ` +
+                                        `Q ${endX - 20} ${endY} ${endX - 20 + r} ${endY} ` +
                                         `L ${endX} ${endY}`;
                             }
                         }
