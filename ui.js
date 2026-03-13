@@ -360,6 +360,7 @@ class UI {
         const selectedBorderLegend = borderLegends.find(l => l.id === borderLegendId) || borderLegends.find(l => l.id === 'default_border');
 
         const originalTaskId = document.getElementById('originalTaskId').value;
+        const taskStatus = document.getElementById('taskStatus').value;
 
         let existingTags = document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
 
@@ -380,7 +381,16 @@ class UI {
                         existingTags = existingTags.filter(t => t !== oldBorderLegend.tag);
                     }
                 }
+                // Remove old status tag
+                if (originalTask.status) {
+                    existingTags = existingTags.filter(t => t.toLowerCase() !== originalTask.status.toLowerCase());
+                }
             }
+        }
+
+        // Add new status tag if selected
+        if (taskStatus) {
+            existingTags.push(taskStatus);
         }
 
         // Add the new fill legend's tag if not already present
@@ -407,6 +417,7 @@ class UI {
             borderLegendId: selectedBorderLegend ? selectedBorderLegend.id : 'default_border',
             fillColor: selectedFillLegend ? selectedFillLegend.color : '#4da3ff',
             borderColor: selectedBorderLegend ? selectedBorderLegend.color : '#1c6ed5',
+            status: taskStatus || null,
             tags: uniqueTags,
             effort: {
                 design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
@@ -477,7 +488,11 @@ class UI {
                 document.getElementById('taskStartDate').value = task.startDate || '';
                 document.getElementById('taskEndDate').value = task.endDate || '';
                 document.getElementById('taskRow').value = task.row !== undefined ? task.row : 1;
-                document.getElementById('taskTags').value = (task.tags || []).join(', ');
+                document.getElementById('taskStatus').value = task.status || '';
+
+                // Don't show the status tag in the "Tags" input field to avoid duplication
+                const tagsToDisplay = (task.tags || []).filter(t => !task.status || t.toLowerCase() !== task.status.toLowerCase());
+                document.getElementById('taskTags').value = tagsToDisplay.join(', ');
 
                 if (task.fillLegendId && fillLegends.some(l => l.id === task.fillLegendId)) {
                     taskFillLegendSelect.value = task.fillLegendId;
@@ -499,6 +514,7 @@ class UI {
             document.getElementById('taskId').value = '';
             document.getElementById('taskId').readOnly = false;
             document.getElementById('originalTaskId').value = '';
+            document.getElementById('taskStatus').value = '';
 
             taskFillLegendSelect.value = 'default_fill';
             taskBorderLegendSelect.value = 'default_border';

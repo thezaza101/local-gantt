@@ -236,7 +236,9 @@ body {
     border-radius: 4px;
     overflow: hidden;
     cursor: grab;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    /* Instead of overriding the box-shadow entirely, we define a css variable */
+    --status-shadow: 0 0 0 transparent;
+    box-shadow: var(--status-shadow), 0 1px 3px rgba(0,0,0,0.12);
     transition: transform 0.1s;
     /* ensure tasks render above grid and markers */
     z-index: 20;
@@ -244,7 +246,7 @@ body {
 
 .gantt-task:hover {
     transform: scale(1.01);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: var(--status-shadow), 0 2px 5px rgba(0,0,0,0.2);
 }
 
 .gantt-task.dragging,
