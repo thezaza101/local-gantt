@@ -8,6 +8,15 @@ class Gantt {
         this.taskMargin = 5; // top/bottom margin for tasks
     }
 
+    getSafeDate(dateString) {
+        if (!dateString) return new Date(NaN);
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+            return new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        }
+        return new Date(dateString);
+    }
+
     render(plan) {
         if (!this.container || !plan) {
             if (this.container) {
@@ -16,13 +25,36 @@ class Gantt {
             return;
         }
 
-        const startDate = new Date(plan.timeline.startDate);
-        const endDate = new Date(plan.timeline.endDate);
+        const startDate = this.getSafeDate(plan.timeline.startDate);
+        const endDate = this.getSafeDate(plan.timeline.endDate);
 
         if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) {
             this.container.innerHTML = `<div class="p-3 border rounded text-center text-danger">Invalid plan dates</div>`;
             return;
         }
+
+        // Get zoom level from planner state (default to daily if missing)
+        const zoomLevel = window.PlannerState ? window.PlannerState.getZoomLevel() : 'daily';
+
+        // Determine the visual width of a single day based on zoom level
+        let dayWidth;
+        switch(zoomLevel) {
+            case 'monthly':
+                dayWidth = 2;
+                break;
+            case 'fortnight':
+                dayWidth = 6;
+                break;
+            case 'weekly':
+                dayWidth = 10;
+                break;
+            case 'daily':
+            default:
+                dayWidth = 40;
+                break;
+        }
+
+        this.cellWidth = dayWidth;
 
         // Calculate total days
         const totalDays = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
@@ -30,35 +62,132 @@ class Gantt {
 
         // Generate Grid Headers
         let headersHtml = '';
-        let currentMonthHtml = '';
-        let currentMonth = -1;
-        let daysInCurrentMonth = 0;
-        let currentMonthName = '';
+        let topHeadersHtml = '';
 
-        for (let i = 0; i < totalDays; i++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + i);
-            const dayNum = date.getDate();
-            const monthNum = date.getMonth();
-            const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+        if (zoomLevel === 'daily') {
+            let currentMonth = -1;
+            let daysInCurrentMonth = 0;
+            let currentMonthName = '';
 
-            if (monthNum !== currentMonth) {
-                if (currentMonth !== -1) {
-                    currentMonthHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;">${currentMonthName}</div>`;
+            for (let i = 0; i < totalDays; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const dayNum = date.getDate();
+                const monthNum = date.getMonth();
+                const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+
+                if (monthNum !== currentMonth) {
+                    if (currentMonth !== -1) {
+                        topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;">${currentMonthName}</div>`;
+                    }
+                    currentMonth = monthNum;
+                    currentMonthName = monthName;
+                    daysInCurrentMonth = 1;
+                } else {
+                    daysInCurrentMonth++;
                 }
-                currentMonth = monthNum;
-                currentMonthName = monthName; // Store name for next loop
-                daysInCurrentMonth = 1;
-            } else {
-                daysInCurrentMonth++;
-            }
 
-            headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${this.cellWidth}px; flex: none; font-size: 0.8em; padding: 2px 0;">${dayNum}</div>`;
-        }
-        
-        // Add the last month
-        if (daysInCurrentMonth > 0) {
-            currentMonthHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;">${currentMonthName}</div>`;
+                headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${this.cellWidth}px; flex: none; font-size: 0.8em; padding: 2px 0;">${dayNum}</div>`;
+            }
+            if (daysInCurrentMonth > 0) {
+                topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;">${currentMonthName}</div>`;
+            }
+        } else if (zoomLevel === 'weekly' || zoomLevel === 'fortnight') {
+            let currentMonth = -1;
+            let daysInCurrentMonth = 0;
+            let currentMonthName = '';
+
+            // Bottom headers for weeks/fortnights
+            const periodDays = zoomLevel === 'weekly' ? 7 : 14;
+            let currentPeriodStart = new Date(startDate);
+            let daysInCurrentPeriod = 0;
+
+            for (let i = 0; i < totalDays; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const monthNum = date.getMonth();
+                const monthName = date.toLocaleString('default', { month: 'short', year: 'numeric' });
+
+                // Top header logic
+                if (monthNum !== currentMonth) {
+                    if (currentMonth !== -1) {
+                        topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentMonthName}</div>`;
+                    }
+                    currentMonth = monthNum;
+                    currentMonthName = monthName;
+                    daysInCurrentMonth = 1;
+                } else {
+                    daysInCurrentMonth++;
+                }
+
+                // Bottom header logic
+                daysInCurrentPeriod++;
+                if (daysInCurrentPeriod === periodDays || i === totalDays - 1) {
+                    const periodEnd = new Date(date);
+                    const startDay = currentPeriodStart.getDate();
+                    const startMonth = currentPeriodStart.toLocaleString('default', { month: 'short' });
+                    const endDay = periodEnd.getDate();
+                    const endMonth = periodEnd.toLocaleString('default', { month: 'short' });
+
+                    let label = `${startDay} ${startMonth}`;
+                    if (startMonth !== endMonth) label += ` - ${endDay} ${endMonth}`;
+                    else label += `-${endDay}`;
+
+                    headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${daysInCurrentPeriod * this.cellWidth}px; flex: none; font-size: 0.7em; padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${label}</div>`;
+
+                    // Reset for next period
+                    currentPeriodStart = new Date(date);
+                    currentPeriodStart.setDate(currentPeriodStart.getDate() + 1);
+                    daysInCurrentPeriod = 0;
+                }
+            }
+            if (daysInCurrentMonth > 0) {
+                topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentMonthName}</div>`;
+            }
+        } else if (zoomLevel === 'monthly') {
+            let currentYear = -1;
+            let daysInCurrentYear = 0;
+
+            let currentMonth = -1;
+            let daysInCurrentMonth = 0;
+            let currentMonthName = '';
+
+            for (let i = 0; i < totalDays; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const yearNum = date.getFullYear();
+                const monthNum = date.getMonth();
+                const monthName = date.toLocaleString('default', { month: 'short' });
+
+                // Top header (Years)
+                if (yearNum !== currentYear) {
+                    if (currentYear !== -1) {
+                        topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentYear * this.cellWidth}px; flex: none;">${currentYear}</div>`;
+                    }
+                    currentYear = yearNum;
+                    daysInCurrentYear = 1;
+                } else {
+                    daysInCurrentYear++;
+                }
+
+                // Bottom header (Months)
+                if (monthNum !== currentMonth) {
+                    if (currentMonth !== -1) {
+                        headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none; font-size: 0.8em; padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentMonthName}</div>`;
+                    }
+                    currentMonth = monthNum;
+                    currentMonthName = monthName;
+                    daysInCurrentMonth = 1;
+                } else {
+                    daysInCurrentMonth++;
+                }
+            }
+            if (daysInCurrentYear > 0) {
+                topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentYear * this.cellWidth}px; flex: none;">${currentYear}</div>`;
+            }
+            if (daysInCurrentMonth > 0) {
+                headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none; font-size: 0.8em; padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentMonthName}</div>`;
+            }
         }
 
         const { html: tasksHtml, maxRow, rowMap } = this.generateTasksHtml(plan, startDate, endDate);
@@ -122,7 +251,7 @@ class Gantt {
                     <!-- Headers -->
                     <div class="gantt-header d-flex position-sticky top-0 bg-white z-2">
                         <div class="gantt-months d-flex w-100">
-                            ${currentMonthHtml}
+                            ${topHeadersHtml}
                         </div>
                     </div>
                     <div class="gantt-header-days d-flex position-sticky bg-white z-2" style="top: 25px;">
@@ -131,7 +260,7 @@ class Gantt {
                     
                     <!-- Grid Background -->
                     <div class="gantt-grid position-absolute top-0 bottom-0 d-flex z-0" style="left: 0; right: 0; pointer-events: none;">
-                        ${this.generateGridLines(totalDays)}
+                        ${this.generateGridLines(totalDays, zoomLevel, startDate)}
                     </div>
 
                     <!-- Markers -->
@@ -158,8 +287,8 @@ class Gantt {
         // Filter and collect tasks
         const visibleTasks = [];
         plan.tasks.forEach(task => {
-            const taskStart = new Date(task.startDate);
-            const taskEnd = new Date(task.endDate);
+            const taskStart = this.getSafeDate(task.startDate);
+            const taskEnd = this.getSafeDate(task.endDate);
 
             // Skip invalid dates
             if (isNaN(taskStart) || isNaN(taskEnd) || taskStart > taskEnd) return;
@@ -351,9 +480,8 @@ class Gantt {
                         const snappedRowIndex = Math.max(0, Math.round((finalTop - this.taskMargin) / this.rowHeight));
                         const newRow = snappedRowIndex + 1;
 
-                        // Parse the YYYY-MM-DD string as local time to avoid timezone offset issues
-                        const [year, month, day] = plan.timeline.startDate.split('-');
-                        const planStartDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, parseInt(day, 10));
+                        // Use getSafeDate instead
+                        const planStartDate = this.getSafeDate(plan.timeline.startDate);
 
                         // Calculate new start and end dates based on offset
                         const newStartDate = new Date(planStartDate);
@@ -479,10 +607,44 @@ class Gantt {
         return result;
     }
 
-    generateGridLines(totalDays) {
+    generateGridLines(totalDays, zoomLevel, startDate) {
         let lines = '';
-        for (let i = 0; i < totalDays; i++) {
-            lines += `<div class="gantt-grid-line border-end" style="width: ${this.cellWidth}px; flex: none;"></div>`;
+
+        if (zoomLevel === 'daily') {
+            for (let i = 0; i < totalDays; i++) {
+                lines += `<div class="gantt-grid-line border-end" style="width: ${this.cellWidth}px; flex: none;"></div>`;
+            }
+        } else if (zoomLevel === 'weekly' || zoomLevel === 'fortnight') {
+            const periodDays = zoomLevel === 'weekly' ? 7 : 14;
+            let daysInCurrentPeriod = 0;
+            for (let i = 0; i < totalDays; i++) {
+                daysInCurrentPeriod++;
+                if (daysInCurrentPeriod === periodDays || i === totalDays - 1) {
+                    lines += `<div class="gantt-grid-line border-end" style="width: ${daysInCurrentPeriod * this.cellWidth}px; flex: none;"></div>`;
+                    daysInCurrentPeriod = 0;
+                }
+            }
+        } else if (zoomLevel === 'monthly') {
+            let currentMonth = -1;
+            let daysInCurrentMonth = 0;
+            for (let i = 0; i < totalDays; i++) {
+                const date = new Date(startDate);
+                date.setDate(startDate.getDate() + i);
+                const monthNum = date.getMonth();
+
+                if (monthNum !== currentMonth) {
+                    if (currentMonth !== -1) {
+                        lines += `<div class="gantt-grid-line border-end" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;"></div>`;
+                    }
+                    currentMonth = monthNum;
+                    daysInCurrentMonth = 1;
+                } else {
+                    daysInCurrentMonth++;
+                }
+            }
+            if (daysInCurrentMonth > 0) {
+                lines += `<div class="gantt-grid-line border-end" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;"></div>`;
+            }
         }
         return lines;
     }
