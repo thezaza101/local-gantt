@@ -94,6 +94,21 @@ class UI {
             });
         }
 
+        // Settings Actions
+        const settingsBtn = document.getElementById("settingsBtn");
+        if (settingsBtn) {
+            settingsBtn.addEventListener("click", () => {
+                this.openSettingsModal();
+            });
+        }
+
+        const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener("click", () => {
+                this.saveSettings();
+            });
+        }
+
         // Plan Actions
         const newPlanBtn = document.getElementById("newPlanBtn");
         if (newPlanBtn) {
@@ -106,17 +121,20 @@ class UI {
             });
         }
 
-        const renamePlanBtn = document.getElementById("renamePlanBtn");
-        if (renamePlanBtn) {
-            renamePlanBtn.addEventListener("click", () => {
+        const editPlanBtn = document.getElementById("editPlanBtn");
+        if (editPlanBtn) {
+            editPlanBtn.addEventListener("click", () => {
                 const currentPlan = this.planner.getCurrentPlan();
                 if (currentPlan) {
-                    const newName = prompt("Enter new name for the plan:", currentPlan.name);
-                    if (newName && newName.trim() !== "") {
-                        this.planner.renamePlan(newName.trim());
-                        this.updateUI();
-                    }
+                    this.openEditPlanModal();
                 }
+            });
+        }
+
+        const saveEditPlanBtn = document.getElementById("saveEditPlanBtn");
+        if (saveEditPlanBtn) {
+            saveEditPlanBtn.addEventListener("click", () => {
+                this.saveEditPlan();
             });
         }
 
@@ -361,6 +379,97 @@ class UI {
         }
     }
 
+    openEditPlanModal() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const editPlanModalEl = document.getElementById('editPlanModal');
+        const editPlanModal = bootstrap.Modal.getOrCreateInstance(editPlanModalEl);
+
+        document.getElementById('editPlanName').value = currentPlan.name || '';
+        document.getElementById('editPlanStartDate').value = currentPlan.timeline.startDate || '';
+        document.getElementById('editPlanEndDate').value = currentPlan.timeline.endDate || '';
+
+        editPlanModal.show();
+    }
+
+    saveEditPlan() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const newName = document.getElementById('editPlanName').value.trim();
+        const newStartDate = document.getElementById('editPlanStartDate').value;
+        const newEndDate = document.getElementById('editPlanEndDate').value;
+
+        if (!newName || !newStartDate || !newEndDate) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        const startObj = new Date(newStartDate);
+        const endObj = new Date(newEndDate);
+
+        if (startObj > endObj) {
+            alert("Start date cannot be after end date.");
+            return;
+        }
+
+        // Check for out of bounds tasks
+        let outOfBoundsCount = 0;
+        if (currentPlan.tasks && currentPlan.tasks.length > 0) {
+            currentPlan.tasks.forEach(task => {
+                const taskStart = new Date(task.startDate);
+                const taskEnd = new Date(task.endDate);
+
+                // Note: taskEnd < startObj means task finishes before new timeline starts
+                // taskStart > endObj means task starts after new timeline ends
+                if (taskEnd < startObj || taskStart > endObj) {
+                    outOfBoundsCount++;
+                }
+            });
+        }
+
+        if (outOfBoundsCount > 0) {
+            const proceed = confirm(`Warning: ${outOfBoundsCount} task(s) fall completely outside the new timeline dates. They will still exist but will not be visible on the chart. Do you wish to proceed?`);
+            if (!proceed) return;
+        }
+
+        // Update plan via planner state
+        if (this.planner.updatePlanDetails(newName, newStartDate, newEndDate)) {
+            const editPlanModalEl = document.getElementById('editPlanModal');
+            const editPlanModal = bootstrap.Modal.getInstance(editPlanModalEl);
+            if (editPlanModal) {
+                editPlanModal.hide();
+            }
+            this.updateUI();
+        }
+    }
+
+    openSettingsModal() {
+        const settingsModalEl = document.getElementById('settingsModal');
+        const settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
+        const baseLinkInput = document.getElementById('settingsBaseLink');
+
+        const settings = this.planner.getState().settings || {};
+        baseLinkInput.value = settings.baseLink || '';
+
+        settingsModal.show();
+    }
+
+    saveSettings() {
+        const baseLink = document.getElementById('settingsBaseLink').value.trim();
+
+        this.planner.updateSettings({ baseLink });
+
+        const settingsModalEl = document.getElementById('settingsModal');
+        const settingsModal = bootstrap.Modal.getInstance(settingsModalEl);
+        if (settingsModal) {
+            settingsModal.hide();
+        }
+
+        this.updateUI();
+    }
+
     updateTagFiltersState() {
         const container = document.getElementById('tagFiltersContainer');
         if (!container) return;
@@ -506,7 +615,8 @@ class UI {
     openTaskModal(taskId = null) {
         // We will implement modal logic in the next step
         console.log("Opening task modal for task ID:", taskId);
-        const taskModal = new bootstrap.Modal(document.getElementById('taskModal'));
+        const taskModalEl = document.getElementById('taskModal');
+        const taskModal = bootstrap.Modal.getOrCreateInstance(taskModalEl);
 
         const form = document.getElementById('taskForm');
         form.reset();
@@ -584,7 +694,8 @@ class UI {
         const currentPlan = this.planner.getCurrentPlan();
         if (!currentPlan) return;
 
-        const modal = new bootstrap.Modal(document.getElementById('markerManagementModal'));
+        const modalEl = document.getElementById('markerManagementModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         this.renderMarkerTable();
         modal.show();
     }
@@ -655,7 +766,8 @@ class UI {
             mngModal.hide(); // Hide the management modal so they don't stack weirdly
         }
 
-        const editModal = new bootstrap.Modal(document.getElementById('markerEditModal'));
+        const editModalEl = document.getElementById('markerEditModal');
+        const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
         const form = document.getElementById('markerForm');
         form.reset();
 
@@ -693,7 +805,6 @@ class UI {
         }
 
         // Handle cleanup when Edit modal closes to re-open Management modal if needed
-        const editModalEl = document.getElementById('markerEditModal');
         const handleEditModalHidden = () => {
             editModalEl.removeEventListener('hidden.bs.modal', handleEditModalHidden);
             this.openMarkerManagementModal();
@@ -761,7 +872,8 @@ class UI {
     }
 
     openLegendsModal() {
-        const legendsModal = new bootstrap.Modal(document.getElementById('legendsModal'));
+        const legendsModalEl = document.getElementById('legendsModal');
+        const legendsModal = bootstrap.Modal.getOrCreateInstance(legendsModalEl);
 
         const fillTbody = document.getElementById('fillLegendsTableBody');
         fillTbody.innerHTML = '';
@@ -881,7 +993,8 @@ class UI {
         const currentPlan = this.planner.getCurrentPlan();
         if (!currentPlan) return;
 
-        const capacityModal = new bootstrap.Modal(document.getElementById('capacityModal'));
+        const capacityModalEl = document.getElementById('capacityModal');
+        const capacityModal = bootstrap.Modal.getOrCreateInstance(capacityModalEl);
 
         // Initialize fields
         const granularitySelect = document.getElementById('capacityGranularity');
@@ -1025,7 +1138,7 @@ class UI {
 
         const hasPlans = plans.length > 0;
         const addTaskBtn = document.getElementById("addTaskBtn");
-        const renamePlanBtn = document.getElementById("renamePlanBtn");
+        const editPlanBtn = document.getElementById("editPlanBtn");
         const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
         const deletePlanBtn = document.getElementById("deletePlanBtn");
         const addMarkerBtn = document.getElementById("addMarkerBtn");
@@ -1033,7 +1146,7 @@ class UI {
         const printGanttBtn = document.getElementById("printGanttBtn");
 
         if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
-        if (renamePlanBtn) renamePlanBtn.disabled = !hasPlans;
+        if (editPlanBtn) editPlanBtn.disabled = !hasPlans;
         if (duplicatePlanBtn) duplicatePlanBtn.disabled = !hasPlans;
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
