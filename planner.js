@@ -8,13 +8,20 @@ class Planner {
             },
             settings: {
                 baseLink: "https://jira.company.com/browse/",
-                legends: [
+                fillLegends: [
                     {
-                        id: 'default',
-                        label: 'Default',
-                        fillColor: '#4da3ff',
-                        borderColor: '#1c6ed5',
-                        tag: 'default'
+                        id: 'default_fill',
+                        label: 'Default Fill',
+                        color: '#4da3ff',
+                        tag: 'fill-default'
+                    }
+                ],
+                borderLegends: [
+                    {
+                        id: 'default_border',
+                        label: 'Default Border',
+                        color: '#1c6ed5',
+                        tag: 'border-default'
                     }
                 ]
             },
@@ -275,52 +282,34 @@ class Planner {
         return false;
     }
 
-    getLegends() {
-        // Ensure legends exist (for backward compatibility with older files)
+    getFillLegends() {
         if (!this.file.settings) this.file.settings = {};
-        if (!this.file.settings.legends) {
-            this.file.settings.legends = [
+        if (!this.file.settings.fillLegends) {
+            this.file.settings.fillLegends = [
                 {
-                    id: 'default',
-                    label: 'Default',
-                    fillColor: '#4da3ff',
-                    borderColor: '#1c6ed5',
-                    tag: 'default'
+                    id: 'default_fill',
+                    label: 'Default Fill',
+                    color: '#4da3ff',
+                    tag: 'fill-default'
                 }
             ];
         }
-        return this.file.settings.legends;
+        return this.file.settings.fillLegends;
     }
 
-    addLegend(legend) {
-        const legends = this.getLegends();
-        // Generate a simple ID if not provided
-        if (!legend.id) {
-            legend.id = 'legend_' + Math.random().toString(36).substring(2, 9);
+    getBorderLegends() {
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.borderLegends) {
+            this.file.settings.borderLegends = [
+                {
+                    id: 'default_border',
+                    label: 'Default Border',
+                    color: '#1c6ed5',
+                    tag: 'border-default'
+                }
+            ];
         }
-        legends.push(legend);
-        return true;
-    }
-
-    updateLegend(id, updatedLegend) {
-        const legends = this.getLegends();
-        const index = legends.findIndex(l => l.id === id);
-        if (index !== -1) {
-            legends[index] = { ...legends[index], ...updatedLegend };
-            return true;
-        }
-        return false;
-    }
-
-    deleteLegend(id) {
-        if (id === 'default') return false; // Cannot delete default legend
-        const legends = this.getLegends();
-        const index = legends.findIndex(l => l.id === id);
-        if (index !== -1) {
-            legends.splice(index, 1);
-            return true;
-        }
-        return false;
+        return this.file.settings.borderLegends;
     }
 
     getState() {

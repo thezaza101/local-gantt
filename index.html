@@ -136,9 +136,15 @@
                                 <label for="taskTags" class="form-label">Tags (comma-separated)</label>
                                 <input type="text" class="form-control" id="taskTags">
                             </div>
-                            <div class="col-md-6">
-                                <label for="taskLegend" class="form-label">Legend</label>
-                                <select class="form-select" id="taskLegend">
+                            <div class="col-md-3">
+                                <label for="taskFillLegend" class="form-label">Fill Legend</label>
+                                <select class="form-select" id="taskFillLegend">
+                                    <!-- Populated dynamically -->
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="taskBorderLegend" class="form-label">Border Legend</label>
+                                <select class="form-select" id="taskBorderLegend">
                                     <!-- Populated dynamically -->
                                 </select>
                             </div>
@@ -177,21 +183,37 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-sm" id="legendsTable">
+                    <h6>Fill Colors</h6>
+                    <table class="table table-sm" id="fillLegendsTable">
                         <thead>
                             <tr>
                                 <th>Label</th>
-                                <th>Fill Color</th>
-                                <th>Border Color</th>
+                                <th>Color</th>
                                 <th>Associated Tag</th>
                                 <th style="width: 80px;"></th>
                             </tr>
                         </thead>
-                        <tbody id="legendsTableBody">
-                            <!-- Legends rows injected here -->
+                        <tbody id="fillLegendsTableBody">
+                            <!-- Fill Legends rows injected here -->
                         </tbody>
                     </table>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="addLegendRowBtn">+ Add Legend</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary mb-4" id="addFillLegendRowBtn">+ Add Fill Legend</button>
+
+                    <h6>Border Colors</h6>
+                    <table class="table table-sm" id="borderLegendsTable">
+                        <thead>
+                            <tr>
+                                <th>Label</th>
+                                <th>Color</th>
+                                <th>Associated Tag</th>
+                                <th style="width: 80px;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="borderLegendsTableBody">
+                            <!-- Border Legends rows injected here -->
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addBorderLegendRowBtn">+ Add Border Legend</button>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

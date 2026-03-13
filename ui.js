@@ -129,10 +129,17 @@ class UI {
         }
 
         // Legends Modals actions
-        const addLegendRowBtn = document.getElementById("addLegendRowBtn");
-        if (addLegendRowBtn) {
-            addLegendRowBtn.addEventListener("click", () => {
-                this.addLegendRow();
+        const addFillLegendRowBtn = document.getElementById("addFillLegendRowBtn");
+        if (addFillLegendRowBtn) {
+            addFillLegendRowBtn.addEventListener("click", () => {
+                this.addLegendRow('fill');
+            });
+        }
+
+        const addBorderLegendRowBtn = document.getElementById("addBorderLegendRowBtn");
+        if (addBorderLegendRowBtn) {
+            addBorderLegendRowBtn.addEventListener("click", () => {
+                this.addLegendRow('border');
             });
         }
 
@@ -270,9 +277,14 @@ class UI {
             return;
         }
 
-        const legendId = document.getElementById('taskLegend').value;
-        const legends = this.planner.getLegends();
-        const selectedLegend = legends.find(l => l.id === legendId) || legends.find(l => l.id === 'default');
+        const fillLegendId = document.getElementById('taskFillLegend').value;
+        const borderLegendId = document.getElementById('taskBorderLegend').value;
+
+        const fillLegends = this.planner.getFillLegends();
+        const borderLegends = this.planner.getBorderLegends();
+
+        const selectedFillLegend = fillLegends.find(l => l.id === fillLegendId) || fillLegends.find(l => l.id === 'default_fill');
+        const selectedBorderLegend = borderLegends.find(l => l.id === borderLegendId) || borderLegends.find(l => l.id === 'default_border');
 
         const originalTaskId = document.getElementById('originalTaskId').value;
 
@@ -280,20 +292,32 @@ class UI {
 
         if (originalTaskId) {
             const originalTask = this.planner.getTaskById(originalTaskId);
-            if (originalTask && originalTask.legendId) {
-                const oldLegend = legends.find(l => l.id === originalTask.legendId);
-                // Remove the old legend's tag if it exists in the user's input
-                if (oldLegend && oldLegend.tag) {
-                    existingTags = existingTags.filter(t => t !== oldLegend.tag);
+            if (originalTask) {
+                // Remove old fill legend tag
+                if (originalTask.fillLegendId) {
+                    const oldFillLegend = fillLegends.find(l => l.id === originalTask.fillLegendId);
+                    if (oldFillLegend && oldFillLegend.tag) {
+                        existingTags = existingTags.filter(t => t !== oldFillLegend.tag);
+                    }
+                }
+                // Remove old border legend tag
+                if (originalTask.borderLegendId) {
+                    const oldBorderLegend = borderLegends.find(l => l.id === originalTask.borderLegendId);
+                    if (oldBorderLegend && oldBorderLegend.tag) {
+                        existingTags = existingTags.filter(t => t !== oldBorderLegend.tag);
+                    }
                 }
             }
         }
 
-        // Add the new legend's tag if not already present
-        if (selectedLegend && selectedLegend.tag) {
-             if (!existingTags.includes(selectedLegend.tag)) {
-                 existingTags.push(selectedLegend.tag);
-             }
+        // Add the new fill legend's tag if not already present
+        if (selectedFillLegend && selectedFillLegend.tag && !existingTags.includes(selectedFillLegend.tag)) {
+            existingTags.push(selectedFillLegend.tag);
+        }
+
+        // Add the new border legend's tag if not already present
+        if (selectedBorderLegend && selectedBorderLegend.tag && !existingTags.includes(selectedBorderLegend.tag)) {
+            existingTags.push(selectedBorderLegend.tag);
         }
 
         // Ensure tags are unique
@@ -306,9 +330,10 @@ class UI {
             startDate: startDate,
             endDate: endDate,
             row: parseInt(document.getElementById('taskRow').value, 10) || 1,
-            legendId: selectedLegend ? selectedLegend.id : 'default',
-            fillColor: selectedLegend ? selectedLegend.fillColor : '#4da3ff',
-            borderColor: selectedLegend ? selectedLegend.borderColor : '#1c6ed5',
+            fillLegendId: selectedFillLegend ? selectedFillLegend.id : 'default_fill',
+            borderLegendId: selectedBorderLegend ? selectedBorderLegend.id : 'default_border',
+            fillColor: selectedFillLegend ? selectedFillLegend.color : '#4da3ff',
+            borderColor: selectedBorderLegend ? selectedBorderLegend.color : '#1c6ed5',
             tags: uniqueTags,
             effort: {
                 design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
@@ -345,15 +370,26 @@ class UI {
         const form = document.getElementById('taskForm');
         form.reset();
 
-        // Populate the legend dropdown
-        const taskLegendSelect = document.getElementById('taskLegend');
-        taskLegendSelect.innerHTML = '';
-        const legends = this.planner.getLegends();
-        legends.forEach(legend => {
+        // Populate the fill legend dropdown
+        const taskFillLegendSelect = document.getElementById('taskFillLegend');
+        taskFillLegendSelect.innerHTML = '';
+        const fillLegends = this.planner.getFillLegends();
+        fillLegends.forEach(legend => {
             const option = document.createElement('option');
             option.value = legend.id;
             option.textContent = legend.label;
-            taskLegendSelect.appendChild(option);
+            taskFillLegendSelect.appendChild(option);
+        });
+
+        // Populate the border legend dropdown
+        const taskBorderLegendSelect = document.getElementById('taskBorderLegend');
+        taskBorderLegendSelect.innerHTML = '';
+        const borderLegends = this.planner.getBorderLegends();
+        borderLegends.forEach(legend => {
+            const option = document.createElement('option');
+            option.value = legend.id;
+            option.textContent = legend.label;
+            taskBorderLegendSelect.appendChild(option);
         });
 
         if (taskId) {
@@ -370,10 +406,16 @@ class UI {
                 document.getElementById('taskRow').value = task.row !== undefined ? task.row : 1;
                 document.getElementById('taskTags').value = (task.tags || []).join(', ');
 
-                if (task.legendId && legends.some(l => l.id === task.legendId)) {
-                    taskLegendSelect.value = task.legendId;
+                if (task.fillLegendId && fillLegends.some(l => l.id === task.fillLegendId)) {
+                    taskFillLegendSelect.value = task.fillLegendId;
                 } else {
-                    taskLegendSelect.value = 'default';
+                    taskFillLegendSelect.value = 'default_fill';
+                }
+
+                if (task.borderLegendId && borderLegends.some(l => l.id === task.borderLegendId)) {
+                    taskBorderLegendSelect.value = task.borderLegendId;
+                } else {
+                    taskBorderLegendSelect.value = 'default_border';
                 }
 
                 document.getElementById('taskEffortDesign').value = task.effort ? task.effort.design || 0 : 0;
@@ -385,7 +427,8 @@ class UI {
             document.getElementById('taskId').readOnly = false;
             document.getElementById('originalTaskId').value = '';
 
-            taskLegendSelect.value = 'default';
+            taskFillLegendSelect.value = 'default_fill';
+            taskBorderLegendSelect.value = 'default_border';
         }
 
         taskModal.show();
@@ -393,30 +436,37 @@ class UI {
 
     openLegendsModal() {
         const legendsModal = new bootstrap.Modal(document.getElementById('legendsModal'));
-        const tbody = document.getElementById('legendsTableBody');
-        tbody.innerHTML = '';
 
-        const legends = this.planner.getLegends();
-        legends.forEach(legend => {
-            this.addLegendRow(legend);
+        const fillTbody = document.getElementById('fillLegendsTableBody');
+        fillTbody.innerHTML = '';
+        const fillLegends = this.planner.getFillLegends();
+        fillLegends.forEach(legend => {
+            this.addLegendRow('fill', legend);
+        });
+
+        const borderTbody = document.getElementById('borderLegendsTableBody');
+        borderTbody.innerHTML = '';
+        const borderLegends = this.planner.getBorderLegends();
+        borderLegends.forEach(legend => {
+            this.addLegendRow('border', legend);
         });
 
         legendsModal.show();
     }
 
-    addLegendRow(legend = null) {
-        const tbody = document.getElementById('legendsTableBody');
+    addLegendRow(type, legend = null) {
+        const tbody = document.getElementById(type === 'fill' ? 'fillLegendsTableBody' : 'borderLegendsTableBody');
         const tr = document.createElement('tr');
 
-        const isDefault = legend && legend.id === 'default';
+        const isDefault = legend && (legend.id === 'default_fill' || legend.id === 'default_border');
+        const defaultColor = type === 'fill' ? '#4da3ff' : '#1c6ed5';
 
         tr.innerHTML = `
             <td>
                 <input type="hidden" class="leg-id" value="${legend ? legend.id : ''}">
                 <input type="text" class="form-control form-control-sm leg-label" value="${legend ? this.escapeHtml(legend.label) : ''}" required ${isDefault ? 'readonly' : ''}>
             </td>
-            <td><input type="color" class="form-control form-control-color form-control-sm leg-fill" value="${legend ? legend.fillColor : '#4da3ff'}" title="Fill Color"></td>
-            <td><input type="color" class="form-control form-control-color form-control-sm leg-border" value="${legend ? legend.borderColor : '#1c6ed5'}" title="Border Color"></td>
+            <td><input type="color" class="form-control form-control-color form-control-sm leg-color" value="${legend ? legend.color : defaultColor}" title="Color"></td>
             <td><input type="text" class="form-control form-control-sm leg-tag" value="${legend ? this.escapeHtml(legend.tag) : ''}" required ${isDefault ? 'readonly' : ''}></td>
             <td class="align-middle text-center">
                 ${!isDefault ? '<button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-leg-row-btn" title="Delete Row">&times;</button>' : ''}
@@ -434,48 +484,55 @@ class UI {
     }
 
     saveLegends() {
-        const tbody = document.getElementById('legendsTableBody');
-        const rows = tbody.querySelectorAll('tr');
+        const parseRows = (tbodyId, defaultObj) => {
+            const tbody = document.getElementById(tbodyId);
+            const rows = tbody.querySelectorAll('tr');
+            const newLegends = [];
 
-        // We will rebuild the legends array
-        const newLegends = [];
+            rows.forEach(row => {
+                const idInput = row.querySelector('.leg-id');
+                const labelInput = row.querySelector('.leg-label');
+                const colorInput = row.querySelector('.leg-color');
+                const tagInput = row.querySelector('.leg-tag');
 
-        rows.forEach(row => {
-            const idInput = row.querySelector('.leg-id');
-            const labelInput = row.querySelector('.leg-label');
-            const fillInput = row.querySelector('.leg-fill');
-            const borderInput = row.querySelector('.leg-border');
-            const tagInput = row.querySelector('.leg-tag');
+                const id = idInput.value;
+                const label = labelInput.value.trim();
+                const color = colorInput.value;
+                const tag = tagInput.value.trim();
 
-            const id = idInput.value;
-            const label = labelInput.value.trim();
-            const fillColor = fillInput.value;
-            const borderColor = borderInput.value;
-            const tag = tagInput.value.trim();
+                if (label && tag) {
+                    newLegends.push({
+                        id: id || ('legend_' + Math.random().toString(36).substring(2, 9)),
+                        label: label,
+                        color: color,
+                        tag: tag
+                    });
+                }
+            });
 
-            if (label && tag) {
-                newLegends.push({
-                    id: id || ('legend_' + Math.random().toString(36).substring(2, 9)),
-                    label: label,
-                    fillColor: fillColor,
-                    borderColor: borderColor,
-                    tag: tag
-                });
+            if (!newLegends.some(l => l.id === defaultObj.id)) {
+                newLegends.unshift(defaultObj);
             }
+            return newLegends;
+        };
+
+        const newFillLegends = parseRows('fillLegendsTableBody', {
+            id: 'default_fill',
+            label: 'Default Fill',
+            color: '#4da3ff',
+            tag: 'fill-default'
         });
 
-        // Ensure default legend is present
-        if (!newLegends.some(l => l.id === 'default')) {
-             newLegends.unshift({
-                 id: 'default',
-                 label: 'Default',
-                 fillColor: '#4da3ff',
-                 borderColor: '#1c6ed5',
-                 tag: 'default'
-             });
-        }
+        const newBorderLegends = parseRows('borderLegendsTableBody', {
+            id: 'default_border',
+            label: 'Default Border',
+            color: '#1c6ed5',
+            tag: 'border-default'
+        });
 
-        this.planner.file.settings.legends = newLegends;
+        if (!this.planner.file.settings) this.planner.file.settings = {};
+        this.planner.file.settings.fillLegends = newFillLegends;
+        this.planner.file.settings.borderLegends = newBorderLegends;
 
         const legendsModalEl = document.getElementById('legendsModal');
         const legendsModal = bootstrap.Modal.getInstance(legendsModalEl);
