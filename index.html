@@ -180,7 +180,7 @@
                 <div class="modal-body">
                     <form id="capacityForm">
                         <div class="row mb-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="capacityGranularity" class="form-label">Granularity</label>
                                 <select class="form-select" id="capacityGranularity">
                                     <option value="month">Month</option>
@@ -188,9 +188,13 @@
                                     <option value="quarter">Quarter</option>
                                 </select>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <label for="demandAdjustmentPercent" class="form-label">Demand Adjustment (%)</label>
                                 <input type="number" class="form-control" id="demandAdjustmentPercent" min="0" max="100" value="20">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="capacityAdjustmentPercent" class="form-label">Capacity Adjustment (%)</label>
+                                <input type="number" class="form-control" id="capacityAdjustmentPercent" min="0" max="100" value="100">
                             </div>
                         </div>
                         <h6 class="border-bottom pb-2 mt-4">Capacity Ranges</h6>
