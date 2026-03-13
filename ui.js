@@ -41,13 +41,16 @@ class UI {
                 if (analyticsContainer.classList.contains("collapsed")) {
                     analyticsChevron.textContent = "◀";
                 } else {
-                    analyticsChevron.textContent = "▶";
+                    analyticsChevron.textContent = "▼";
                 }
 
                 // Trigger re-render to adjust to new space
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
                 if (window.GraphEngine) {
                     setTimeout(() => window.GraphEngine.render(this.planner.getCurrentPlan()), 50);
+                }
+                if (window.AnalyticsEngine && !analyticsContainer.classList.contains("collapsed")) {
+                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
                 }
             });
         }
@@ -331,6 +334,14 @@ class UI {
         // Trigger Graph re-render if it exists
         if (window.GraphEngine) {
             window.GraphEngine.render(this.planner.getCurrentPlan());
+        }
+
+        // Trigger Analytics re-render if visible
+        if (window.AnalyticsEngine) {
+            const container = document.getElementById("analyticsContainer");
+            if (container && !container.classList.contains("collapsed")) {
+                window.AnalyticsEngine.render(this.planner.getCurrentPlan());
+            }
         }
     }
 
@@ -991,6 +1002,14 @@ class UI {
         // Trigger Graph re-render if it exists
         if (window.GraphEngine) {
             window.GraphEngine.render(this.planner.getCurrentPlan());
+        }
+
+        // Trigger Analytics re-render if visible
+        if (window.AnalyticsEngine) {
+            const container = document.getElementById("analyticsContainer");
+            if (container && !container.classList.contains("collapsed")) {
+                window.AnalyticsEngine.render(this.planner.getCurrentPlan());
+            }
         }
     }
 
