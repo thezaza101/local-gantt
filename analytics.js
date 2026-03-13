@@ -3,6 +3,13 @@
 class Analytics {
     constructor(plannerState) {
         this.planner = plannerState;
+        this.charts = {}; // Store chart instances to destroy them before re-rendering
+
+        // Setup predefined colors for charts
+        this.chartColors = [
+            '#4da3ff', '#ff6b6b', '#51cf66', '#fcc419', '#20c997',
+            '#cc5de8', '#ff922b', '#845ef7', '#339af0', '#f06595'
+        ];
     }
 
     /**
@@ -51,5 +58,570 @@ class Analytics {
         }
 
         return true;
+    }
+
+    /**
+     * Calculates total effort for each tag across given tasks.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in the calculation
+     * @returns {Object} Data object for Effort by Tag { labels: [...], values: [...] }
+     */
+    calculateEffortByTag(plan, filteredTasks) {
+        if (!plan || !filteredTasks) return { labels: [], values: [] };
+
+        const tagEffortMap = {};
+
+        filteredTasks.forEach(task => {
+            const effort = task.effort || { design: 0, dev: 0, test: 0 };
+            const totalEffort = (effort.design || 0) + (effort.dev || 0) + (effort.test || 0);
+
+            if (totalEffort > 0 && task.tags && Array.isArray(task.tags)) {
+                task.tags.forEach(tag => {
+                    const t = tag.trim();
+                    if (t) {
+                        tagEffortMap[t] = (tagEffortMap[t] || 0) + totalEffort;
+                    }
+                });
+            }
+        });
+
+        // Convert map to sorted arrays
+        const labels = Object.keys(tagEffortMap).sort((a, b) => tagEffortMap[b] - tagEffortMap[a]); // Sort descending by effort
+        const values = labels.map(label => tagEffortMap[label]);
+
+        return { labels, values };
+    }
+
+    /**
+     * Calculates total effort by work type (design, dev, test) across given tasks.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in the calculation
+     * @returns {Object} Data object for Effort by Type { labels: ['Design', 'Dev', 'Test'], values: [...] }
+     */
+    calculateEffortByType(plan, filteredTasks) {
+        if (!plan || !filteredTasks) return { labels: ['Design', 'Dev', 'Test'], values: [0, 0, 0] };
+
+        let totalDesign = 0;
+        let totalDev = 0;
+        let totalTest = 0;
+
+        filteredTasks.forEach(task => {
+            const effort = task.effort || { design: 0, dev: 0, test: 0 };
+            totalDesign += (effort.design || 0);
+            totalDev += (effort.dev || 0);
+            totalTest += (effort.test || 0);
+        });
+
+        return {
+            labels: ['Design', 'Dev', 'Test'],
+            values: [totalDesign, totalDev, totalTest]
+        };
+    }
+
+    /**
+     * Calculates total effort per task and returns top tasks sorted descending by effort.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in the calculation
+     * @returns {Array} List of task objects { id, title, effort } sorted descending
+     */
+    calculateEffortByTask(plan, filteredTasks) {
+        if (!plan || !filteredTasks) return [];
+
+        const taskEffortList = filteredTasks.map(task => {
+            const effort = task.effort || { design: 0, dev: 0, test: 0 };
+            const totalEffort = (effort.design || 0) + (effort.dev || 0) + (effort.test || 0);
+            return {
+                id: task.id,
+                title: task.title,
+                effort: totalEffort
+            };
+        }).filter(item => item.effort > 0);
+
+        taskEffortList.sort((a, b) => b.effort - a.effort);
+
+        return taskEffortList;
+    }
+
+    /**
+     * Calculates Demand vs Capacity summary.
+     * Combines data from CapacityEngine and filters tasks to calculate demand.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in demand calculation
+     * @returns {Array} List of objects { period, capacity, demand, utilization }
+     */
+    calculateDemandCapacity(plan, filteredTasks) {
+        if (!plan || !window.CapacityEngine) return [];
+
+        const capacityData = window.CapacityEngine.calculateExpandedCapacity(plan);
+
+        // We need to calculate demand using ONLY the filtered tasks.
+        // We create a temporary plan object just for the demand calculation.
+        const tempPlan = {
+            ...plan,
+            tasks: filteredTasks
+        };
+        const demandData = window.CapacityEngine.calculateDemand(tempPlan);
+
+        // Merge capacity and demand data by period
+        const periodMap = new Map();
+
+        capacityData.forEach(item => {
+            periodMap.set(item.period, { capacity: item.capacity, demand: 0 });
+        });
+
+        demandData.forEach(item => {
+            if (periodMap.has(item.period)) {
+                periodMap.get(item.period).demand = item.demand;
+            } else {
+                periodMap.set(item.period, { capacity: 0, demand: item.demand });
+            }
+        });
+
+        const result = [];
+        const periods = Array.from(periodMap.keys()).sort();
+
+        periods.forEach(period => {
+            const data = periodMap.get(period);
+            let utilization = 0;
+            if (data.capacity > 0) {
+                utilization = (data.demand / data.capacity) * 100;
+            } else if (data.demand > 0) {
+                utilization = Infinity; // Or some high number to indicate over capacity
+            }
+
+            result.push({
+                period: period,
+                capacity: data.capacity,
+                demand: data.demand,
+                utilization: utilization
+            });
+        });
+
+        return result;
+    }
+
+    /**
+     * Calculates effort by tag grouped by period.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in the calculation
+     * @returns {Object} Data object { periods: [], datasets: [{ label: 'tag', data: [] }] }
+     */
+    calculateTagEffortByPeriod(plan, filteredTasks) {
+        if (!plan || !filteredTasks || !window.CapacityEngine) return { periods: [], datasets: [] };
+
+        const granularity = (plan.capacity && plan.capacity.granularity) ? plan.capacity.granularity : 'month';
+        const tagPeriodMap = {}; // { tag: { period: effort } }
+        const allPeriods = new Set();
+        const tags = new Set();
+
+        filteredTasks.forEach(task => {
+            if (!task.startDate || !task.endDate) return;
+
+            const startParts = task.startDate.split('-');
+            const endParts = task.endDate.split('-');
+            if (startParts.length !== 3 || endParts.length !== 3) return;
+
+            const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+            const endDate = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+
+            if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) return;
+
+            const effort = task.effort || { design: 0, dev: 0, test: 0 };
+            const totalEffort = (effort.design || 0) + (effort.dev || 0) + (effort.test || 0);
+
+            if (totalEffort <= 0 || !task.tags || !Array.isArray(task.tags)) return;
+
+            // Calculate working days
+            let workingDays = 0;
+            let current = new Date(startDate);
+            while (current <= endDate) {
+                const dayOfWeek = current.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    workingDays++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            if (workingDays === 0) return;
+
+            const effortPerDay = totalEffort / workingDays;
+
+            // Distribute effort to tags per period
+            task.tags.forEach(tag => {
+                const t = tag.trim();
+                if (!t) return;
+                tags.add(t);
+
+                if (!tagPeriodMap[t]) tagPeriodMap[t] = {};
+
+                let currDay = new Date(startDate);
+                while (currDay <= endDate) {
+                    const dayOfWeek = currDay.getDay();
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        const periodKey = window.CapacityEngine.getPeriodKey(currDay, granularity);
+                        allPeriods.add(periodKey);
+                        tagPeriodMap[t][periodKey] = (tagPeriodMap[t][periodKey] || 0) + effortPerDay;
+                    }
+                    currDay.setDate(currDay.getDate() + 1);
+                }
+            });
+        });
+
+        const sortedPeriods = Array.from(allPeriods).sort();
+        const datasets = [];
+
+        Array.from(tags).forEach(tag => {
+            const data = sortedPeriods.map(period => {
+                return tagPeriodMap[tag][period] || 0;
+            });
+            datasets.push({
+                label: tag,
+                data: data
+            });
+        });
+
+        // Sort datasets by total effort (optional, but nice)
+        datasets.sort((a, b) => {
+            const sumA = a.data.reduce((sum, val) => sum + val, 0);
+            const sumB = b.data.reduce((sum, val) => sum + val, 0);
+            return sumB - sumA;
+        });
+
+        return {
+            periods: sortedPeriods,
+            datasets: datasets
+        };
+    }
+
+    /**
+     * Renders the Analytics UI based on the current plan and filter state.
+     * @param {Object} plan - The plan data model
+     */
+    render(plan) {
+        const container = document.getElementById('analyticsContent');
+        if (!container) return;
+
+        // Clean up old charts
+        Object.keys(this.charts).forEach(key => {
+            if (this.charts[key]) {
+                this.charts[key].destroy();
+                delete this.charts[key];
+            }
+        });
+
+        if (!plan || !plan.tasks || plan.tasks.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted">
+                    <h5>Analytics Panel</h5>
+                    <p class="small">Add tasks to see analytics.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Apply filters
+        const filterState = this.planner.getFilterState();
+        let filteredTasks = plan.tasks;
+
+        // Mode 1: Filtered Analytics - ONLY include selected tags
+        // Mode 2: Highlight Mode - Include ALL tasks, emphasize selected tags (for tables/charts, usually means just show all data)
+        if (filterState.selectedTags && filterState.selectedTags.length > 0) {
+            if (filterState.visualMode === 'show') {
+                filteredTasks = plan.tasks.filter(task => this.taskMatchesTags(task, filterState.selectedTags, filterState.matchMode));
+            } else {
+                // If highlight mode, we still show all tasks in analytics
+                // A more advanced implementation might fade out non-highlighted items in charts
+                filteredTasks = plan.tasks;
+            }
+        }
+
+        if (filteredTasks.length === 0) {
+            container.innerHTML = `
+                <div class="text-center text-muted">
+                    <h5>Analytics Panel</h5>
+                    <p class="small">No tasks match the current filters.</p>
+                </div>
+            `;
+            return;
+        }
+
+        // Calculate Data
+        const effortByTagData = this.calculateEffortByTag(plan, filteredTasks);
+        const effortByTypeData = this.calculateEffortByType(plan, filteredTasks);
+        const topTasksData = this.calculateEffortByTask(plan, filteredTasks);
+        const demandCapacityData = this.calculateDemandCapacity(plan, filteredTasks);
+        const tagEffortOverTimeData = this.calculateTagEffortByPeriod(plan, filteredTasks);
+
+        // Build UI Framework
+        container.innerHTML = `
+            <div class="container-fluid p-0">
+                <div class="row g-4">
+                    <!-- Top Row -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Effort by Tag</h6>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div style="height: 150px; position: relative;">
+                                    <canvas id="chartEffortByTag"></canvas>
+                                </div>
+                                ${this.renderEffortByTagTable(effortByTagData)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Effort by Type</h6>
+                            </div>
+                            <div class="card-body d-flex flex-column justify-content-center align-items-center">
+                                <div style="width: 80%; height: 250px; position: relative;">
+                                    <canvas id="chartEffortByType"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Top Tasks by Effort</h6>
+                            </div>
+                            <div class="card-body p-0 overflow-auto" style="max-height: 350px;">
+                                ${this.renderTopTasksTable(topTasksData)}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Row -->
+                    <div class="col-md-12 col-lg-6">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Effort by Tag Over Time</h6>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="chartTagEffortOverTime" style="max-height: 300px;"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-lg-6">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Demand vs Capacity</h6>
+                            </div>
+                            <div class="card-body p-0 overflow-auto" style="max-height: 350px;">
+                                ${this.renderDemandCapacityTable(demandCapacityData)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Wait a tick for DOM to update before rendering charts
+        setTimeout(() => {
+            this.renderChartEffortByTag(effortByTagData);
+            this.renderChartEffortByType(effortByTypeData);
+            this.renderChartTagEffortOverTime(tagEffortOverTimeData);
+        }, 0);
+    }
+
+    renderEffortByTagTable(data) {
+        if (!data.labels || data.labels.length === 0) return '<p class="text-muted small mt-3 mb-0 text-center">No tag data</p>';
+
+        let rows = '';
+        for (let i = 0; i < data.labels.length; i++) {
+            rows += `
+                <tr>
+                    <td class="small py-1">${this.escapeHtml(data.labels[i])}</td>
+                    <td class="small py-1 text-end">${data.values[i].toFixed(1)}</td>
+                </tr>
+            `;
+        }
+
+        return `
+            <div class="table-responsive mt-3 mb-0 flex-grow-1" style="max-height: 150px; overflow-y: auto;">
+                <table class="table table-sm table-borderless mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th class="small fw-normal py-1">Tag</th>
+                            <th class="small fw-normal py-1 text-end">Effort</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    renderTopTasksTable(data) {
+        if (!data || data.length === 0) return '<div class="p-3 text-center text-muted small">No tasks with effort defined</div>';
+
+        let rows = '';
+        data.forEach((task, index) => {
+            rows += `
+                <tr>
+                    <td class="small text-muted py-2" style="width: 30px;">${index + 1}</td>
+                    <td class="small fw-bold py-2" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;" title="${this.escapeHtml(task.id)}">${this.escapeHtml(task.id)}</td>
+                    <td class="small py-2 text-truncate" style="max-width: 150px;" title="${this.escapeHtml(task.title)}">${this.escapeHtml(task.title)}</td>
+                    <td class="small py-2 text-end fw-bold text-primary">${task.effort.toFixed(1)}</td>
+                </tr>
+            `;
+        });
+
+        return `
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th class="small fw-normal text-muted border-bottom-0 py-2">#</th>
+                        <th class="small fw-normal text-muted border-bottom-0 py-2">ID</th>
+                        <th class="small fw-normal text-muted border-bottom-0 py-2">Title</th>
+                        <th class="small fw-normal text-muted border-bottom-0 py-2 text-end">Effort</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+
+    renderDemandCapacityTable(data) {
+        if (!data || data.length === 0) return '<div class="p-3 text-center text-muted small">No capacity data defined</div>';
+
+        let rows = '';
+        data.forEach(row => {
+            const isOverCapacity = row.demand > row.capacity;
+            const utilText = row.capacity === 0 && row.demand > 0 ? '∞%' : `${row.utilization.toFixed(0)}%`;
+            const rowClass = isOverCapacity ? 'table-danger' : '';
+            const utilBadge = isOverCapacity ? `<span class="badge bg-danger rounded-pill">${utilText} ⚠</span>` : utilText;
+
+            rows += `
+                <tr class="${rowClass}">
+                    <td class="small py-2 fw-medium">${this.escapeHtml(row.period)}</td>
+                    <td class="small py-2 text-end">${row.capacity.toFixed(1)}</td>
+                    <td class="small py-2 text-end">${row.demand.toFixed(1)}</td>
+                    <td class="small py-2 text-end">${utilBadge}</td>
+                </tr>
+            `;
+        });
+
+        return `
+            <table class="table table-sm mb-0">
+                <thead class="table-light sticky-top">
+                    <tr>
+                        <th class="small fw-normal text-muted py-2">Period</th>
+                        <th class="small fw-normal text-muted py-2 text-end">Capacity</th>
+                        <th class="small fw-normal text-muted py-2 text-end">Demand</th>
+                        <th class="small fw-normal text-muted py-2 text-end">Utilization</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
+        `;
+    }
+
+    renderChartEffortByTag(data) {
+        const ctx = document.getElementById('chartEffortByTag');
+        if (!ctx || !data.labels || data.labels.length === 0) return;
+
+        this.charts['effortByTag'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Effort',
+                    data: data.values,
+                    backgroundColor: this.chartColors.slice(0, data.labels.length).concat(Array(Math.max(0, data.labels.length - this.chartColors.length)).fill('#adb5bd')),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    renderChartEffortByType(data) {
+        const ctx = document.getElementById('chartEffortByType');
+        if (!ctx || !data.labels) return;
+
+        // Use distinct colors for Design/Dev/Test
+        const typeColors = ['#fcc419', '#339af0', '#ff6b6b'];
+
+        this.charts['effortByType'] = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: typeColors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    }
+                },
+                cutout: '60%'
+            }
+        });
+    }
+
+    renderChartTagEffortOverTime(data) {
+        const ctx = document.getElementById('chartTagEffortOverTime');
+        if (!ctx || !data.periods || data.periods.length === 0) return;
+
+        // Apply colors to datasets
+        data.datasets.forEach((ds, idx) => {
+            ds.backgroundColor = this.chartColors[idx % this.chartColors.length];
+        });
+
+        this.charts['tagEffortOverTime'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.periods,
+                datasets: data.datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    escapeHtml(unsafe) {
+        if (unsafe == null) return '';
+        return String(unsafe)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
     }
 }
