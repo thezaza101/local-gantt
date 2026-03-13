@@ -342,7 +342,7 @@ body {
         display: block; /* Disable flex for printing to allow normal document flow */
     }
 
-    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn, .capacity-graph-container {
+    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn, .capacity-graph-container, #printLegend, .modal {
         display: none !important;
     }
 
@@ -369,11 +369,14 @@ body {
     .gantt-wrapper {
         height: auto;
         overflow: visible !important;
+        /* Allow browser to shrink to fit, or tile if possible */
+        max-width: none;
     }
 
     .gantt-content {
         height: auto;
         overflow: visible !important;
+        max-width: none;
     }
 
     .gantt-rows {
