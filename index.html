@@ -65,16 +65,28 @@
                     <p class="small">Timeline and tasks will render here</p>
                 </div>
             </div>
-            <div class="capacity-graph-container p-4 d-flex align-items-center justify-content-center border-top bg-light w-100">
-                <canvas id="capacityGraphCanvas"></canvas>
+            <div class="capacity-graph-container p-0 d-flex flex-column border-top bg-light w-100 collapsed" id="capacityContainer">
+                <div class="capacity-header d-flex justify-content-between align-items-center p-2 border-bottom bg-white" style="cursor: pointer;" id="capacityToggleBtn">
+                    <h6 class="m-0 text-muted">Capacity vs Demand</h6>
+                    <span id="capacityChevron" style="font-size: 0.8rem;">▲</span>
+                </div>
+                <div class="capacity-content d-flex align-items-center justify-content-center flex-grow-1 p-4" id="capacityContent">
+                    <canvas id="capacityGraphCanvas"></canvas>
+                </div>
             </div>
         </div>
 
         <!-- Analytics Panel -->
-        <div class="analytics-panel p-4 d-flex flex-column align-items-center justify-content-center">
-             <div class="text-center text-muted">
-                 <h5>Analytics Panel</h5>
-                 <p class="small">Effort summaries and tag metrics will render here</p>
+        <div class="analytics-panel p-0 d-flex flex-column collapsed" id="analyticsContainer">
+             <div class="analytics-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light" style="cursor: pointer;" id="analyticsToggleBtn">
+                 <h6 class="m-0 text-muted" id="analyticsTitle">Analytics Panel</h6>
+                 <span id="analyticsChevron" style="font-size: 0.8rem;">◀</span>
+             </div>
+             <div class="analytics-content p-4 d-flex flex-column align-items-center justify-content-center flex-grow-1" id="analyticsContent">
+                 <div class="text-center text-muted" id="analyticsPlaceholder">
+                     <h5>Analytics Panel</h5>
+                     <p class="small">Effort summaries and tag metrics will render here</p>
+                 </div>
              </div>
         </div>
     </div>

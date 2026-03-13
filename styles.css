@@ -60,6 +60,15 @@ body {
     min-height: 250px;
 }
 
+.capacity-graph-container.collapsed {
+    flex: 0 0 auto;
+    min-height: 0;
+}
+
+.capacity-graph-container.collapsed .capacity-content {
+    display: none !important;
+}
+
 .capacity-graph-container canvas {
     width: 100% !important;
     height: 100% !important;
@@ -72,6 +81,25 @@ body {
     border-radius: 0.25rem;
     padding: 1rem;
     overflow-y: auto;
+}
+
+.analytics-panel.collapsed {
+    flex: 0 0 auto;
+    width: 50px; /* Just wide enough for the collapsed header/chevron */
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+.analytics-panel.collapsed .analytics-header h6 {
+    display: none;
+}
+
+.analytics-panel.collapsed .analytics-header {
+    justify-content: center !important;
+}
+
+.analytics-panel.collapsed .analytics-content {
+    display: none !important;
 }
 
 /* Toolbars */
