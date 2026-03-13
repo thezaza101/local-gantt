@@ -35,6 +35,17 @@ class Planner {
             matchMode: 'any', // 'any' or 'all'
             visualMode: 'show' // 'show' or 'highlight'
         };
+
+        // UI View State (Not saved to file)
+        this.zoomLevel = 'daily'; // 'daily', 'weekly', 'fortnight', 'monthly'
+    }
+
+    getZoomLevel() {
+        return this.zoomLevel;
+    }
+
+    setZoomLevel(level) {
+        this.zoomLevel = level;
     }
 
     getFilterState() {

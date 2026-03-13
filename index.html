@@ -50,9 +50,28 @@
         </div>
     </div>
 
-    <!-- Tag Filters -->
-    <div class="tag-filters d-flex gap-2 align-items-center flex-wrap" id="tagFiltersContainer">
-        <!-- Dynamically generated tags will appear here -->
+    <!-- Tag Filters and Zoom Controls -->
+    <div class="tag-filters d-flex justify-content-between align-items-center flex-wrap">
+        <div class="d-flex gap-2 align-items-center flex-wrap" id="tagFiltersContainer">
+            <!-- Dynamically generated tags will appear here -->
+        </div>
+
+        <div class="zoom-controls d-flex align-items-center gap-2 border-start ps-3 ms-auto">
+            <span class="text-muted small fw-bold">Zoom:</span>
+            <div class="btn-group" role="group" aria-label="Zoom levels">
+                <input type="radio" class="btn-check" name="zoomLevel" id="zoomDaily" value="daily" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomDaily">Daily</label>
+
+                <input type="radio" class="btn-check" name="zoomLevel" id="zoomWeekly" value="weekly" autocomplete="off">
+                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomWeekly">Weekly</label>
+
+                <input type="radio" class="btn-check" name="zoomLevel" id="zoomFortnight" value="fortnight" autocomplete="off">
+                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomFortnight">Fortnight</label>
+
+                <input type="radio" class="btn-check" name="zoomLevel" id="zoomMonthly" value="monthly" autocomplete="off">
+                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomMonthly">Monthly</label>
+            </div>
+        </div>
     </div>
 
     <!-- Main Content Area -->

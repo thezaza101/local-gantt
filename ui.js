@@ -266,6 +266,19 @@ class UI {
             });
         }
 
+        // Zoom Controls Events
+        const zoomRadios = document.querySelectorAll('input[name="zoomLevel"]');
+        zoomRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    this.planner.setZoomLevel(e.target.value);
+                    if (window.GanttEngine) {
+                        window.GanttEngine.render(this.planner.getCurrentPlan());
+                    }
+                }
+            });
+        });
+
         // Tag Filter Events
         const tagFiltersContainer = document.getElementById('tagFiltersContainer');
         if (tagFiltersContainer) {
