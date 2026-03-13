@@ -171,6 +171,63 @@ class UI {
             });
         }
 
+        // Print Gantt Button
+        const printGanttBtn = document.getElementById("printGanttBtn");
+        if (printGanttBtn) {
+            printGanttBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (currentPlan) {
+                    const printTimestamp = document.getElementById("printTimestamp");
+                    if (printTimestamp) {
+                        const now = new Date();
+                        const timestampStr = now.toLocaleString();
+                        printTimestamp.textContent = `Printed on: ${timestampStr} | Plan: ${currentPlan.name || 'Unnamed Plan'}`;
+                        printTimestamp.classList.remove('d-none');
+                    }
+
+                    // Scale the Gantt chart to fit the page width (A4 landscape roughly 1000px content width)
+                    const ganttContent = document.querySelector('.gantt-content');
+                    const ganttWrapper = document.querySelector('.gantt-wrapper');
+                    let originalTransform = '';
+                    let originalTransformOrigin = '';
+                    let originalWrapperHeight = '';
+
+                    if (ganttContent && ganttWrapper) {
+                        const contentWidth = ganttContent.offsetWidth;
+                        const targetWidth = 1000; // Safe width for A4 landscape
+
+                        if (contentWidth > targetWidth) {
+                            const scale = targetWidth / contentWidth;
+                            originalTransform = ganttContent.style.transform;
+                            originalTransformOrigin = ganttContent.style.transformOrigin;
+                            originalWrapperHeight = ganttWrapper.style.height;
+
+                            ganttContent.style.transformOrigin = 'top left';
+                            ganttContent.style.transform = `scale(${scale})`;
+
+                            // Adjust wrapper height to prevent huge blank space below
+                            const scaledHeight = ganttContent.offsetHeight * scale;
+                            ganttWrapper.style.height = `${scaledHeight}px`;
+                        }
+                    }
+
+                    window.print();
+
+                    // Restore original styles
+                    if (ganttContent && ganttWrapper) {
+                        ganttContent.style.transform = originalTransform;
+                        ganttContent.style.transformOrigin = originalTransformOrigin;
+                        ganttWrapper.style.height = originalWrapperHeight;
+                    }
+
+                    // Hide the timestamp again after printing
+                    if (printTimestamp) {
+                        printTimestamp.classList.add('d-none');
+                    }
+                }
+            });
+        }
+
         // Legends Modals actions
         const addFillLegendRowBtn = document.getElementById("addFillLegendRowBtn");
         if (addFillLegendRowBtn) {
@@ -973,6 +1030,7 @@ class UI {
         const deletePlanBtn = document.getElementById("deletePlanBtn");
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         const capacityPlanBtn = document.getElementById("capacityPlanBtn");
+        const printGanttBtn = document.getElementById("printGanttBtn");
 
         if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
         if (renamePlanBtn) renamePlanBtn.disabled = !hasPlans;
@@ -980,6 +1038,7 @@ class UI {
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
         if (capacityPlanBtn) capacityPlanBtn.disabled = !hasPlans;
+        if (printGanttBtn) printGanttBtn.disabled = !hasPlans;
 
         this.renderTagFilters();
 
