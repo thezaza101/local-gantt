@@ -322,13 +322,6 @@ class Planner {
 
         clonedPlan.name = newName;
 
-        // Also we should regenerate IDs for tasks so they don't clash?
-        // Let's regenerate task IDs
-        const generateTaskId = () => 'TASK-' + Math.floor(1000 + Math.random() * 9000);
-        clonedPlan.tasks.forEach(task => {
-            task.id = generateTaskId();
-        });
-
         this.file.plans.push(clonedPlan);
         this.currentPlanIndex = this.file.plans.length - 1;
         return true;
