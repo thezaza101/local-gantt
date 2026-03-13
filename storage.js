@@ -39,6 +39,25 @@ class Storage {
         reader.readAsText(file);
     }
 
+    static async fetchLatestPlan() {
+        try {
+            const response = await fetch('latest.json');
+            if (!response.ok) {
+                return null;
+            }
+            const data = await response.json();
+            if (Storage.validateFile(data)) {
+                return data;
+            } else {
+                console.error("latest.json failed validation.");
+                return null;
+            }
+        } catch (error) {
+            console.error("Error fetching latest.json:", error);
+            return null;
+        }
+    }
+
     static validateFile(data) {
         // Basic validation as per Phase 1 requirements
         if (data && typeof data === 'object') {

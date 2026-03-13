@@ -1,0 +1,149 @@
+{
+  "meta": {
+    "fileVersion": 1
+  },
+  "settings": {
+    "baseLink": "https://jira.company.com/browse/"
+  },
+  "plans": [
+    {
+      "id": "planA",
+      "name": "Baseline Plan",
+      "timeline": {
+        "startDate": "2026-01-01",
+        "endDate": "2026-06-30"
+      },
+      "markers": [
+        {
+          "date": "2026-02-15",
+          "label": "Alpha Release",
+          "color": "#ffaa00"
+        },
+        {
+          "date": "2026-04-15",
+          "label": "Beta Release",
+          "color": "#ff4d4d"
+        }
+      ],
+      "capacity": {
+        "granularity": "week",
+        "entries": [
+          {
+            "startDate": "2026-01-01",
+            "endDate": "2026-02-28",
+            "capacity": 120
+          },
+          {
+            "startDate": "2026-03-01",
+            "endDate": "2026-04-30",
+            "capacity": 100
+          },
+          {
+            "startDate": "2026-05-01",
+            "endDate": "2026-06-30",
+            "capacity": 80
+          }
+        ]
+      },
+      "demandAdjustmentPercent": 15,
+      "tasks": [
+        {
+          "id": "TASK-101",
+          "title": "Authentication Backend",
+          "description": "Login system API",
+          "startDate": "2026-01-05",
+          "endDate": "2026-01-20",
+          "row": 1,
+          "fillColor": "#4da3ff",
+          "borderColor": "#1c6ed5",
+          "tags": ["backend", "security"],
+          "effort": {
+            "design": 2,
+            "dev": 6,
+            "test": 2
+          }
+        },
+        {
+          "id": "TASK-102",
+          "title": "Database Schema",
+          "description": "User tables and indices",
+          "startDate": "2026-01-05",
+          "endDate": "2026-01-12",
+          "row": 2,
+          "fillColor": "#ff9f4d",
+          "borderColor": "#d57a1c",
+          "tags": ["backend", "database"],
+          "effort": {
+            "design": 1,
+            "dev": 3,
+            "test": 1
+          }
+        },
+        {
+          "id": "TASK-103",
+          "title": "Login UI",
+          "description": "Frontend login and registration forms",
+          "startDate": "2026-01-15",
+          "endDate": "2026-01-28",
+          "row": 3,
+          "fillColor": "#4dff88",
+          "borderColor": "#1cd54c",
+          "tags": ["frontend", "ui"],
+          "effort": {
+            "design": 3,
+            "dev": 5,
+            "test": 2
+          }
+        },
+        {
+          "id": "TASK-104",
+          "title": "Integration Testing",
+          "description": "E2E tests for auth flow",
+          "startDate": "2026-01-25",
+          "endDate": "2026-02-05",
+          "row": 4,
+          "fillColor": "#b84dff",
+          "borderColor": "#8e1cd5",
+          "tags": ["backend", "frontend", "testing"],
+          "effort": {
+            "design": 1,
+            "dev": 4,
+            "test": 6
+          }
+        },
+        {
+          "id": "TASK-105",
+          "title": "User Dashboard",
+          "description": "Main user view post-login",
+          "startDate": "2026-02-10",
+          "endDate": "2026-03-05",
+          "row": 3,
+          "fillColor": "#4dff88",
+          "borderColor": "#1cd54c",
+          "tags": ["frontend", "ui"],
+          "effort": {
+            "design": 4,
+            "dev": 8,
+            "test": 3
+          }
+        },
+        {
+          "id": "TASK-106",
+          "title": "Dashboard API",
+          "description": "Data endpoints for dashboard",
+          "startDate": "2026-02-05",
+          "endDate": "2026-02-25",
+          "row": 1,
+          "fillColor": "#4da3ff",
+          "borderColor": "#1c6ed5",
+          "tags": ["backend", "api"],
+          "effort": {
+            "design": 2,
+            "dev": 7,
+            "test": 3
+          }
+        }
+      ]
+    }
+  ]
+}
