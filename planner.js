@@ -75,6 +75,7 @@ class Planner {
                 entries: []
             },
             demandAdjustmentPercent: 20,
+            capacityAdjustmentPercent: 100,
             tasks: []
         };
 
@@ -151,6 +152,7 @@ class Planner {
 
         if (updatedPlanData.capacity) plan.capacity = updatedPlanData.capacity;
         if (updatedPlanData.demandAdjustmentPercent !== undefined) plan.demandAdjustmentPercent = updatedPlanData.demandAdjustmentPercent;
+        if (updatedPlanData.capacityAdjustmentPercent !== undefined) plan.capacityAdjustmentPercent = updatedPlanData.capacityAdjustmentPercent;
 
         return true;
     }

@@ -17,6 +17,8 @@ class Capacity {
 
         const granularity = plan.capacity.granularity || 'month';
         const entries = plan.capacity.entries;
+        const adjustmentPercent = plan.capacityAdjustmentPercent !== undefined ? plan.capacityAdjustmentPercent : 100;
+        const adjustmentFactor = adjustmentPercent / 100;
 
         // Group capacity by period
         const expandedMap = new Map();
@@ -58,7 +60,7 @@ class Capacity {
         // Convert map to sorted array
         const result = [];
         for (const [period, capacity] of expandedMap.entries()) {
-            result.push({ period, capacity });
+            result.push({ period, capacity: capacity * adjustmentFactor });
         }
 
         // Sort by period (since period keys are designed to be sortable e.g. "2026-01" or "2026-W01")

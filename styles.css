@@ -57,6 +57,12 @@ body {
     flex: 1;
     padding: 1rem;
     overflow: hidden;
+    min-height: 250px;
+}
+
+.capacity-graph-container canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .analytics-panel {

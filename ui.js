@@ -224,6 +224,11 @@ class UI {
         if (window.GanttEngine) {
             window.GanttEngine.render(this.planner.getCurrentPlan());
         }
+
+        // Trigger Graph re-render if it exists
+        if (window.GraphEngine) {
+            window.GraphEngine.render(this.planner.getCurrentPlan());
+        }
     }
 
     saveTask() {
@@ -329,11 +334,13 @@ class UI {
         // Initialize fields
         const granularitySelect = document.getElementById('capacityGranularity');
         const demandAdjustmentInput = document.getElementById('demandAdjustmentPercent');
+        const capacityAdjustmentInput = document.getElementById('capacityAdjustmentPercent');
         const capacityTableBody = document.getElementById('capacityTableBody');
 
         // Set values from current plan or defaults
         granularitySelect.value = (currentPlan.capacity && currentPlan.capacity.granularity) ? currentPlan.capacity.granularity : 'month';
         demandAdjustmentInput.value = (currentPlan.demandAdjustmentPercent !== undefined) ? currentPlan.demandAdjustmentPercent : 20;
+        capacityAdjustmentInput.value = (currentPlan.capacityAdjustmentPercent !== undefined) ? currentPlan.capacityAdjustmentPercent : 100;
 
         // Clear existing rows
         capacityTableBody.innerHTML = '';
@@ -380,6 +387,7 @@ class UI {
 
         const granularitySelect = document.getElementById('capacityGranularity');
         const demandAdjustmentInput = document.getElementById('demandAdjustmentPercent');
+        const capacityAdjustmentInput = document.getElementById('capacityAdjustmentPercent');
         const tbody = document.getElementById('capacityTableBody');
 
         const entries = [];
@@ -412,6 +420,10 @@ class UI {
         currentPlan.capacity.granularity = granularitySelect.value;
         currentPlan.capacity.entries = entries;
         currentPlan.demandAdjustmentPercent = parseFloat(demandAdjustmentInput.value) || 0;
+
+        let capacityAdj = parseFloat(capacityAdjustmentInput.value);
+        if (isNaN(capacityAdj)) capacityAdj = 100;
+        currentPlan.capacityAdjustmentPercent = capacityAdj;
 
         // Save back to Planner State to update
         this.planner.updatePlanSettings(currentPlan);
@@ -479,6 +491,11 @@ class UI {
         // Trigger Gantt re-render if it exists
         if (window.GanttEngine) {
             window.GanttEngine.render(this.planner.getCurrentPlan());
+        }
+
+        // Trigger Graph re-render if it exists
+        if (window.GraphEngine) {
+            window.GraphEngine.render(this.planner.getCurrentPlan());
         }
     }
 
