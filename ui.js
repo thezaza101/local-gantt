@@ -184,11 +184,45 @@ class UI {
                         printTimestamp.textContent = `Printed on: ${timestampStr} | Plan: ${currentPlan.name || 'Unnamed Plan'}`;
                         printTimestamp.classList.remove('d-none');
                     }
+
+                    // Scale the Gantt chart to fit the page width (A4 landscape roughly 1000px content width)
+                    const ganttContent = document.querySelector('.gantt-content');
+                    const ganttWrapper = document.querySelector('.gantt-wrapper');
+                    let originalTransform = '';
+                    let originalTransformOrigin = '';
+                    let originalWrapperHeight = '';
+
+                    if (ganttContent && ganttWrapper) {
+                        const contentWidth = ganttContent.offsetWidth;
+                        const targetWidth = 1000; // Safe width for A4 landscape
+
+                        if (contentWidth > targetWidth) {
+                            const scale = targetWidth / contentWidth;
+                            originalTransform = ganttContent.style.transform;
+                            originalTransformOrigin = ganttContent.style.transformOrigin;
+                            originalWrapperHeight = ganttWrapper.style.height;
+
+                            ganttContent.style.transformOrigin = 'top left';
+                            ganttContent.style.transform = `scale(${scale})`;
+
+                            // Adjust wrapper height to prevent huge blank space below
+                            const scaledHeight = ganttContent.offsetHeight * scale;
+                            ganttWrapper.style.height = `${scaledHeight}px`;
+                        }
+                    }
+
                     window.print();
+
+                    // Restore original styles
+                    if (ganttContent && ganttWrapper) {
+                        ganttContent.style.transform = originalTransform;
+                        ganttContent.style.transformOrigin = originalTransformOrigin;
+                        ganttWrapper.style.height = originalWrapperHeight;
+                    }
 
                     // Hide the timestamp again after printing
                     if (printTimestamp) {
-                        setTimeout(() => printTimestamp.classList.add('d-none'), 1000); // slight delay to ensure it stays during the print dialog
+                        printTimestamp.classList.add('d-none');
                     }
                 }
             });
