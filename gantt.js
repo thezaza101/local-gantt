@@ -251,35 +251,99 @@ class Gantt {
             });
         }
 
+        // Generate Row Numbers HTML
+        let rowNumbersHtml = '';
+
+        // Reverse rowMap to map visual row back to original row index
+        const reversedRowMap = new Map();
+        for (const [orig, mapped] of rowMap.entries()) {
+            reversedRowMap.set(mapped, orig);
+        }
+
+        for (let i = 0; i <= maxRow; i++) {
+            const originalRowIndex = reversedRowMap.has(i) ? reversedRowMap.get(i) : i;
+            const displayRowNumber = originalRowIndex + 1; // 1-based index
+            // Height is rowHeight. We align top border
+            rowNumbersHtml += `<div class="gantt-row-number" style="height: ${this.rowHeight}px; width: 40px;">${displayRowNumber}</div>`;
+        }
+
+        // Adjust top header heights for syncing
+        // The gantt header has two parts: months (padding 2px 0) and days (padding 2px 0).
+        // We will compute their combined height, but since they rely on CSS padding and fonts,
+        // a simple approach is to use a container that perfectly matches their height.
+        // Actually, let's just use the same classes or explicit heights.
+        // In original: top headers are font-size: 0.9em (implied by gantt-month) or fw-bold, days font-size: 0.8em/0.7em
+        // The sticky headers top-0 and top: 25px. So total height is roughly 25px + ~23px = 48px.
+
         this.container.innerHTML = `
-            <div class="gantt-wrapper position-relative" style="width: 100%; height: 100%; overflow: auto;">
-                <div class="gantt-content" style="width: ${totalWidth}px; min-height: 100%; position: relative;">
-                    <!-- Headers -->
-                    <div class="gantt-header d-flex position-sticky top-0 bg-white z-2">
-                        <div class="gantt-months d-flex w-100">
-                            ${topHeadersHtml}
+            <div class="d-flex" style="width: 100%; height: 100%; overflow: hidden;">
+                <!-- Left Sidebar for Row Numbers -->
+                <div class="gantt-sidebar d-flex flex-column z-3" style="width: 40px; flex-shrink: 0; background-color: #f8f9fa; border-right: 1px solid #dee2e6;">
+                    <div class="gantt-sidebar-header bg-white border-bottom" style="height: 48px; flex: none;">
+                        <!-- Placeholder to match Gantt header height -->
+                    </div>
+                    <div class="gantt-sidebar-rows flex-grow-1 overflow-hidden" style="position: relative;">
+                        <div class="gantt-sidebar-rows-content" style="position: absolute; top: 0; left: 0; width: 100%; margin-top: 8px;">
+                            ${rowNumbersHtml}
                         </div>
                     </div>
-                    <div class="gantt-header-days d-flex position-sticky bg-white z-2" style="top: 25px;">
-                        ${headersHtml}
-                    </div>
-                    
-                    <!-- Grid Background -->
-                    <div class="gantt-grid position-absolute top-0 bottom-0 d-flex z-0" style="left: 0; right: 0; pointer-events: none; min-height: ${requiredHeight + 50}px;">
-                        ${this.generateGridLines(totalDays, zoomLevel, startDate)}
-                    </div>
+                </div>
 
-                    <!-- Markers -->
-                    ${markersHtml}
+                <!-- Gantt Content Wrapper -->
+                <div class="gantt-wrapper position-relative" style="flex-grow: 1; height: 100%; overflow: auto;" id="gantt-wrapper-scroll">
+                    <div class="gantt-content" style="width: ${totalWidth}px; min-height: 100%; position: relative;">
+                        <!-- Headers -->
+                        <div class="gantt-header d-flex position-sticky top-0 bg-white z-2" id="gantt-header-top">
+                            <div class="gantt-months d-flex w-100">
+                                ${topHeadersHtml}
+                            </div>
+                        </div>
+                        <div class="gantt-header-days d-flex position-sticky bg-white z-2" style="top: 25px;" id="gantt-header-bottom">
+                            ${headersHtml}
+                        </div>
 
-                    <!-- Rows Container -->
-                    <div class="gantt-rows mt-2 position-relative z-1" style="min-height: ${requiredHeight}px;">
-                        ${dependenciesHtml}
-                        ${tasksHtml}
+                        <!-- Grid Background -->
+                        <div class="gantt-grid position-absolute top-0 bottom-0 d-flex z-0" style="left: 0; right: 0; pointer-events: none; min-height: ${requiredHeight + 50}px;">
+                            ${this.generateGridLines(totalDays, zoomLevel, startDate)}
+                        </div>
+
+                        <!-- Markers -->
+                        ${markersHtml}
+
+                        <!-- Rows Container -->
+                        <div class="gantt-rows mt-2 position-relative z-1" style="min-height: ${requiredHeight}px;">
+                            ${dependenciesHtml}
+                            ${tasksHtml}
+                        </div>
                     </div>
                 </div>
             </div>
         `;
+
+        // Sync vertical scrolling between wrapper and sidebar
+        const wrapper = this.container.querySelector('#gantt-wrapper-scroll');
+        const sidebarRows = this.container.querySelector('.gantt-sidebar-rows-content');
+        const sidebarHeader = this.container.querySelector('.gantt-sidebar-header');
+        const ganttHeaderTop = this.container.querySelector('#gantt-header-top');
+        const ganttHeaderBottom = this.container.querySelector('#gantt-header-bottom');
+
+        if (wrapper && sidebarRows) {
+            wrapper.addEventListener('scroll', () => {
+                sidebarRows.style.transform = `translateY(-${wrapper.scrollTop}px)`;
+            });
+
+            // Adjust sidebar header height dynamically just in case it differs from 48px
+            setTimeout(() => {
+                if (ganttHeaderTop && ganttHeaderBottom) {
+                    const topHeight = ganttHeaderTop.offsetHeight;
+                    const bottomHeight = ganttHeaderBottom.offsetHeight;
+                    sidebarHeader.style.height = `${topHeight + bottomHeight}px`;
+                    // Adjust bottom header top offset dynamically to match top height
+                    ganttHeaderBottom.style.top = `${topHeight}px`;
+                }
+            }, 0);
+        }
+
 
         // Bind events for tasks
         this.bindTaskEvents();
