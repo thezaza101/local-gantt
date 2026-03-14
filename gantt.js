@@ -4,7 +4,7 @@ class Gantt {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.cellWidth = 40; // width of each day column in pixels
-        this.rowHeight = 40; // height of each row in pixels
+        this.rowHeight = 43; // height of each row in pixels
         this.taskMargin = 5; // top/bottom margin for tasks
         this.isLegendCollapsed = false; // State for legend collapse/expand
     }
@@ -446,7 +446,7 @@ class Gantt {
             if (task.status && plannerState && typeof plannerState.getStatusColors === 'function') {
                 const statusColors = plannerState.getStatusColors();
                 if (statusColors[task.status]) {
-                    statusBorderStyle = `--status-shadow: inset 3px 0 0 ${statusColors[task.status]};`;
+                    statusBorderStyle = `--status-shadow: inset 6px 0 0 ${statusColors[task.status]};`;
                 }
             }
 
@@ -937,7 +937,7 @@ class Gantt {
                 const label = this.escapeHtml(status);
                 html += `
                     <div class="gantt-legend-item">
-                        <div class="gantt-legend-color-box" style="box-shadow: inset 3px 0 0 ${color}; background-color: #f8f9fa;"></div>
+                        <div class="gantt-legend-color-box" style="box-shadow: inset 6px 0 0 ${color}; background-color: #f8f9fa;"></div>
                         <span>${label}</span>
                     </div>
                 `;
