@@ -410,6 +410,13 @@ body {
         max-width: none !important;
     }
 
+    /* Reset sticky headers for print to ensure they stay at the top of the printed document */
+    .gantt-header,
+    .gantt-header-days {
+        position: relative !important;
+        top: 0 !important;
+    }
+
     .gantt-rows {
         /* Remove explicit min-height override and height: auto so the JS-calculated height pushes the container */
         overflow: visible !important;
