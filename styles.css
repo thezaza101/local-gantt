@@ -439,6 +439,36 @@ body {
     .gantt-content {
         display: block !important;
     }
+
+    /* Prevent rasterization in PDF exports by removing opacity and shadows */
+    .gantt-task {
+        box-shadow: none !important;
+        transform: none !important;
+        border-color: #000 !important; /* Ensure clear borders */
+    }
+
+    .gantt-task-content {
+        text-shadow: none !important;
+    }
+
+    .gantt-task-effort {
+        background: #fff !important; /* Remove rgba transparency */
+    }
+
+    .gantt-marker-label,
+    .gantt-marker-horizontal-label {
+        opacity: 1 !important;
+    }
+
+    .marker-note,
+    .marker-minor,
+    .marker-major {
+        opacity: 1 !important;
+    }
+
+    .gantt-marker-horizontal-label span {
+        background-color: #fff !important; /* Solid background */
+    }
 }
 
 /* Gantt Legend */
