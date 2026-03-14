@@ -41,6 +41,11 @@ class Planner {
         this.showDependencies = false;
         this.showEffortPerDay = false;
 
+        // Marker Visibility State
+        this.showMarkerMajor = true;
+        this.showMarkerMinor = true;
+        this.showMarkerNote = true;
+
         // Task Status Definitions
         this.statusColors = {
             'Not started': '#808080',
@@ -87,6 +92,30 @@ class Planner {
 
     setShowEffortPerDay(show) {
         this.showEffortPerDay = show;
+    }
+
+    getShowMarkerMajor() {
+        return this.showMarkerMajor;
+    }
+
+    setShowMarkerMajor(show) {
+        this.showMarkerMajor = show;
+    }
+
+    getShowMarkerMinor() {
+        return this.showMarkerMinor;
+    }
+
+    setShowMarkerMinor(show) {
+        this.showMarkerMinor = show;
+    }
+
+    getShowMarkerNote() {
+        return this.showMarkerNote;
+    }
+
+    setShowMarkerNote(show) {
+        this.showMarkerNote = show;
     }
 
     getCurrentPlan() {

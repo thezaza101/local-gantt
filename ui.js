@@ -407,6 +407,35 @@ class UI {
             });
         }
 
+        // Marker Visibility Toggle Events
+        const showMarkerMajorBtn = document.getElementById('showMarkerMajorBtn');
+        if (showMarkerMajorBtn) {
+            showMarkerMajorBtn.addEventListener('change', (e) => {
+                this.planner.setShowMarkerMajor(e.target.checked);
+                if (window.GanttEngine) {
+                    window.GanttEngine.render(this.planner.getCurrentPlan());
+                }
+            });
+        }
+        const showMarkerMinorBtn = document.getElementById('showMarkerMinorBtn');
+        if (showMarkerMinorBtn) {
+            showMarkerMinorBtn.addEventListener('change', (e) => {
+                this.planner.setShowMarkerMinor(e.target.checked);
+                if (window.GanttEngine) {
+                    window.GanttEngine.render(this.planner.getCurrentPlan());
+                }
+            });
+        }
+        const showMarkerNoteBtn = document.getElementById('showMarkerNoteBtn');
+        if (showMarkerNoteBtn) {
+            showMarkerNoteBtn.addEventListener('change', (e) => {
+                this.planner.setShowMarkerNote(e.target.checked);
+                if (window.GanttEngine) {
+                    window.GanttEngine.render(this.planner.getCurrentPlan());
+                }
+            });
+        }
+
         // Tag Filter Events
         const tagFiltersContainer = document.getElementById('tagFiltersContainer');
         if (tagFiltersContainer) {
