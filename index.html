@@ -75,6 +75,18 @@
 
             <input type="checkbox" class="btn-check" id="showEffortPerDayBtn" autocomplete="off">
             <label class="btn btn-outline-secondary btn-sm py-0" for="showEffortPerDayBtn">Effort/Day</label>
+
+            <span class="text-muted small fw-bold ms-2">Markers:</span>
+            <div class="btn-group" role="group" aria-label="Marker visibility">
+                <input type="checkbox" class="btn-check" id="showMarkerMajorBtn" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerMajorBtn">Major</label>
+
+                <input type="checkbox" class="btn-check" id="showMarkerMinorBtn" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerMinorBtn">Minor</label>
+
+                <input type="checkbox" class="btn-check" id="showMarkerNoteBtn" autocomplete="off" checked>
+                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerNoteBtn">Note</label>
+            </div>
         </div>
     </div>
 
@@ -300,6 +312,7 @@
                                 <th>Position</th>
                                 <th>Color</th>
                                 <th>Importance</th>
+                                <th>Visible</th>
                                 <th style="width: 100px;">Actions</th>
                             </tr>
                         </thead>
@@ -376,6 +389,12 @@
                                 <input class="form-check-input" type="checkbox" id="markerRepeats" checked>
                                 <label class="form-check-label" for="markerRepeats">
                                     Repeat label along line
+                                </label>
+                            </div>
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="markerVisible" checked>
+                                <label class="form-check-label" for="markerVisible">
+                                    Visible
                                 </label>
                             </div>
                         </div>
