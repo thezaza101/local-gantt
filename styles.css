@@ -401,11 +401,13 @@ body {
     .gantt-wrapper {
         height: auto;
         overflow: visible !important;
+        width: 100% !important;
     }
 
     .gantt-content {
         height: auto;
         overflow: visible !important;
+        max-width: none !important;
     }
 
     .gantt-rows {
