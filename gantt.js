@@ -195,6 +195,15 @@ class Gantt {
         // Calculate the required height to ensure the grid background goes down properly
         const requiredHeight = Math.max(300, (maxRow + 2) * this.rowHeight); // At least 300px, or tall enough for the rows + padding
 
+        // Save scroll position before re-rendering
+        let savedScrollTop = 0;
+        let savedScrollLeft = 0;
+        const ganttWrapper = this.container.querySelector('.gantt-wrapper');
+        if (ganttWrapper) {
+            savedScrollTop = ganttWrapper.scrollTop;
+            savedScrollLeft = ganttWrapper.scrollLeft;
+        }
+
         // Generate dependencies SVG
         let dependenciesHtml = '';
         if (window.PlannerState && window.PlannerState.getShowDependencies()) {
@@ -280,6 +289,15 @@ class Gantt {
                 </div>
             </div>
         `;
+
+        // Restore scroll position after re-rendering
+        const newGanttWrapper = this.container.querySelector('.gantt-wrapper');
+        if (newGanttWrapper) {
+            // Need to set timeout to allow DOM to render before setting scroll position sometimes,
+            // but setting it directly usually works since it's synchronous after innerHTML.
+            newGanttWrapper.scrollTop = savedScrollTop;
+            newGanttWrapper.scrollLeft = savedScrollLeft;
+        }
 
         // Bind events for tasks
         this.bindTaskEvents();
