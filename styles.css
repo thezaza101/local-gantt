@@ -395,9 +395,8 @@ body {
     }
 
     .gantt-rows {
-        height: auto !important; /* Allow the rows container to expand to fit tasks */
+        /* Remove explicit min-height override and height: auto so the JS-calculated height pushes the container */
         overflow: visible !important;
-        min-height: 0 !important; /* Disable any min-height calculations from JS */
     }
 
     .gantt-task-controls {
