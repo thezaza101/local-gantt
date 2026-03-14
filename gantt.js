@@ -371,6 +371,14 @@ class Gantt {
             const opacityStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'opacity: 0.3;' : '';
             const pointerEventsStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'pointer-events: none;' : '';
 
+            let effortHtml = '';
+            if (plannerState && plannerState.getShowEffortPerDay()) {
+                const totalEffort = (task.effort?.design || 0) + (task.effort?.dev || 0) + (task.effort?.test || 0);
+                const durationDaysCalculation = Math.floor((taskEnd - taskStart) / (1000 * 60 * 60 * 24)) + 1;
+                const effortPerDay = (totalEffort / durationDaysCalculation).toFixed(1);
+                effortHtml = `<div class="gantt-task-effort">${effortPerDay}</div>`;
+            }
+
             renderedTasks.push({
                 id: task.id,
                 dependencies: task.dependencies || [],
@@ -397,6 +405,7 @@ class Gantt {
                         <strong>${safeId}</strong><br>
                         ${safeTitle}
                     </div>
+                    ${effortHtml}
                     <div class="gantt-task-controls">
                         <button class="gantt-task-control-btn sync-plan-btn" title="Sync to Plan">⇄</button>
                         <button class="gantt-task-control-btn sync-all-btn" title="Sync to All Plans">⇶</button>

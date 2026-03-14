@@ -39,6 +39,7 @@ class Planner {
         // UI View State (Not saved to file)
         this.zoomLevel = 'daily'; // 'daily', 'weekly', 'fortnight', 'monthly'
         this.showDependencies = false;
+        this.showEffortPerDay = false;
 
         // Task Status Definitions
         this.statusColors = {
@@ -78,6 +79,14 @@ class Planner {
 
     setShowDependencies(show) {
         this.showDependencies = show;
+    }
+
+    getShowEffortPerDay() {
+        return this.showEffortPerDay;
+    }
+
+    setShowEffortPerDay(show) {
+        this.showEffortPerDay = show;
     }
 
     getCurrentPlan() {
