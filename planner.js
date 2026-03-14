@@ -217,7 +217,8 @@ class Planner {
             label: markerData.label || 'Marker',
             color: markerData.color || '#ff4d4d',
             importance: markerData.importance || 'minor', // 'major', 'minor', 'note'
-            repeats: markerData.repeats !== undefined ? markerData.repeats : true
+            repeats: markerData.repeats !== undefined ? markerData.repeats : true,
+            visible: markerData.visible !== undefined ? markerData.visible : true
         };
 
         if (newMarker.type === 'vertical') {

@@ -217,6 +217,9 @@ class Gantt {
             const plannerState = window.PlannerState || (window.UIController ? window.UIController.planner : null);
 
             plan.markers.forEach(marker => {
+                // Check individual marker visibility
+                if (marker.visible === false) return;
+
                 // Check visibility state for the marker based on its importance
                 if (plannerState) {
                     const importance = marker.importance || 'minor';

@@ -935,6 +935,8 @@ class UI {
                 positionHtml = `Before Row: ${marker.row}`;
             }
 
+            const isVisible = marker.visible !== false;
+
             tr.innerHTML = `
                 <td class="align-middle">${this.escapeHtml(marker.label)}</td>
                 <td class="align-middle"><span class="badge bg-secondary">${marker.type || 'vertical'}</span></td>
@@ -943,11 +945,24 @@ class UI {
                     <div style="width: 20px; height: 20px; background-color: ${marker.color}; border-radius: 4px; border: 1px solid #ccc;"></div>
                 </td>
                 <td class="align-middle">${marker.importance || 'minor'}</td>
+                <td class="align-middle text-center">
+                    <input class="form-check-input toggle-marker-visible" type="checkbox" data-id="${marker.id}" ${isVisible ? 'checked' : ''} title="Toggle visibility">
+                </td>
                 <td class="align-middle">
                     <button class="btn btn-sm btn-outline-primary py-0 px-2 edit-marker-btn" data-id="${marker.id}">Edit</button>
                     <button class="btn btn-sm btn-outline-danger py-0 px-2 delete-marker-btn" data-id="${marker.id}">&times;</button>
                 </td>
             `;
+
+            const visibleCheckbox = tr.querySelector('.toggle-marker-visible');
+            visibleCheckbox.addEventListener('change', (e) => {
+                if (this.planner.updateMarker(marker.id, { visible: e.target.checked })) {
+                    this.updateUI();
+                } else {
+                    e.target.checked = !e.target.checked; // revert on failure
+                    alert("Failed to update marker visibility.");
+                }
+            });
 
             const editBtn = tr.querySelector('.edit-marker-btn');
             editBtn.addEventListener('click', () => {
@@ -1009,6 +1024,7 @@ class UI {
                 }
 
                 document.getElementById('markerRepeats').checked = marker.repeats !== false;
+                document.getElementById('markerVisible').checked = marker.visible !== false;
 
                 // Trigger change to update visibility
                 const checkedType = document.querySelector('.marker-type-radio:checked');
@@ -1061,6 +1077,7 @@ class UI {
         }
 
         markerData.repeats = document.getElementById('markerRepeats').checked;
+        markerData.visible = document.getElementById('markerVisible').checked;
 
         const markerId = document.getElementById('markerId').value;
         let success = false;
