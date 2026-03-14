@@ -240,7 +240,7 @@ class Gantt {
                         const repeatClass = repeats ? 'repeats' : 'no-repeats';
 
                         markersHtml += `
-                            <div class="gantt-marker ${importanceClass}" style="left: ${leftPos + (this.cellWidth/2)}px; border-left-color: ${markerColor};">
+                            <div class="gantt-marker ${importanceClass}" style="left: ${leftPos + (this.cellWidth/2)}px; border-left-color: ${markerColor}; min-height: ${requiredHeight + 50}px;">
                                 <div class="gantt-marker-label ${repeatClass}" style="color: ${markerColor};">
                                     ${labelContent}
                                 </div>
@@ -265,7 +265,7 @@ class Gantt {
                     </div>
                     
                     <!-- Grid Background -->
-                    <div class="gantt-grid position-absolute top-0 bottom-0 d-flex z-0" style="left: 0; right: 0; pointer-events: none;">
+                    <div class="gantt-grid position-absolute top-0 bottom-0 d-flex z-0" style="left: 0; right: 0; pointer-events: none; min-height: ${requiredHeight + 50}px;">
                         ${this.generateGridLines(totalDays, zoomLevel, startDate)}
                     </div>
 
