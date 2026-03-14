@@ -411,3 +411,45 @@ body {
         margin-bottom: 10px;
     }
 }
+/* Row Numbers Sidebar */
+.gantt-sidebar {
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    z-index: 30;
+    position: sticky;
+    left: 0;
+}
+.gantt-sidebar-header {
+    background-color: #fff;
+    border-bottom: 1px solid #dee2e6;
+}
+.gantt-row-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-bottom: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+    font-size: 0.8em;
+    color: #6c757d;
+    background-color: #f8f9fa;
+    box-sizing: border-box;
+}
+
+@media print {
+    /* Ensure the sidebar behaves nicely in print */
+    .gantt-sidebar {
+        position: relative !important; /* disable sticky */
+        left: auto !important;
+        border-right: 1px solid #dee2e6;
+        background-color: transparent !important; /* let print BG through */
+    }
+
+    .gantt-sidebar-header {
+        position: relative !important; /* disable sticky */
+    }
+
+    .gantt-sidebar-rows-content {
+        position: relative !important;
+        transform: none !important; /* remove scroll transform */
+    }
+}
