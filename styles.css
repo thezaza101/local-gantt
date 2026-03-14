@@ -250,7 +250,7 @@ body {
 /* Gantt Tasks */
 .gantt-task {
     position: absolute;
-    border: 1px solid;
+    border: 2px solid;
     border-radius: 4px;
     overflow: hidden;
     cursor: grab;
@@ -410,4 +410,106 @@ body {
         color: #666;
         margin-bottom: 10px;
     }
+
+    .gantt-legend {
+        position: relative !important;
+        bottom: auto !important;
+        right: auto !important;
+        margin-top: 20px;
+        box-shadow: none !important;
+        border: 1px solid #ddd;
+        width: 100% !important;
+    }
+
+    .gantt-legend:not(.collapsed) .gantt-legend-content {
+        max-height: none !important;
+        overflow-y: visible !important;
+        display: flex !important;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .gantt-legend-section {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .gantt-wrapper {
+        display: block !important;
+        overflow: visible !important;
+    }
+
+    .gantt-content {
+        display: block !important;
+    }
+}
+
+/* Gantt Legend */
+.gantt-legend {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    z-index: 1000;
+    width: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+.gantt-legend-header {
+    padding: 8px 12px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border-radius: 4px 4px 0 0;
+}
+
+.gantt-legend-content {
+    padding: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-size: 0.8rem;
+}
+
+.gantt-legend.collapsed .gantt-legend-content {
+    display: none;
+}
+
+.gantt-legend-section {
+    margin-bottom: 10px;
+}
+
+.gantt-legend-section:last-child {
+    margin-bottom: 0;
+}
+
+.gantt-legend-section h6 {
+    font-size: 0.85rem;
+    margin-bottom: 5px;
+    color: #555;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 2px;
+}
+
+.gantt-legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.gantt-legend-color-box {
+    width: 14px;
+    height: 14px;
+    margin-right: 8px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
 }
