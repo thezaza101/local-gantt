@@ -312,6 +312,57 @@ class Planner {
         return false;
     }
 
+    syncTaskToPlan(taskId, targetPlanIndex) {
+        const currentPlan = this.getCurrentPlan();
+        if (!currentPlan || !currentPlan.tasks) return false;
+
+        const taskToSync = currentPlan.tasks.find(t => t.id === taskId);
+        if (!taskToSync) return false;
+
+        if (targetPlanIndex < 0 || targetPlanIndex >= this.file.plans.length || targetPlanIndex === this.currentPlanIndex) {
+            return false; // Invalid or same plan
+        }
+
+        const targetPlan = this.file.plans[targetPlanIndex];
+        if (!targetPlan.tasks) {
+            targetPlan.tasks = [];
+        }
+
+        // Deep copy the task to avoid reference issues
+        const clonedTask = JSON.parse(JSON.stringify(taskToSync));
+
+        const existingTaskIndex = targetPlan.tasks.findIndex(t => t.id === taskId);
+        if (existingTaskIndex !== -1) {
+            // Update existing
+            targetPlan.tasks[existingTaskIndex] = clonedTask;
+        } else {
+            // Add new
+            targetPlan.tasks.push(clonedTask);
+        }
+
+        return true;
+    }
+
+    syncTaskToAllPlans(taskId) {
+        const currentPlan = this.getCurrentPlan();
+        if (!currentPlan || !currentPlan.tasks) return false;
+
+        const taskToSync = currentPlan.tasks.find(t => t.id === taskId);
+        if (!taskToSync) return false;
+
+        let syncCount = 0;
+
+        this.file.plans.forEach((plan, index) => {
+            if (index !== this.currentPlanIndex) {
+                if (this.syncTaskToPlan(taskId, index)) {
+                    syncCount++;
+                }
+            }
+        });
+
+        return syncCount > 0;
+    }
+
     duplicateTask(taskId) {
         const plan = this.getCurrentPlan();
         if (!plan || !plan.tasks) return false;
