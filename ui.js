@@ -310,6 +310,16 @@ class UI {
             });
         });
 
+        // Task List Button
+        const taskListBtn = document.getElementById("taskListBtn");
+        if (taskListBtn) {
+            taskListBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (!currentPlan) return;
+                this.openTaskListModal();
+            });
+        }
+
         // Add Task Button
         const addTaskBtn = document.getElementById("addTaskBtn");
         if (addTaskBtn) {
@@ -414,6 +424,65 @@ class UI {
                 }
             });
         }
+    }
+
+    openTaskListModal() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const modalEl = document.getElementById('taskListModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        const searchInput = document.getElementById('taskListSearch');
+        searchInput.value = ''; // Reset search
+
+        this.renderTaskListTable('');
+
+        // Bind search event just once (if not already bound)
+        if (!searchInput.dataset.bound) {
+            searchInput.addEventListener('input', (e) => {
+                this.renderTaskListTable(e.target.value.toLowerCase());
+            });
+            searchInput.dataset.bound = 'true';
+        }
+
+        modal.show();
+    }
+
+    renderTaskListTable(searchTerm) {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        const tbody = document.getElementById('taskListTableBody');
+        tbody.innerHTML = '';
+
+        const tasks = currentPlan.tasks || [];
+
+        const filteredTasks = tasks.filter(task => {
+            const idMatch = (task.id || '').toLowerCase().includes(searchTerm);
+            const descMatch = (task.title || '').toLowerCase().includes(searchTerm);
+            return idMatch || descMatch;
+        });
+
+        if (filteredTasks.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No tasks found.</td></tr>';
+            return;
+        }
+
+        filteredTasks.forEach(task => {
+            const effortDesign = task.effort && task.effort.design ? parseFloat(task.effort.design) : 0;
+            const effortDev = task.effort && task.effort.dev ? parseFloat(task.effort.dev) : 0;
+            const effortTest = task.effort && task.effort.test ? parseFloat(task.effort.test) : 0;
+            const totalEffort = effortDesign + effortDev + effortTest;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${this.escapeHtml(task.id)}</td>
+                <td>${this.escapeHtml(task.title)}</td>
+                <td>${totalEffort}</td>
+            `;
+            tbody.appendChild(tr);
+        });
     }
 
     openSyncPlanModal(taskId) {
@@ -1245,6 +1314,7 @@ class UI {
         const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
         const deletePlanBtn = document.getElementById("deletePlanBtn");
         const addMarkerBtn = document.getElementById("addMarkerBtn");
+        const taskListBtn = document.getElementById("taskListBtn");
         const capacityPlanBtn = document.getElementById("capacityPlanBtn");
         const printGanttBtn = document.getElementById("printGanttBtn");
 
@@ -1253,6 +1323,7 @@ class UI {
         if (duplicatePlanBtn) duplicatePlanBtn.disabled = !hasPlans;
         if (deletePlanBtn) deletePlanBtn.disabled = !hasPlans;
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
+        if (taskListBtn) taskListBtn.disabled = !hasPlans;
         if (capacityPlanBtn) capacityPlanBtn.disabled = !hasPlans;
         if (printGanttBtn) printGanttBtn.disabled = !hasPlans;
 
