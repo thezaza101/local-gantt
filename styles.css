@@ -533,20 +533,8 @@ body {
 }
 
 @media print {
-    /* Ensure the sidebar behaves nicely in print */
+    /* Hide the row numbers sidebar in print view */
     .gantt-sidebar {
-        position: relative !important; /* disable sticky */
-        left: auto !important;
-        border-right: 1px solid #dee2e6;
-        background-color: transparent !important; /* let print BG through */
-    }
-
-    .gantt-sidebar-header {
-        position: relative !important; /* disable sticky */
-    }
-
-    .gantt-sidebar-rows-content {
-        position: relative !important;
-        transform: none !important; /* remove scroll transform */
+        display: none !important;
     }
 }
