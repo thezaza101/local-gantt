@@ -336,6 +336,35 @@ class UI {
             });
         }
 
+        // Sync Plan Button
+        const confirmSyncPlanBtn = document.getElementById("confirmSyncPlanBtn");
+        if (confirmSyncPlanBtn) {
+            confirmSyncPlanBtn.addEventListener("click", () => {
+                this.confirmSyncPlan();
+            });
+        }
+
+        // Listen for Gantt custom events
+        const ganttContainer = document.getElementById('gantt-chart-container');
+        if (ganttContainer) {
+            ganttContainer.addEventListener('sync-plan-request', (e) => {
+                const taskId = e.detail.taskId;
+                this.openSyncPlanModal(taskId);
+            });
+
+            ganttContainer.addEventListener('sync-all-request', (e) => {
+                const taskId = e.detail.taskId;
+                if (confirm(`Are you sure you want to sync task "${taskId}" to all other plans?`)) {
+                    if (this.planner.syncTaskToAllPlans(taskId)) {
+                        alert(`Task "${taskId}" synced to all other plans.`);
+                        this.updateUI();
+                    } else {
+                        alert(`Failed to sync task "${taskId}" or there are no other plans to sync to.`);
+                    }
+                }
+            });
+        }
+
         // Save Capacity Button
         const saveCapacityBtn = document.getElementById("saveCapacityBtn");
         if (saveCapacityBtn) {
@@ -384,6 +413,60 @@ class UI {
                     this.updateTagFiltersState();
                 }
             });
+        }
+    }
+
+    openSyncPlanModal(taskId) {
+        if (!taskId) return;
+
+        const currentPlanIndex = this.planner.currentPlanIndex;
+        const allPlans = this.planner.file.plans;
+        const targetPlanSelect = document.getElementById('syncTargetPlan');
+        targetPlanSelect.innerHTML = '';
+
+        let hasOtherPlans = false;
+        allPlans.forEach((plan, index) => {
+            if (index !== currentPlanIndex) {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = plan.name || "Unnamed Plan";
+                targetPlanSelect.appendChild(option);
+                hasOtherPlans = true;
+            }
+        });
+
+        if (!hasOtherPlans) {
+            alert("There are no other plans to sync this task to.");
+            return;
+        }
+
+        document.getElementById('syncTaskId').value = taskId;
+
+        const syncModalEl = document.getElementById('syncPlanModal');
+        const syncModal = bootstrap.Modal.getOrCreateInstance(syncModalEl);
+        syncModal.show();
+    }
+
+    confirmSyncPlan() {
+        const taskId = document.getElementById('syncTaskId').value;
+        const targetPlanIndexStr = document.getElementById('syncTargetPlan').value;
+
+        if (!taskId || targetPlanIndexStr === '') {
+            alert("Please select a valid task and target plan.");
+            return;
+        }
+
+        const targetPlanIndex = parseInt(targetPlanIndexStr, 10);
+
+        if (this.planner.syncTaskToPlan(taskId, targetPlanIndex)) {
+            const syncModalEl = document.getElementById('syncPlanModal');
+            const syncModal = bootstrap.Modal.getInstance(syncModalEl);
+            if (syncModal) {
+                syncModal.hide();
+            }
+            alert(`Task "${taskId}" successfully synced to the selected plan.`);
+        } else {
+            alert("Failed to sync task.");
         }
     }
 

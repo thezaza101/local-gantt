@@ -398,6 +398,8 @@ class Gantt {
                         ${safeTitle}
                     </div>
                     <div class="gantt-task-controls">
+                        <button class="gantt-task-control-btn sync-plan-btn" title="Sync to Plan">⇄</button>
+                        <button class="gantt-task-control-btn sync-all-btn" title="Sync to All Plans">⇶</button>
                         <button class="gantt-task-control-btn duplicate-btn" title="Duplicate Task">⧉</button>
                         <button class="gantt-task-control-btn delete-btn" title="Delete Task">🗑</button>
                         <button class="gantt-task-control-btn link-btn" title="Open Link">🔗</button>
@@ -668,10 +670,32 @@ class Gantt {
             });
 
             // Handle control buttons
+            const syncPlanBtn = taskEl.querySelector('.sync-plan-btn');
+            const syncAllBtn = taskEl.querySelector('.sync-all-btn');
             const duplicateBtn = taskEl.querySelector('.duplicate-btn');
             const deleteBtn = taskEl.querySelector('.delete-btn');
             const linkBtn = taskEl.querySelector('.link-btn');
             const taskId = taskEl.getAttribute('data-task-id');
+
+            if (syncPlanBtn) {
+                syncPlanBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.container.dispatchEvent(new CustomEvent('sync-plan-request', {
+                        detail: { taskId },
+                        bubbles: true
+                    }));
+                });
+            }
+
+            if (syncAllBtn) {
+                syncAllBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.container.dispatchEvent(new CustomEvent('sync-all-request', {
+                        detail: { taskId },
+                        bubbles: true
+                    }));
+                });
+            }
 
             if (duplicateBtn) {
                 duplicateBtn.addEventListener('click', (e) => {
