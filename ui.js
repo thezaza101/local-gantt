@@ -824,6 +824,70 @@ class UI {
             taskBorderLegendSelect.appendChild(option);
         });
 
+        // Populate Marker dropdowns
+        const currentPlan = this.planner.getCurrentPlan();
+        const startMarkerBtn = document.getElementById('startMarkerBtn');
+        const endMarkerBtn = document.getElementById('endMarkerBtn');
+        const startMarkerDropdown = document.getElementById('startMarkerDropdown');
+        const endMarkerDropdown = document.getElementById('endMarkerDropdown');
+
+        startMarkerDropdown.innerHTML = '';
+        endMarkerDropdown.innerHTML = '';
+
+        if (currentPlan && currentPlan.markers) {
+            const verticalMarkers = currentPlan.markers.filter(m => m.type === 'vertical');
+            if (verticalMarkers.length > 0) {
+                startMarkerBtn.disabled = false;
+                endMarkerBtn.disabled = false;
+
+                verticalMarkers.forEach(marker => {
+                    const startLi = document.createElement('li');
+                    const startA = document.createElement('a');
+                    startA.className = 'dropdown-item';
+                    startA.href = '#';
+                    startA.textContent = `${marker.label} (${marker.date})`;
+                    startA.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        document.getElementById('taskStartDate').value = marker.date;
+                    });
+                    startLi.appendChild(startA);
+                    startMarkerDropdown.appendChild(startLi);
+
+                    const endLi = document.createElement('li');
+                    const endA = document.createElement('a');
+                    endA.className = 'dropdown-item';
+                    endA.href = '#';
+
+                    // Calculate date - 1 day for end date
+                    const parts = marker.date.split('-');
+                    const markerDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                    markerDate.setDate(markerDate.getDate() - 1);
+                    const yyyy = markerDate.getFullYear();
+                    const mm = String(markerDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(markerDate.getDate()).padStart(2, '0');
+                    const formattedDate = `${yyyy}-${mm}-${dd}`;
+
+                    endA.textContent = `${marker.label} (${formattedDate})`;
+                    endA.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        document.getElementById('taskEndDate').value = formattedDate;
+                    });
+                    endLi.appendChild(endA);
+                    endMarkerDropdown.appendChild(endLi);
+                });
+            } else {
+                startMarkerBtn.disabled = true;
+                endMarkerBtn.disabled = true;
+                startMarkerDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted">No vertical markers</span></li>';
+                endMarkerDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted">No vertical markers</span></li>';
+            }
+        } else {
+            startMarkerBtn.disabled = true;
+            endMarkerBtn.disabled = true;
+            startMarkerDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted">No vertical markers</span></li>';
+            endMarkerDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted">No vertical markers</span></li>';
+        }
+
         if (taskId) {
             const task = this.planner.getTaskById(taskId);
             if (task) {

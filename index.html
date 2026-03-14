@@ -158,11 +158,23 @@
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="taskStartDate" class="form-label">Start Date</label>
-                                <input type="date" class="form-control" id="taskStartDate" required>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" id="taskStartDate" required>
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Set from Marker" id="startMarkerBtn">📍</button>
+                                    <ul class="dropdown-menu dropdown-menu-end" id="startMarkerDropdown">
+                                        <!-- Populated dynamically -->
+                                    </ul>
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <label for="taskEndDate" class="form-label">End Date</label>
-                                <input type="date" class="form-control" id="taskEndDate" required>
+                                <div class="input-group">
+                                    <input type="date" class="form-control" id="taskEndDate" required>
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Set from Marker" id="endMarkerBtn">📍</button>
+                                    <ul class="dropdown-menu dropdown-menu-end" id="endMarkerDropdown">
+                                        <!-- Populated dynamically -->
+                                    </ul>
+                                </div>
                             </div>
                             <div class="col-md-4">
                                 <label for="taskRow" class="form-label">Row Number</label>
