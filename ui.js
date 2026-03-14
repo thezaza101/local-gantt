@@ -386,6 +386,17 @@ class UI {
             });
         });
 
+        // Effort/Day Toggle Event
+        const showEffortPerDayBtn = document.getElementById('showEffortPerDayBtn');
+        if (showEffortPerDayBtn) {
+            showEffortPerDayBtn.addEventListener('change', (e) => {
+                this.planner.setShowEffortPerDay(e.target.checked);
+                if (window.GanttEngine) {
+                    window.GanttEngine.render(this.planner.getCurrentPlan());
+                }
+            });
+        }
+
         // Tag Filter Events
         const tagFiltersContainer = document.getElementById('tagFiltersContainer');
         if (tagFiltersContainer) {
