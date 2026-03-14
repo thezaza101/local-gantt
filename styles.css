@@ -412,27 +412,7 @@ body {
     }
 
     .gantt-legend {
-        position: relative !important;
-        bottom: auto !important;
-        right: auto !important;
-        margin-top: 20px;
-        box-shadow: none !important;
-        border: 1px solid #ddd;
-        width: 100% !important;
-    }
-
-    .gantt-legend:not(.collapsed) .gantt-legend-content {
-        max-height: none !important;
-        overflow-y: visible !important;
-        display: flex !important;
-        flex-direction: row;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-
-    .gantt-legend-section {
-        flex: 1;
-        min-width: 200px;
+        display: none !important;
     }
 
     .gantt-wrapper {
