@@ -460,9 +460,21 @@ class Gantt {
             let effortHtml = '';
             if (plannerState && plannerState.getShowEffortPerDay()) {
                 const totalEffort = (task.effort?.design || 0) + (task.effort?.dev || 0) + (task.effort?.test || 0);
-                const durationDaysCalculation = Math.floor((taskEnd - taskStart) / (1000 * 60 * 60 * 24)) + 1;
-                const effortPerDay = (totalEffort / durationDaysCalculation).toFixed(1);
-                effortHtml = `<div class="gantt-task-effort">${effortPerDay}</div>`;
+
+                let workingDays = 0;
+                let current = new Date(taskStart);
+                while (current <= taskEnd) {
+                    const dayOfWeek = current.getDay();
+                    if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                        workingDays++;
+                    }
+                    current.setDate(current.getDate() + 1);
+                }
+
+                if (workingDays > 0) {
+                    const effortPerDay = (totalEffort / workingDays).toFixed(1);
+                    effortHtml = `<div class="gantt-task-effort">${effortPerDay}</div>`;
+                }
             }
 
             renderedTasks.push({
