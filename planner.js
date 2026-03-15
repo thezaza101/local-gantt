@@ -40,6 +40,7 @@ class Planner {
         this.zoomLevel = 'daily'; // 'daily', 'weekly', 'fortnight', 'monthly'
         this.showDependencies = false;
         this.showEffortPerDay = false;
+        this.selectedTaskIds = []; // Array of selected task IDs
 
         // Marker Visibility State
         this.showMarkerMajor = true;
@@ -68,6 +69,31 @@ class Planner {
 
     setZoomLevel(level) {
         this.zoomLevel = level;
+    }
+
+    getSelectedTaskIds() {
+        return this.selectedTaskIds;
+    }
+
+    setSelectedTaskIds(ids) {
+        this.selectedTaskIds = ids || [];
+    }
+
+    toggleTaskSelection(taskId) {
+        const index = this.selectedTaskIds.indexOf(taskId);
+        if (index > -1) {
+            this.selectedTaskIds.splice(index, 1);
+        } else {
+            this.selectedTaskIds.push(taskId);
+        }
+    }
+
+    clearTaskSelection() {
+        this.selectedTaskIds = [];
+    }
+
+    isTaskSelected(taskId) {
+        return this.selectedTaskIds.includes(taskId);
     }
 
     getFilterState() {
@@ -461,6 +487,39 @@ class Planner {
 
         plan.tasks.push(clonedTask);
         return true;
+    }
+
+    insertRowBefore(targetRowIndex) {
+        const plan = this.getCurrentPlan();
+        if (!plan) return false;
+
+        let hasChanges = false;
+
+        // Shift tasks
+        if (plan.tasks && plan.tasks.length > 0) {
+            plan.tasks.forEach(task => {
+                const currentRow = (task.row !== undefined && task.row > 0) ? task.row : 1;
+                if (currentRow >= targetRowIndex) {
+                    task.row = currentRow + 1;
+                    hasChanges = true;
+                }
+            });
+        }
+
+        // Shift horizontal markers
+        if (plan.markers && plan.markers.length > 0) {
+            plan.markers.forEach(marker => {
+                if (marker.type === 'horizontal') {
+                    const currentRow = (marker.row !== undefined && marker.row > 0) ? marker.row : 1;
+                    if (currentRow >= targetRowIndex) {
+                        marker.row = currentRow + 1;
+                        hasChanges = true;
+                    }
+                }
+            });
+        }
+
+        return hasChanges;
     }
 
     duplicatePlan() {

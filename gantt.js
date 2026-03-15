@@ -237,8 +237,8 @@ class Gantt {
                     const rawRowIndex = (marker.row !== undefined && marker.row > 0) ? marker.row - 1 : 0;
                     const mappedRowIndex = rowMap.has(rawRowIndex) ? rowMap.get(rawRowIndex) : rawRowIndex;
                     
-                    // Top position should be just above the row tasks
-                    const topPos = mappedRowIndex * this.rowHeight + (this.taskMargin / 2);
+                    // Top position should be at the very top edge of the row
+                    const topPos = mappedRowIndex * this.rowHeight;
 
                     const repeats = marker.repeats !== false; // default to true if undefined
                     const labelContent = repeats ? this.repeatString(safeLabel, 20) : `<span>${safeLabel}</span>`;
@@ -288,7 +288,11 @@ class Gantt {
             const originalRowIndex = reversedRowMap.has(i) ? reversedRowMap.get(i) : i;
             const displayRowNumber = originalRowIndex + 1; // 1-based index
             // Height is rowHeight. We align top border
-            rowNumbersHtml += `<div class="gantt-row-number" style="height: ${this.rowHeight}px; width: 40px;">${displayRowNumber}</div>`;
+            rowNumbersHtml += `
+                <div class="gantt-row-number" style="height: ${this.rowHeight}px; width: 40px;">
+                    ${displayRowNumber}
+                    <button class="gantt-insert-row-btn" data-row-index="${displayRowNumber}" title="Insert row above">Insert row above</button>
+                </div>`;
         }
 
         // Adjust top header heights for syncing
@@ -306,7 +310,7 @@ class Gantt {
                     <div class="gantt-sidebar-header bg-white border-bottom" style="height: 48px; flex: none;">
                         <!-- Placeholder to match Gantt header height -->
                     </div>
-                    <div class="gantt-sidebar-rows flex-grow-1 overflow-hidden" style="position: relative;">
+                    <div class="gantt-sidebar-rows flex-grow-1" style="position: relative;">
                         <div class="gantt-sidebar-rows-content" style="position: absolute; top: 0; left: 0; width: 100%; margin-top: 8px;">
                             ${rowNumbersHtml}
                         </div>
@@ -382,6 +386,8 @@ class Gantt {
         // Bind events for tasks
         this.bindTaskEvents();
         this.bindLegendEvents();
+        this.bindRowEvents();
+        this.bindBackgroundEvents();
     }
 
     generateTasksHtml(plan, planStartDate, planEndDate) {
@@ -463,6 +469,9 @@ class Gantt {
                 }
             }
 
+            const isSelected = plannerState ? plannerState.isTaskSelected(task.id) : false;
+            const selectedClass = isSelected ? 'selected' : '';
+
             const safeTitle = this.escapeHtml(task.title || 'Untitled');
             const safeId = this.escapeHtml(task.id || '');
 
@@ -500,7 +509,7 @@ class Gantt {
             });
 
             tasksHtml += `
-                <div class="gantt-task" data-task-id="${safeId}" style="
+                <div class="gantt-task ${selectedClass}" data-task-id="${safeId}" style="
                     left: ${leftPos}px;
                     width: ${width}px;
                     top: ${topPos}px;
@@ -633,6 +642,7 @@ class Gantt {
         let activeTaskEl = null;
         let activeTaskId = null;
         let hasMoved = false; // to distinguish click from drag
+        let dragGroup = []; // Elements and their initial positions for group dragging
         const MOVE_THRESHOLD = 3;
 
         const onMouseMove = (e) => {
@@ -643,23 +653,40 @@ class Gantt {
 
             if (!hasMoved && (Math.abs(deltaX) > MOVE_THRESHOLD || Math.abs(deltaY) > MOVE_THRESHOLD)) {
                 hasMoved = true;
-                if (isDragging) activeTaskEl.classList.add('dragging');
+                if (isDragging) {
+                    dragGroup.forEach(item => item.el.classList.add('dragging'));
+                }
                 if (isResizing) activeTaskEl.classList.add('resizing');
             }
 
             if (!hasMoved) return;
 
             if (isDragging) {
-                // Drag task block (update left and top)
-                let newLeft = initialLeft + deltaX;
-                let newTop = initialTop + deltaY;
+                // Determine bounding box limits for the group
+                let minAllowedDeltaX = -Infinity;
+                let minAllowedDeltaY = -Infinity;
 
-                // Optional: basic bounds checking visually
-                if (newLeft < 0) newLeft = 0;
-                if (newTop < this.taskMargin) newTop = this.taskMargin;
+                dragGroup.forEach(item => {
+                    // Item cannot go left of 0
+                    const itemMinDeltaX = 0 - item.initialLeft;
+                    if (itemMinDeltaX > minAllowedDeltaX) {
+                        minAllowedDeltaX = itemMinDeltaX;
+                    }
+                    // Item cannot go above taskMargin
+                    const itemMinDeltaY = this.taskMargin - item.initialTop;
+                    if (itemMinDeltaY > minAllowedDeltaY) {
+                        minAllowedDeltaY = itemMinDeltaY;
+                    }
+                });
 
-                activeTaskEl.style.left = `${newLeft}px`;
-                activeTaskEl.style.top = `${newTop}px`;
+                let safeDeltaX = Math.max(deltaX, minAllowedDeltaX);
+                let safeDeltaY = Math.max(deltaY, minAllowedDeltaY);
+
+                // Apply to all selected elements
+                dragGroup.forEach(item => {
+                    item.el.style.left = `${item.initialLeft + safeDeltaX}px`;
+                    item.el.style.top = `${item.initialTop + safeDeltaY}px`;
+                });
             } else if (isResizing) {
                 if (resizeDirection === 'left') {
                     // Update left and width
@@ -695,50 +722,90 @@ class Gantt {
 
             if (!activeTaskEl) return;
 
-            activeTaskEl.classList.remove('dragging', 'resizing');
+            activeTaskEl.classList.remove('resizing');
+            dragGroup.forEach(item => item.el.classList.remove('dragging'));
 
             if (hasMoved) {
-                // Handle the drop/resize finish
                 const plan = window.PlannerState.getCurrentPlan();
                 if (plan) {
-                    const task = plan.tasks.find(t => t.id === activeTaskId);
-                    if (task) {
+                    // Format dates to YYYY-MM-DD
+                    const formatDate = (date) => {
+                        const yyyy = date.getFullYear();
+                        const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        const dd = String(date.getDate()).padStart(2, '0');
+                        return `${yyyy}-${mm}-${dd}`;
+                    };
+                    const planStartDate = this.getSafeDate(plan.timeline.startDate);
+
+                    if (isDragging) {
+                        // Apply drop logic for the whole group based on delta
                         const finalLeft = parseFloat(activeTaskEl.style.left);
-                        const finalWidth = parseFloat(activeTaskEl.style.width);
                         const finalTop = parseFloat(activeTaskEl.style.top);
 
-                        // Snap to grid calculations
+                        const initialDaysOffset = Math.round(initialLeft / this.cellWidth);
                         const snappedDaysOffset = Math.round(finalLeft / this.cellWidth);
-                        const snappedDurationDays = Math.round(finalWidth / this.cellWidth);
+                        const daysDelta = snappedDaysOffset - initialDaysOffset;
 
-                        // Row calculation (minimum row 1)
+                        const initialRowIndex = Math.max(0, Math.round((initialTop - this.taskMargin) / this.rowHeight));
                         const snappedRowIndex = Math.max(0, Math.round((finalTop - this.taskMargin) / this.rowHeight));
-                        const newRow = snappedRowIndex + 1;
+                        const rowDelta = snappedRowIndex - initialRowIndex;
 
-                        // Use getSafeDate instead
-                        const planStartDate = this.getSafeDate(plan.timeline.startDate);
+                        if (daysDelta !== 0 || rowDelta !== 0) {
+                            dragGroup.forEach(item => {
+                                const t = plan.tasks.find(tsk => tsk.id === item.taskId);
+                                if (t) {
+                                    // Calculate existing start/end as offsets
+                                    const taskStart = this.getSafeDate(t.startDate);
+                                    const taskEnd = this.getSafeDate(t.endDate);
 
-                        // Calculate new start and end dates based on offset
-                        const newStartDate = new Date(planStartDate);
-                        newStartDate.setDate(planStartDate.getDate() + snappedDaysOffset);
+                                    const currentDaysOffset = Math.floor((taskStart - planStartDate) / (1000 * 60 * 60 * 24));
+                                    const durationDays = Math.floor((taskEnd - taskStart) / (1000 * 60 * 60 * 24)); // -1 day effectively handles it correctly based on logic
 
-                        const newEndDate = new Date(newStartDate);
-                        newEndDate.setDate(newStartDate.getDate() + snappedDurationDays - 1); // duration includes start day
+                                    const newStartDate = new Date(planStartDate);
+                                    newStartDate.setDate(planStartDate.getDate() + currentDaysOffset + daysDelta);
 
-                        // Format dates to YYYY-MM-DD
-                        const formatDate = (date) => {
-                            const yyyy = date.getFullYear();
-                            const mm = String(date.getMonth() + 1).padStart(2, '0');
-                            const dd = String(date.getDate()).padStart(2, '0');
-                            return `${yyyy}-${mm}-${dd}`;
-                        };
+                                    const newEndDate = new Date(newStartDate);
+                                    newEndDate.setDate(newStartDate.getDate() + durationDays);
 
-                        task.startDate = formatDate(newStartDate);
-                        task.endDate = formatDate(newEndDate);
-                        task.row = newRow;
+                                    t.startDate = formatDate(newStartDate);
+                                    t.endDate = formatDate(newEndDate);
 
-                        // Force re-render with snapped positions
-                        this.render(plan);
+                                    const currentRow = (t.row !== undefined && t.row > 0) ? t.row : 1;
+                                    t.row = Math.max(1, currentRow + rowDelta);
+                                }
+                            });
+                            this.render(plan);
+                        } else {
+                            // If no actual logical delta, snap them all back to their initial spot visually
+                            dragGroup.forEach(item => {
+                                item.el.style.left = `${item.initialLeft}px`;
+                                item.el.style.top = `${item.initialTop}px`;
+                            });
+                        }
+
+
+                    } else if (isResizing) {
+                        // Handle resize logic for single active task
+                        const task = plan.tasks.find(t => t.id === activeTaskId);
+                        if (task) {
+                            const finalLeft = parseFloat(activeTaskEl.style.left);
+                            const finalWidth = parseFloat(activeTaskEl.style.width);
+
+                            const snappedDaysOffset = Math.round(finalLeft / this.cellWidth);
+                            const snappedDurationDays = Math.round(finalWidth / this.cellWidth);
+
+                            const newStartDate = new Date(planStartDate);
+                            newStartDate.setDate(planStartDate.getDate() + snappedDaysOffset);
+
+                            const newEndDate = new Date(newStartDate);
+                            newEndDate.setDate(newStartDate.getDate() + snappedDurationDays - 1); // duration includes start day
+
+                            task.startDate = formatDate(newStartDate);
+                            task.endDate = formatDate(newEndDate);
+
+                            // Force re-render with snapped positions
+                            this.render(plan);
+                        }
                     }
                 }
             } else {
@@ -755,6 +822,7 @@ class Gantt {
             activeTaskEl = null;
             activeTaskId = null;
             hasMoved = false;
+            dragGroup = [];
         };
 
         tasks.forEach(taskEl => {
@@ -764,9 +832,27 @@ class Gantt {
                     return;
                 }
 
+                activeTaskId = taskEl.getAttribute('data-task-id');
+
+                // Handle Selection Logic
+                if (window.PlannerState) {
+                    if (e.ctrlKey || e.metaKey) {
+                        // Toggle selection
+                        window.PlannerState.toggleTaskSelection(activeTaskId);
+                        this.render(window.PlannerState.getCurrentPlan());
+                        return; // Stop drag initiation on ctrl click
+                    } else if (!window.PlannerState.isTaskSelected(activeTaskId)) {
+                        // Clicked an unselected task without ctrl: clear others and select this one
+                        window.PlannerState.setSelectedTaskIds([activeTaskId]);
+                        this.render(window.PlannerState.getCurrentPlan());
+                        // Need to re-acquire the element since we just re-rendered
+                        taskEl = this.container.querySelector(`.gantt-task[data-task-id="${activeTaskId}"]`);
+                        if (!taskEl) return;
+                    }
+                }
+
                 // Determine if we clicked a resize handle or the task body
                 activeTaskEl = taskEl;
-                activeTaskId = taskEl.getAttribute('data-task-id');
                 startX = e.clientX;
                 startY = e.clientY;
                 initialLeft = parseFloat(taskEl.style.left) || 0;
@@ -780,6 +866,23 @@ class Gantt {
                 } else {
                     // Clicked the task body
                     isDragging = true;
+                }
+
+                // Initialize drag group
+                dragGroup = [];
+                if (isDragging && window.PlannerState) {
+                    const selectedIds = window.PlannerState.getSelectedTaskIds();
+                    selectedIds.forEach(id => {
+                        const el = this.container.querySelector(`.gantt-task[data-task-id="${id}"]`);
+                        if (el) {
+                            dragGroup.push({
+                                el: el,
+                                taskId: id,
+                                initialLeft: parseFloat(el.style.left) || 0,
+                                initialTop: parseFloat(el.style.top) || 0
+                            });
+                        }
+                    });
                 }
 
                 // Prevent text selection during drag
@@ -976,6 +1079,45 @@ class Gantt {
         `;
 
         return html;
+    }
+
+    bindBackgroundEvents() {
+        if (!this.container) return;
+        const ganttContent = this.container.querySelector('.gantt-content');
+        if (ganttContent) {
+            ganttContent.addEventListener('mousedown', (e) => {
+                // If the click is directly on the background (not on a task)
+                if (!e.target.closest('.gantt-task') && !e.target.closest('.gantt-marker-horizontal') && !e.target.closest('.gantt-marker') && !e.target.closest('.gantt-row-number')) {
+                    if (window.PlannerState) {
+                        const selectedIds = window.PlannerState.getSelectedTaskIds();
+                        if (selectedIds && selectedIds.length > 0) {
+                            window.PlannerState.clearTaskSelection();
+                            this.render(window.PlannerState.getCurrentPlan());
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    bindRowEvents() {
+        if (!this.container) return;
+        const insertBtns = this.container.querySelectorAll('.gantt-insert-row-btn');
+        insertBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rowIndex = parseInt(btn.getAttribute('data-row-index'), 10);
+                if (!isNaN(rowIndex) && window.PlannerState) {
+                    if (window.PlannerState.insertRowBefore(rowIndex)) {
+                        if (window.UIController) {
+                            window.UIController.updateUI();
+                        } else {
+                            this.render(window.PlannerState.getCurrentPlan());
+                        }
+                    }
+                }
+            });
+        });
     }
 
     bindLegendEvents() {
