@@ -168,58 +168,208 @@ class UI {
             });
         }
 
-        // Print Gantt Button
-        const printGanttBtn = document.getElementById("printGanttBtn");
-        if (printGanttBtn) {
-            printGanttBtn.addEventListener("click", () => {
+        // Export Image Button
+        const exportImageBtn = document.getElementById("exportImageBtn");
+        if (exportImageBtn) {
+            exportImageBtn.addEventListener("click", () => {
                 const currentPlan = this.planner.getCurrentPlan();
                 if (currentPlan) {
-                    const printTimestamp = document.getElementById("printTimestamp");
-                    if (printTimestamp) {
-                        const now = new Date();
-                        const timestampStr = now.toLocaleString();
-                        printTimestamp.textContent = `Printed on: ${timestampStr} | Plan: ${currentPlan.name || 'Unnamed Plan'}`;
-                        printTimestamp.classList.remove('d-none');
-                    }
+                    // Get the Gantt container element
+                    const ganttContainer = document.getElementById('gantt-chart-container');
 
-                    // Scale the Gantt chart to fit the page width (A4 landscape roughly 1000px content width)
-                    const ganttContent = document.querySelector('.gantt-content');
-                    const ganttWrapper = document.querySelector('.gantt-wrapper');
-                    let originalTransform = '';
-                    let originalTransformOrigin = '';
-                    let originalWrapperHeight = '';
+                    if (ganttContainer) {
+                        // We temporarily hide the task controls and legend to clean up the image
+                        const controls = ganttContainer.querySelectorAll('.gantt-task-controls');
+                        controls.forEach(c => c.style.display = 'none');
 
-                    if (ganttContent && ganttWrapper) {
-                        const contentWidth = ganttContent.offsetWidth;
-                        const targetWidth = 1000; // Safe width for A4 landscape
+                        const legend = ganttContainer.querySelector('.gantt-legend');
+                        if (legend) legend.style.display = 'none';
 
-                        if (contentWidth > targetWidth) {
-                            const scale = targetWidth / contentWidth;
-                            originalTransform = ganttContent.style.transform;
-                            originalTransformOrigin = ganttContent.style.transformOrigin;
+                        // We also need to capture the full scrolled content, so we pass the gantt-container
+                        // to html2canvas or adjust scroll
+                        const ganttContent = ganttContainer.querySelector('.gantt-content');
+                        const ganttSidebar = ganttContainer.querySelector('.gantt-sidebar');
+                        const ganttWrapper = ganttContainer.querySelector('.gantt-wrapper');
+
+                        const targetElement = ganttContainer;
+
+                        // Temporarily set wrapper to auto width/height to ensure html2canvas captures everything
+                        let originalWrapperWidth = '';
+                        let originalWrapperHeight = '';
+                        let originalWrapperOverflow = '';
+                        let originalWrapperMaxWidth = '';
+                        let originalTargetMaxWidth = '';
+                        let originalTargetWidth = '';
+                        let originalTargetHeight = '';
+
+                        const scrollWidth = ganttContent.scrollWidth + (ganttSidebar ? ganttSidebar.offsetWidth : 0);
+                        const scrollHeight = ganttContent.scrollHeight;
+
+                        if (ganttWrapper) {
+                            originalWrapperWidth = ganttWrapper.style.width;
                             originalWrapperHeight = ganttWrapper.style.height;
+                            originalWrapperOverflow = ganttWrapper.style.overflow;
+                            originalWrapperMaxWidth = ganttWrapper.style.maxWidth;
 
-                            ganttContent.style.transformOrigin = 'top left';
-                            ganttContent.style.transform = `scale(${scale})`;
+                            ganttWrapper.style.width = scrollWidth + 'px';
+                            ganttWrapper.style.height = scrollHeight + 'px';
+                            ganttWrapper.style.overflow = 'visible';
+                            ganttWrapper.style.maxWidth = 'none';
 
-                            // Adjust wrapper height to prevent huge blank space below
-                            const scaledHeight = ganttContent.offsetHeight * scale;
-                            ganttWrapper.style.height = `${scaledHeight}px`;
+                            originalTargetMaxWidth = targetElement.style.maxWidth;
+                            originalTargetWidth = targetElement.style.width;
+                            originalTargetHeight = targetElement.style.height;
+
+                            targetElement.style.maxWidth = 'none';
+                            targetElement.style.width = scrollWidth + 'px';
+                            targetElement.style.height = scrollHeight + 'px';
                         }
-                    }
 
-                    window.print();
+                        let originalSidebarHeight = '';
+                        let originalSidebarPosition = '';
+                        if (ganttSidebar) {
+                             originalSidebarHeight = ganttSidebar.style.height;
+                             originalSidebarPosition = ganttSidebar.style.position;
+                             ganttSidebar.style.height = 'max-content';
+                             ganttSidebar.style.position = 'absolute'; // Prevent sticky issues during capture
+                        }
 
-                    // Restore original styles
-                    if (ganttContent && ganttWrapper) {
-                        ganttContent.style.transform = originalTransform;
-                        ganttContent.style.transformOrigin = originalTransformOrigin;
-                        ganttWrapper.style.height = originalWrapperHeight;
-                    }
+                        // Temporarily fix vertical text for html2canvas
+                        const verticalLabels = targetElement.querySelectorAll('.gantt-marker-label');
+                        const originalLabelStyles = [];
+                        verticalLabels.forEach(label => {
+                            originalLabelStyles.push({
+                                writingMode: label.style.writingMode,
+                                transform: label.style.transform,
+                                transformOrigin: label.style.transformOrigin,
+                                width: label.style.width,
+                                height: label.style.height,
+                                paddingTop: label.style.paddingTop,
+                                paddingLeft: label.style.paddingLeft,
+                                boxSizing: label.style.boxSizing
+                            });
 
-                    // Hide the timestamp again after printing
-                    if (printTimestamp) {
-                        printTimestamp.classList.add('d-none');
+                            // Store the original bounding rect to maintain dimensions if necessary
+                            // Get the current dimensions before applying transforms to prevent jumping
+                            const rect = label.getBoundingClientRect();
+
+                            // Add extra padding to prevent html2canvas from clipping font ascenders
+                            label.style.width = (rect.height + 4) + 'px';
+                            label.style.height = (rect.width + 4) + 'px';
+                            label.style.paddingTop = '2px';
+                            label.style.paddingLeft = '2px';
+                            label.style.boxSizing = 'border-box';
+
+                            label.style.setProperty('writing-mode', 'horizontal-tb', 'important');
+                            label.style.transform = 'rotate(90deg) translateY(-100%)';
+                            label.style.transformOrigin = 'top left';
+                        });
+
+                        // Add timestamp directly to image area
+                        const printTimestamp = document.getElementById("printTimestamp");
+                        if (printTimestamp) {
+                            const now = new Date();
+                            const timestampStr = now.toLocaleString();
+                            printTimestamp.textContent = `Exported on: ${timestampStr} | Plan: ${currentPlan.name || 'Unnamed Plan'}`;
+                            printTimestamp.classList.remove('d-none');
+                            printTimestamp.style.position = 'absolute';
+                            printTimestamp.style.top = '10px';
+                            printTimestamp.style.right = '10px';
+                            printTimestamp.style.zIndex = '1000';
+                            targetElement.appendChild(printTimestamp);
+                        }
+
+                        // We can provide options like scale to increase resolution
+                        html2canvas(targetElement, {
+                            scale: 2, // 2x resolution
+                            useCORS: true,
+                            backgroundColor: '#ffffff',
+                            width: scrollWidth,
+                            height: scrollHeight,
+                            windowWidth: scrollWidth,
+                            windowHeight: scrollHeight
+                        }).then(canvas => {
+                            // Restore styles
+                            verticalLabels.forEach((label, index) => {
+                                const styles = originalLabelStyles[index];
+                                label.style.writingMode = styles.writingMode;
+                                label.style.transform = styles.transform;
+                                label.style.transformOrigin = styles.transformOrigin;
+                                label.style.width = styles.width;
+                                label.style.height = styles.height;
+                                label.style.paddingTop = styles.paddingTop;
+                                label.style.paddingLeft = styles.paddingLeft;
+                                label.style.boxSizing = styles.boxSizing;
+                            });
+
+                            if (ganttWrapper) {
+                                ganttWrapper.style.width = originalWrapperWidth;
+                                ganttWrapper.style.height = originalWrapperHeight;
+                                ganttWrapper.style.overflow = originalWrapperOverflow;
+                                ganttWrapper.style.maxWidth = originalWrapperMaxWidth;
+
+                                targetElement.style.maxWidth = originalTargetMaxWidth;
+                                targetElement.style.width = originalTargetWidth;
+                                targetElement.style.height = originalTargetHeight;
+                            }
+                            if (ganttSidebar) {
+                                ganttSidebar.style.height = originalSidebarHeight;
+                                ganttSidebar.style.position = originalSidebarPosition;
+                            }
+
+                            // Restore controls and legend
+                            controls.forEach(c => c.style.display = '');
+                            if (legend) legend.style.display = '';
+
+                            if (printTimestamp) {
+                                printTimestamp.classList.add('d-none');
+                                document.body.appendChild(printTimestamp); // move it back to body
+                            }
+
+                            // Trigger download
+                            const image = canvas.toDataURL("image/png");
+                            const link = document.createElement('a');
+                            const sanitizedPlanName = (currentPlan.name || 'Gantt').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                            link.download = `${sanitizedPlanName}_export.png`;
+                            link.href = image;
+                            link.click();
+                        }).catch(err => {
+                            console.error("Error generating image:", err);
+                            // Ensure styles are restored on error
+                            verticalLabels.forEach((label, index) => {
+                                const styles = originalLabelStyles[index];
+                                label.style.writingMode = styles.writingMode;
+                                label.style.transform = styles.transform;
+                                label.style.transformOrigin = styles.transformOrigin;
+                                label.style.width = styles.width;
+                                label.style.height = styles.height;
+                                label.style.paddingTop = styles.paddingTop;
+                                label.style.paddingLeft = styles.paddingLeft;
+                                label.style.boxSizing = styles.boxSizing;
+                            });
+
+                            if (ganttWrapper) {
+                                ganttWrapper.style.width = originalWrapperWidth;
+                                ganttWrapper.style.height = originalWrapperHeight;
+                                ganttWrapper.style.overflow = originalWrapperOverflow;
+                                ganttWrapper.style.maxWidth = originalWrapperMaxWidth;
+
+                                targetElement.style.maxWidth = originalTargetMaxWidth;
+                                targetElement.style.width = originalTargetWidth;
+                                targetElement.style.height = originalTargetHeight;
+                            }
+                            if (ganttSidebar) {
+                                ganttSidebar.style.height = originalSidebarHeight;
+                                ganttSidebar.style.position = originalSidebarPosition;
+                            }
+                            controls.forEach(c => c.style.display = '');
+                            if (legend) legend.style.display = '';
+                            if (printTimestamp) {
+                                printTimestamp.classList.add('d-none');
+                                document.body.appendChild(printTimestamp);
+                            }
+                            alert("Failed to export image. See console for details.");
+                        });
                     }
                 }
             });
@@ -1428,7 +1578,7 @@ class UI {
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         const taskListBtn = document.getElementById("taskListBtn");
         const capacityPlanBtn = document.getElementById("capacityPlanBtn");
-        const printGanttBtn = document.getElementById("printGanttBtn");
+        const exportImageBtn = document.getElementById("exportImageBtn");
 
         if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
         if (editPlanBtn) editPlanBtn.disabled = !hasPlans;
@@ -1437,7 +1587,7 @@ class UI {
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
         if (taskListBtn) taskListBtn.disabled = !hasPlans;
         if (capacityPlanBtn) capacityPlanBtn.disabled = !hasPlans;
-        if (printGanttBtn) printGanttBtn.disabled = !hasPlans;
+        if (exportImageBtn) exportImageBtn.disabled = !hasPlans;
 
         this.renderTagFilters();
 
