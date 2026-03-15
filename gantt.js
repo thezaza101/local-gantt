@@ -237,8 +237,8 @@ class Gantt {
                     const rawRowIndex = (marker.row !== undefined && marker.row > 0) ? marker.row - 1 : 0;
                     const mappedRowIndex = rowMap.has(rawRowIndex) ? rowMap.get(rawRowIndex) : rawRowIndex;
                     
-                    // Top position should be just above the row tasks
-                    const topPos = mappedRowIndex * this.rowHeight + (this.taskMargin / 2);
+                    // Top position should be at the very top edge of the row
+                    const topPos = mappedRowIndex * this.rowHeight;
 
                     const repeats = marker.repeats !== false; // default to true if undefined
                     const labelContent = repeats ? this.repeatString(safeLabel, 20) : `<span>${safeLabel}</span>`;
@@ -288,7 +288,11 @@ class Gantt {
             const originalRowIndex = reversedRowMap.has(i) ? reversedRowMap.get(i) : i;
             const displayRowNumber = originalRowIndex + 1; // 1-based index
             // Height is rowHeight. We align top border
-            rowNumbersHtml += `<div class="gantt-row-number" style="height: ${this.rowHeight}px; width: 40px;">${displayRowNumber}</div>`;
+            rowNumbersHtml += `
+                <div class="gantt-row-number" style="height: ${this.rowHeight}px; width: 40px;">
+                    ${displayRowNumber}
+                    <button class="gantt-insert-row-btn" data-row-index="${displayRowNumber}" title="Insert row above">Insert row above</button>
+                </div>`;
         }
 
         // Adjust top header heights for syncing
@@ -382,6 +386,7 @@ class Gantt {
         // Bind events for tasks
         this.bindTaskEvents();
         this.bindLegendEvents();
+        this.bindRowEvents();
     }
 
     generateTasksHtml(plan, planStartDate, planEndDate) {
@@ -976,6 +981,26 @@ class Gantt {
         `;
 
         return html;
+    }
+
+    bindRowEvents() {
+        if (!this.container) return;
+        const insertBtns = this.container.querySelectorAll('.gantt-insert-row-btn');
+        insertBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rowIndex = parseInt(btn.getAttribute('data-row-index'), 10);
+                if (!isNaN(rowIndex) && window.PlannerState) {
+                    if (window.PlannerState.insertRowBefore(rowIndex)) {
+                        if (window.UIController) {
+                            window.UIController.updateUI();
+                        } else {
+                            this.render(window.PlannerState.getCurrentPlan());
+                        }
+                    }
+                }
+            });
+        });
     }
 
     bindLegendEvents() {
