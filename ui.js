@@ -1034,14 +1034,19 @@ class UI {
             });
 
             const deleteBtn = tr.querySelector('.delete-marker-btn');
-            deleteBtn.addEventListener('click', () => {
-                if (confirm('Are you sure you want to delete this marker?')) {
-                    if (this.planner.deleteMarker(marker.id)) {
-                        this.renderMarkerTable();
-                        this.updateUI();
+            if (marker.id === 'marker_today') {
+                deleteBtn.disabled = true;
+                deleteBtn.title = 'Cannot delete Today marker';
+            } else {
+                deleteBtn.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to delete this marker?')) {
+                        if (this.planner.deleteMarker(marker.id)) {
+                            this.renderMarkerTable();
+                            this.updateUI();
+                        }
                     }
-                }
-            });
+                });
+            }
 
             tbody.appendChild(tr);
         });
@@ -1061,6 +1066,11 @@ class UI {
         const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
         const form = document.getElementById('markerForm');
         form.reset();
+
+        const dateInput = document.getElementById('markerDate');
+        dateInput.readOnly = false;
+        document.getElementById('markerTypeVertical').disabled = false;
+        document.getElementById('markerTypeHorizontal').disabled = false;
 
         document.getElementById('markerId').value = '';
         document.getElementById('markerTypeVertical').checked = true;
@@ -1084,7 +1094,17 @@ class UI {
                     document.getElementById('markerRow').value = marker.row || 1;
                 } else {
                     document.getElementById('markerTypeVertical').checked = true;
-                    document.getElementById('markerDate').value = marker.date || currentPlan.timeline.startDate;
+                    dateInput.value = marker.date || currentPlan.timeline.startDate;
+                }
+
+                if (marker.id === 'marker_today') {
+                    dateInput.readOnly = true;
+                    document.getElementById('markerTypeVertical').disabled = true;
+                    document.getElementById('markerTypeHorizontal').disabled = true;
+                } else {
+                    dateInput.readOnly = false;
+                    document.getElementById('markerTypeVertical').disabled = false;
+                    document.getElementById('markerTypeHorizontal').disabled = false;
                 }
 
                 document.getElementById('markerRepeats').checked = marker.repeats !== false;

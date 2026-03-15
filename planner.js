@@ -120,7 +120,33 @@ class Planner {
 
     getCurrentPlan() {
         if (this.currentPlanIndex >= 0 && this.currentPlanIndex < this.file.plans.length) {
-            return this.file.plans[this.currentPlanIndex];
+            const plan = this.file.plans[this.currentPlanIndex];
+
+            // Ensure Today marker is up to date dynamically
+            if (plan && plan.markers) {
+                const today = new Date();
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                const todayStr = `${yyyy}-${mm}-${dd}`;
+
+                const todayMarkerIndex = plan.markers.findIndex(m => m.id === 'marker_today');
+                if (todayMarkerIndex !== -1) {
+                    plan.markers[todayMarkerIndex].date = todayStr;
+                } else {
+                    plan.markers.unshift({
+                        id: 'marker_today',
+                        type: 'vertical',
+                        label: 'Today',
+                        color: '#28a745',
+                        importance: 'note',
+                        repeats: true,
+                        visible: true,
+                        date: todayStr
+                    });
+                }
+            }
+            return plan;
         }
         return null;
     }
@@ -158,7 +184,16 @@ class Planner {
                 startDate: formatDate(today),
                 endDate: formatDate(sixMonthsFromNow)
             },
-            markers: [],
+            markers: [{
+                id: 'marker_today',
+                type: 'vertical',
+                label: 'Today',
+                color: '#28a745',
+                importance: 'note',
+                repeats: true,
+                visible: true,
+                date: formatDate(today)
+            }],
             capacity: {
                 granularity: "month",
                 entries: []
@@ -458,6 +493,41 @@ class Planner {
     loadState(newState) {
         if (newState && newState.meta && newState.plans) {
             this.file = newState;
+
+            // Ensure Today marker exists on all plans
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            const todayStr = `${yyyy}-${mm}-${dd}`;
+
+            this.file.plans.forEach(plan => {
+                if (!plan.markers) {
+                    plan.markers = [];
+                }
+
+                const todayMarkerIndex = plan.markers.findIndex(m => m.id === 'marker_today');
+
+                const todayMarker = {
+                    id: 'marker_today',
+                    type: 'vertical',
+                    label: 'Today',
+                    color: '#28a745',
+                    importance: 'note',
+                    repeats: true,
+                    visible: true,
+                    date: todayStr
+                };
+
+                if (todayMarkerIndex === -1) {
+                    // Add as the first marker
+                    plan.markers.unshift(todayMarker);
+                } else {
+                    // Update the existing today marker's date
+                    plan.markers[todayMarkerIndex].date = todayStr;
+                }
+            });
+
             if (this.file.plans.length > 0) {
                 this.currentPlanIndex = 0;
             } else {
