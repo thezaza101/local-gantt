@@ -249,15 +249,22 @@ class UI {
                                 transform: label.style.transform,
                                 transformOrigin: label.style.transformOrigin,
                                 width: label.style.width,
-                                height: label.style.height
+                                height: label.style.height,
+                                paddingTop: label.style.paddingTop,
+                                paddingLeft: label.style.paddingLeft,
+                                boxSizing: label.style.boxSizing
                             });
 
                             // Store the original bounding rect to maintain dimensions if necessary
                             // Get the current dimensions before applying transforms to prevent jumping
                             const rect = label.getBoundingClientRect();
 
-                            label.style.width = rect.height + 'px';
-                            label.style.height = rect.width + 'px';
+                            // Add extra padding to prevent html2canvas from clipping font ascenders
+                            label.style.width = (rect.height + 4) + 'px';
+                            label.style.height = (rect.width + 4) + 'px';
+                            label.style.paddingTop = '2px';
+                            label.style.paddingLeft = '2px';
+                            label.style.boxSizing = 'border-box';
 
                             label.style.setProperty('writing-mode', 'horizontal-tb', 'important');
                             label.style.transform = 'rotate(90deg) translateY(-100%)';
@@ -292,6 +299,9 @@ class UI {
                                 label.style.transformOrigin = styles.transformOrigin;
                                 label.style.width = styles.width;
                                 label.style.height = styles.height;
+                                label.style.paddingTop = styles.paddingTop;
+                                label.style.paddingLeft = styles.paddingLeft;
+                                label.style.boxSizing = styles.boxSizing;
                             });
 
                             if (ganttWrapper) {
@@ -330,6 +340,9 @@ class UI {
                                 label.style.transformOrigin = styles.transformOrigin;
                                 label.style.width = styles.width;
                                 label.style.height = styles.height;
+                                label.style.paddingTop = styles.paddingTop;
+                                label.style.paddingLeft = styles.paddingLeft;
+                                label.style.boxSizing = styles.boxSizing;
                             });
 
                             if (ganttWrapper) {
