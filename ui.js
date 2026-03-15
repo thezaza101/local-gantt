@@ -251,7 +251,14 @@ class UI {
                                 width: label.style.width,
                                 height: label.style.height
                             });
+
                             // Store the original bounding rect to maintain dimensions if necessary
+                            // Get the current dimensions before applying transforms to prevent jumping
+                            const rect = label.getBoundingClientRect();
+
+                            label.style.width = rect.height + 'px';
+                            label.style.height = rect.width + 'px';
+
                             label.style.setProperty('writing-mode', 'horizontal-tb', 'important');
                             label.style.transform = 'rotate(90deg) translateY(-100%)';
                             label.style.transformOrigin = 'top left';
