@@ -40,6 +40,7 @@ class Planner {
         this.zoomLevel = 'daily'; // 'daily', 'weekly', 'fortnight', 'monthly'
         this.showDependencies = false;
         this.showEffortPerDay = false;
+        this.selectedTaskIds = []; // Array of selected task IDs
 
         // Marker Visibility State
         this.showMarkerMajor = true;
@@ -68,6 +69,31 @@ class Planner {
 
     setZoomLevel(level) {
         this.zoomLevel = level;
+    }
+
+    getSelectedTaskIds() {
+        return this.selectedTaskIds;
+    }
+
+    setSelectedTaskIds(ids) {
+        this.selectedTaskIds = ids || [];
+    }
+
+    toggleTaskSelection(taskId) {
+        const index = this.selectedTaskIds.indexOf(taskId);
+        if (index > -1) {
+            this.selectedTaskIds.splice(index, 1);
+        } else {
+            this.selectedTaskIds.push(taskId);
+        }
+    }
+
+    clearTaskSelection() {
+        this.selectedTaskIds = [];
+    }
+
+    isTaskSelected(taskId) {
+        return this.selectedTaskIds.includes(taskId);
     }
 
     getFilterState() {
