@@ -209,13 +209,13 @@ class UI {
                         const legend = ganttContainer.querySelector('.gantt-legend');
                         if (legend) legend.style.display = 'none';
 
-                        // We also need to capture the full scrolled content, so we pass the gantt-content
+                        // We also need to capture the full scrolled content, so we pass the gantt-container
                         // to html2canvas or adjust scroll
                         const ganttContent = ganttContainer.querySelector('.gantt-content');
                         const ganttSidebar = ganttContainer.querySelector('.gantt-sidebar');
                         const ganttWrapper = ganttContainer.querySelector('.gantt-wrapper');
 
-                        const targetElement = ganttContent ? ganttContent.parentElement : ganttContainer;
+                        const targetElement = ganttContainer;
 
                         // Temporarily set wrapper to auto width/height to ensure html2canvas captures everything
                         let originalWrapperWidth = '';
@@ -240,6 +240,23 @@ class UI {
                              ganttSidebar.style.position = 'absolute'; // Prevent sticky issues during capture
                         }
 
+                        // Temporarily fix vertical text for html2canvas
+                        const verticalLabels = targetElement.querySelectorAll('.gantt-marker-label');
+                        const originalLabelStyles = [];
+                        verticalLabels.forEach(label => {
+                            originalLabelStyles.push({
+                                writingMode: label.style.writingMode,
+                                transform: label.style.transform,
+                                transformOrigin: label.style.transformOrigin,
+                                width: label.style.width,
+                                height: label.style.height
+                            });
+                            // Store the original bounding rect to maintain dimensions if necessary
+                            label.style.setProperty('writing-mode', 'horizontal-tb', 'important');
+                            label.style.transform = 'rotate(90deg) translateY(-100%)';
+                            label.style.transformOrigin = 'top left';
+                        });
+
                         // Add timestamp directly to image area
                         const printTimestamp = document.getElementById("printTimestamp");
                         if (printTimestamp) {
@@ -261,6 +278,15 @@ class UI {
                             backgroundColor: '#ffffff',
                         }).then(canvas => {
                             // Restore styles
+                            verticalLabels.forEach((label, index) => {
+                                const styles = originalLabelStyles[index];
+                                label.style.writingMode = styles.writingMode;
+                                label.style.transform = styles.transform;
+                                label.style.transformOrigin = styles.transformOrigin;
+                                label.style.width = styles.width;
+                                label.style.height = styles.height;
+                            });
+
                             if (ganttWrapper) {
                                 ganttWrapper.style.width = originalWrapperWidth;
                                 ganttWrapper.style.height = originalWrapperHeight;
@@ -290,6 +316,15 @@ class UI {
                         }).catch(err => {
                             console.error("Error generating image:", err);
                             // Ensure styles are restored on error
+                            verticalLabels.forEach((label, index) => {
+                                const styles = originalLabelStyles[index];
+                                label.style.writingMode = styles.writingMode;
+                                label.style.transform = styles.transform;
+                                label.style.transformOrigin = styles.transformOrigin;
+                                label.style.width = styles.width;
+                                label.style.height = styles.height;
+                            });
+
                             if (ganttWrapper) {
                                 ganttWrapper.style.width = originalWrapperWidth;
                                 ganttWrapper.style.height = originalWrapperHeight;
