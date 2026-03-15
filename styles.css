@@ -54,27 +54,6 @@ body {
     background-color: #fafafa;
 }
 
-.capacity-graph-container {
-    flex: 1;
-    padding: 1rem;
-    overflow: hidden;
-    min-height: 250px;
-}
-
-.capacity-graph-container.collapsed {
-    flex: 0 0 auto;
-    min-height: 0;
-}
-
-.capacity-graph-container.collapsed .capacity-content {
-    display: none !important;
-}
-
-.capacity-graph-container canvas {
-    width: 100% !important;
-    height: 100% !important;
-}
-
 .analytics-panel {
     flex: 1 1 auto; /* Grow to take up remaining space, shrink if needed */
     max-height: 50%; /* Don't let it take over the whole screen */
@@ -374,7 +353,7 @@ body {
         display: block; /* Disable flex for printing to allow normal document flow */
     }
 
-    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn, .capacity-graph-container {
+    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn {
         display: none !important;
     }
 

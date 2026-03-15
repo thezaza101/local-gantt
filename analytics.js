@@ -93,6 +93,57 @@ class Analytics {
     }
 
     /**
+     * Calculates total effort by task status.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in the calculation
+     * @returns {Object} Data object for Effort by Status { labels: [...], values: [...] }
+     */
+    calculateEffortByStatus(plan, filteredTasks) {
+        if (!plan || !filteredTasks) return { labels: [], values: [] };
+
+        const statusEffortMap = {};
+
+        filteredTasks.forEach(task => {
+            const effort = task.effort || { design: 0, dev: 0, test: 0 };
+            const totalEffort = (effort.design || 0) + (effort.dev || 0) + (effort.test || 0);
+
+            if (totalEffort > 0) {
+                const status = task.status || 'None';
+                statusEffortMap[status] = (statusEffortMap[status] || 0) + totalEffort;
+            }
+        });
+
+        // Convert map to sorted arrays
+        const labels = Object.keys(statusEffortMap).sort((a, b) => statusEffortMap[b] - statusEffortMap[a]); // Sort descending by effort
+        const values = labels.map(label => statusEffortMap[label]);
+
+        return { labels, values };
+    }
+
+    /**
+     * Calculates task count by status.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in the calculation
+     * @returns {Object} Data object for Task Count by Status { labels: [...], values: [...] }
+     */
+    calculateTaskCountByStatus(plan, filteredTasks) {
+        if (!plan || !filteredTasks) return { labels: [], values: [] };
+
+        const statusCountMap = {};
+
+        filteredTasks.forEach(task => {
+            const status = task.status || 'None';
+            statusCountMap[status] = (statusCountMap[status] || 0) + 1;
+        });
+
+        // Convert map to sorted arrays
+        const labels = Object.keys(statusCountMap).sort((a, b) => statusCountMap[b] - statusCountMap[a]); // Sort descending by count
+        const values = labels.map(label => statusCountMap[label]);
+
+        return { labels, values };
+    }
+
+    /**
      * Calculates total effort by work type (design, dev, test) across given tasks.
      * @param {Object} plan - The plan data model
      * @param {Array} filteredTasks - The list of tasks to include in the calculation
@@ -347,6 +398,8 @@ class Analytics {
 
         // Calculate Data
         const effortByTagData = this.calculateEffortByTag(plan, filteredTasks);
+        const effortByStatusData = this.calculateEffortByStatus(plan, filteredTasks);
+        const taskCountByStatusData = this.calculateTaskCountByStatus(plan, filteredTasks);
         const effortByTypeData = this.calculateEffortByType(plan, filteredTasks);
         const topTasksData = this.calculateEffortByTask(plan, filteredTasks);
         const demandCapacityData = this.calculateDemandCapacity(plan, filteredTasks);
@@ -357,7 +410,7 @@ class Analytics {
             <div class="container-fluid p-0">
                 <div class="row g-4">
                     <!-- Top Row -->
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6 col-lg-3">
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2">
                                 <h6 class="mb-0 text-muted">Effort by Tag</h6>
@@ -366,11 +419,37 @@ class Analytics {
                                 <div style="height: 150px; position: relative;">
                                     <canvas id="chartEffortByTag"></canvas>
                                 </div>
-                                ${this.renderEffortByTagTable(effortByTagData)}
+                                ${this.renderEffortTable(effortByTagData, 'Tag')}
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 col-lg-4">
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Effort by Status</h6>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div style="height: 150px; position: relative;">
+                                    <canvas id="chartEffortByStatus"></canvas>
+                                </div>
+                                ${this.renderEffortTable(effortByStatusData, 'Status')}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Task Count by Status</h6>
+                            </div>
+                            <div class="card-body d-flex flex-column align-items-center">
+                                <div style="width: 100%; height: 150px; position: relative;">
+                                    <canvas id="chartTaskCountByStatus"></canvas>
+                                </div>
+                                ${this.renderTaskCountTable(taskCountByStatusData)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-lg-3">
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2">
                                 <h6 class="mb-0 text-muted">Effort by Type</h6>
@@ -382,6 +461,8 @@ class Analytics {
                             </div>
                         </div>
                     </div>
+
+                    <!-- Middle Row: Top Tasks & Capacity vs Demand -->
                     <div class="col-md-12 col-lg-4">
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2">
@@ -392,25 +473,32 @@ class Analytics {
                             </div>
                         </div>
                     </div>
+                    <div class="col-md-12 col-lg-8">
+                        <div class="card shadow-sm">
+                            <div class="card-header bg-white py-2">
+                                <h6 class="mb-0 text-muted">Capacity vs Demand</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-7">
+                                        <canvas id="chartCapacityVsDemand" style="aspect-ratio: 16/9; max-height: 300px; width: 100%;"></canvas>
+                                    </div>
+                                    <div class="col-md-5 overflow-auto" style="max-height: 300px;">
+                                        ${this.renderDemandCapacityTable(demandCapacityData)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                     <!-- Bottom Row -->
-                    <div class="col-md-12 col-lg-6">
+                    <div class="col-12">
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2">
                                 <h6 class="mb-0 text-muted">Effort by Tag Over Time</h6>
                             </div>
                             <div class="card-body">
                                 <canvas id="chartTagEffortOverTime" style="max-height: 300px;"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-12 col-lg-6">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-header bg-white py-2">
-                                <h6 class="mb-0 text-muted">Demand vs Capacity</h6>
-                            </div>
-                            <div class="card-body p-0 overflow-auto" style="max-height: 350px;">
-                                ${this.renderDemandCapacityTable(demandCapacityData)}
                             </div>
                         </div>
                     </div>
@@ -421,13 +509,86 @@ class Analytics {
         // Wait a tick for DOM to update before rendering charts
         setTimeout(() => {
             this.renderChartEffortByTag(effortByTagData);
+            this.renderChartEffortByStatus(effortByStatusData);
+            this.renderChartTaskCountByStatus(taskCountByStatusData);
             this.renderChartEffortByType(effortByTypeData);
             this.renderChartTagEffortOverTime(tagEffortOverTimeData);
+            this.renderChartCapacityVsDemand(demandCapacityData);
         }, 0);
     }
 
-    renderEffortByTagTable(data) {
-        if (!data.labels || data.labels.length === 0) return '<p class="text-muted small mt-3 mb-0 text-center">No tag data</p>';
+    renderChartCapacityVsDemand(data) {
+        const ctx = document.getElementById('chartCapacityVsDemand');
+        if (!ctx || !data || data.length === 0) return;
+
+        const labels = data.map(item => item.period);
+        const capacityValues = data.map(item => item.capacity);
+        const demandValues = data.map(item => item.demand);
+
+        this.charts['capacityVsDemand'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Demand',
+                        data: demandValues,
+                        backgroundColor: '#ff6b6b',
+                        borderColor: '#fa5252',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        order: 2
+                    },
+                    {
+                        label: 'Capacity',
+                        data: capacityValues,
+                        type: 'line',
+                        fill: false,
+                        borderColor: '#339af0',
+                        backgroundColor: '#339af0',
+                        tension: 0.1,
+                        borderWidth: 3,
+                        pointBackgroundColor: '#ffffff',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        order: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                aspectRatio: 16 / 9,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Effort'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Period'
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    renderEffortTable(data, labelHeader) {
+        if (!data.labels || data.labels.length === 0) return `<p class="text-muted small mt-3 mb-0 text-center">No ${labelHeader.toLowerCase()} data</p>`;
 
         let rows = '';
         for (let i = 0; i < data.labels.length; i++) {
@@ -444,8 +605,36 @@ class Analytics {
                 <table class="table table-sm table-borderless mb-0">
                     <thead class="table-light sticky-top">
                         <tr>
-                            <th class="small fw-normal py-1">Tag</th>
+                            <th class="small fw-normal py-1">${labelHeader}</th>
                             <th class="small fw-normal py-1 text-end">Effort</th>
+                        </tr>
+                    </thead>
+                    <tbody>${rows}</tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    renderTaskCountTable(data) {
+        if (!data.labels || data.labels.length === 0) return '<p class="text-muted small mt-3 mb-0 text-center">No status data</p>';
+
+        let rows = '';
+        for (let i = 0; i < data.labels.length; i++) {
+            rows += `
+                <tr>
+                    <td class="small py-1">${this.escapeHtml(data.labels[i])}</td>
+                    <td class="small py-1 text-end">${data.values[i]}</td>
+                </tr>
+            `;
+        }
+
+        return `
+            <div class="table-responsive mt-3 mb-0 flex-grow-1" style="max-height: 150px; overflow-y: auto;">
+                <table class="table table-sm table-borderless mb-0">
+                    <thead class="table-light sticky-top">
+                        <tr>
+                            <th class="small fw-normal py-1">Status</th>
+                            <th class="small fw-normal py-1 text-end">Count</th>
                         </tr>
                     </thead>
                     <tbody>${rows}</tbody>
@@ -542,6 +731,61 @@ class Analytics {
                 },
                 scales: {
                     y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    renderChartEffortByStatus(data) {
+        const ctx = document.getElementById('chartEffortByStatus');
+        if (!ctx || !data.labels || data.labels.length === 0) return;
+
+        this.charts['effortByStatus'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    label: 'Effort',
+                    data: data.values,
+                    backgroundColor: this.chartColors.slice(0, data.labels.length).concat(Array(Math.max(0, data.labels.length - this.chartColors.length)).fill('#adb5bd')),
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    renderChartTaskCountByStatus(data) {
+        const ctx = document.getElementById('chartTaskCountByStatus');
+        if (!ctx || !data.labels) return;
+
+        this.charts['taskCountByStatus'] = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: this.chartColors.slice(0, data.labels.length).concat(Array(Math.max(0, data.labels.length - this.chartColors.length)).fill('#adb5bd')),
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
                 }
             }
         });
