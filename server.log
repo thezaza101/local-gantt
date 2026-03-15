@@ -54,3 +54,17 @@
 127.0.0.1 - - [15/Mar/2026 02:27:04] "GET /app.js HTTP/1.1" 200 -
 127.0.0.1 - - [15/Mar/2026 02:27:04] "GET /ui.js HTTP/1.1" 200 -
 127.0.0.1 - - [15/Mar/2026 02:27:04] "GET /latest.json HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /index.html HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /planner.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /styles.css HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /storage.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /gantt.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /vendor/bootstrap.min.css HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /capacity.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /vendor/chart.umd.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /analytics.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /app.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /ui.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /graph.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /vendor/bootstrap.bundle.min.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Mar/2026 03:23:44] "GET /latest.json HTTP/1.1" 200 -
