@@ -310,7 +310,7 @@ class Gantt {
                     <div class="gantt-sidebar-header bg-white border-bottom" style="height: 48px; flex: none;">
                         <!-- Placeholder to match Gantt header height -->
                     </div>
-                    <div class="gantt-sidebar-rows flex-grow-1 overflow-hidden" style="position: relative;">
+                    <div class="gantt-sidebar-rows flex-grow-1" style="position: relative;">
                         <div class="gantt-sidebar-rows-content" style="position: absolute; top: 0; left: 0; width: 100%; margin-top: 8px;">
                             ${rowNumbersHtml}
                         </div>
