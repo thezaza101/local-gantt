@@ -221,14 +221,32 @@ class UI {
                         let originalWrapperWidth = '';
                         let originalWrapperHeight = '';
                         let originalWrapperOverflow = '';
+                        let originalWrapperMaxWidth = '';
+                        let originalTargetMaxWidth = '';
+                        let originalTargetWidth = '';
+                        let originalTargetHeight = '';
+
+                        const scrollWidth = ganttContent.scrollWidth + (ganttSidebar ? ganttSidebar.offsetWidth : 0);
+                        const scrollHeight = ganttContent.scrollHeight;
+
                         if (ganttWrapper) {
                             originalWrapperWidth = ganttWrapper.style.width;
                             originalWrapperHeight = ganttWrapper.style.height;
                             originalWrapperOverflow = ganttWrapper.style.overflow;
+                            originalWrapperMaxWidth = ganttWrapper.style.maxWidth;
 
-                            ganttWrapper.style.width = 'max-content';
-                            ganttWrapper.style.height = 'max-content';
+                            ganttWrapper.style.width = scrollWidth + 'px';
+                            ganttWrapper.style.height = scrollHeight + 'px';
                             ganttWrapper.style.overflow = 'visible';
+                            ganttWrapper.style.maxWidth = 'none';
+
+                            originalTargetMaxWidth = targetElement.style.maxWidth;
+                            originalTargetWidth = targetElement.style.width;
+                            originalTargetHeight = targetElement.style.height;
+
+                            targetElement.style.maxWidth = 'none';
+                            targetElement.style.width = scrollWidth + 'px';
+                            targetElement.style.height = scrollHeight + 'px';
                         }
 
                         let originalSidebarHeight = '';
@@ -290,6 +308,10 @@ class UI {
                             scale: 2, // 2x resolution
                             useCORS: true,
                             backgroundColor: '#ffffff',
+                            width: scrollWidth,
+                            height: scrollHeight,
+                            windowWidth: scrollWidth,
+                            windowHeight: scrollHeight
                         }).then(canvas => {
                             // Restore styles
                             verticalLabels.forEach((label, index) => {
@@ -308,6 +330,11 @@ class UI {
                                 ganttWrapper.style.width = originalWrapperWidth;
                                 ganttWrapper.style.height = originalWrapperHeight;
                                 ganttWrapper.style.overflow = originalWrapperOverflow;
+                                ganttWrapper.style.maxWidth = originalWrapperMaxWidth;
+
+                                targetElement.style.maxWidth = originalTargetMaxWidth;
+                                targetElement.style.width = originalTargetWidth;
+                                targetElement.style.height = originalTargetHeight;
                             }
                             if (ganttSidebar) {
                                 ganttSidebar.style.height = originalSidebarHeight;
@@ -349,6 +376,11 @@ class UI {
                                 ganttWrapper.style.width = originalWrapperWidth;
                                 ganttWrapper.style.height = originalWrapperHeight;
                                 ganttWrapper.style.overflow = originalWrapperOverflow;
+                                ganttWrapper.style.maxWidth = originalWrapperMaxWidth;
+
+                                targetElement.style.maxWidth = originalTargetMaxWidth;
+                                targetElement.style.width = originalTargetWidth;
+                                targetElement.style.height = originalTargetHeight;
                             }
                             if (ganttSidebar) {
                                 ganttSidebar.style.height = originalSidebarHeight;
