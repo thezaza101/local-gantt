@@ -82,6 +82,24 @@ body {
     display: none !important;
 }
 
+/* Full Screen Modes */
+body.analytics-fullscreen .planner-area {
+    display: none !important;
+}
+
+body.analytics-fullscreen .analytics-panel {
+    max-height: none !important;
+}
+
+body.presenter-mode .toolbar,
+body.presenter-mode .tag-filters {
+    display: none !important;
+}
+
+body.presenter-mode #exitPresenterModeBtn {
+    display: block !important;
+}
+
 /* Analytics Container specific styling */
 #analyticsContent .card {
     border: none;
