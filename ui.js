@@ -10,27 +10,6 @@ class UI {
 
     bindEvents() {
         // Collapse/Expand functionality
-        const capacityToggleBtn = document.getElementById("capacityToggleBtn");
-        const capacityContainer = document.getElementById("capacityContainer");
-        const capacityChevron = document.getElementById("capacityChevron");
-
-        if (capacityToggleBtn) {
-            capacityToggleBtn.addEventListener("click", () => {
-                capacityContainer.classList.toggle("collapsed");
-                if (capacityContainer.classList.contains("collapsed")) {
-                    capacityChevron.textContent = "▲";
-                } else {
-                    capacityChevron.textContent = "▼";
-                }
-
-                // Trigger re-render to adjust to new space
-                if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
-                if (window.GraphEngine) {
-                    setTimeout(() => window.GraphEngine.render(this.planner.getCurrentPlan()), 50); // slight delay for layout recalculation
-                }
-            });
-        }
-
         const analyticsToggleBtn = document.getElementById("analyticsToggleBtn");
         const analyticsContainer = document.getElementById("analyticsContainer");
         const analyticsChevron = document.getElementById("analyticsChevron");
@@ -46,9 +25,6 @@ class UI {
 
                 // Trigger re-render to adjust to new space
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
-                if (window.GraphEngine) {
-                    setTimeout(() => window.GraphEngine.render(this.planner.getCurrentPlan()), 50);
-                }
                 if (window.AnalyticsEngine && !analyticsContainer.classList.contains("collapsed")) {
                     setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
                 }
@@ -692,11 +668,6 @@ class UI {
 
         if (window.GanttEngine) {
             window.GanttEngine.render(this.planner.getCurrentPlan());
-        }
-
-        // Trigger Graph re-render if it exists
-        if (window.GraphEngine) {
-            window.GraphEngine.render(this.planner.getCurrentPlan());
         }
 
         // Trigger Analytics re-render if visible
@@ -1453,11 +1424,6 @@ class UI {
         // Trigger Gantt re-render if it exists
         if (window.GanttEngine) {
             window.GanttEngine.render(this.planner.getCurrentPlan());
-        }
-
-        // Trigger Graph re-render if it exists
-        if (window.GraphEngine) {
-            window.GraphEngine.render(this.planner.getCurrentPlan());
         }
 
         // Trigger Analytics re-render if visible

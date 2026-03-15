@@ -95,21 +95,12 @@
 
     <!-- Main Content Area -->
     <div class="main-content flex-column">
-        <!-- Top Half: Planner Area (Gantt + Capacity Graph) -->
+        <!-- Top Half: Planner Area (Gantt) -->
         <div class="planner-area d-flex flex-column mb-3">
             <div id="gantt-chart-container" class="gantt-chart-container p-4 d-flex align-items-center justify-content-center">
                 <div class="text-center text-muted">
                     <h5>Gantt Chart Area</h5>
                     <p class="small">Timeline and tasks will render here</p>
-                </div>
-            </div>
-            <div class="capacity-graph-container p-0 d-flex flex-column border-top bg-light w-100 collapsed" id="capacityContainer">
-                <div class="capacity-header d-flex justify-content-between align-items-center p-2 border-bottom bg-white" style="cursor: pointer;" id="capacityToggleBtn">
-                    <h6 class="m-0 text-muted">Capacity vs Demand</h6>
-                    <span id="capacityChevron" style="font-size: 0.8rem;">▲</span>
-                </div>
-                <div class="capacity-content d-flex align-items-center justify-content-center flex-grow-1 p-4" id="capacityContent">
-                    <canvas id="capacityGraphCanvas"></canvas>
                 </div>
             </div>
         </div>
@@ -138,7 +129,6 @@
     <script src="gantt.js"></script>
     <script src="capacity.js"></script>
     <script src="analytics.js"></script>
-    <script src="graph.js"></script>
     <script src="ui.js"></script>
     <script src="app.js"></script>
 

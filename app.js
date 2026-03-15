@@ -29,8 +29,7 @@ async function initApp() {
     // Initialize Analytics
     window.AnalyticsEngine = new Analytics(window.PlannerState);
 
-    // Initialize Graph Engine
-    window.GraphEngine = new GraphEngine('capacityGraphCanvas');
+    // Initialize Graph Engine is removed, rendering logic moved to Analytics
 
     // Initialize UI
     window.UIController = new UI();
