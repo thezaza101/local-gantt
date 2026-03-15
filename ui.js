@@ -13,19 +13,75 @@ class UI {
         const analyticsToggleBtn = document.getElementById("analyticsToggleBtn");
         const analyticsContainer = document.getElementById("analyticsContainer");
         const analyticsChevron = document.getElementById("analyticsChevron");
+        const analyticsFullScreenBtn = document.getElementById("analyticsFullScreenBtn");
 
         if (analyticsToggleBtn) {
-            analyticsToggleBtn.addEventListener("click", () => {
+            analyticsToggleBtn.addEventListener("click", (e) => {
+                // Ignore clicks on the full screen button
+                if (e.target === analyticsFullScreenBtn) return;
+
                 analyticsContainer.classList.toggle("collapsed");
                 if (analyticsContainer.classList.contains("collapsed")) {
                     analyticsChevron.textContent = "◀";
+                    if (analyticsFullScreenBtn) analyticsFullScreenBtn.classList.add("d-none");
+                    // Exit full screen if collapsed
+                    if (document.body.classList.contains("analytics-fullscreen")) {
+                        document.body.classList.remove("analytics-fullscreen");
+                        if (analyticsFullScreenBtn) analyticsFullScreenBtn.textContent = "Full Screen";
+                    }
                 } else {
                     analyticsChevron.textContent = "▼";
+                    if (analyticsFullScreenBtn) analyticsFullScreenBtn.classList.remove("d-none");
                 }
 
                 // Trigger re-render to adjust to new space
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
                 if (window.AnalyticsEngine && !analyticsContainer.classList.contains("collapsed")) {
+                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
+                }
+            });
+        }
+
+        // Full Screen Analytics
+        if (analyticsFullScreenBtn) {
+            analyticsFullScreenBtn.addEventListener("click", (e) => {
+                e.stopPropagation(); // Prevent triggering the collapse/expand toggle
+                document.body.classList.toggle("analytics-fullscreen");
+
+                if (document.body.classList.contains("analytics-fullscreen")) {
+                    analyticsFullScreenBtn.textContent = "Exit Full Screen";
+                } else {
+                    analyticsFullScreenBtn.textContent = "Full Screen";
+                }
+
+                // Trigger re-render to adjust charts to new space
+                if (window.AnalyticsEngine) {
+                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
+                }
+            });
+        }
+
+        // Presenter Mode
+        const presenterModeBtn = document.getElementById("presenterModeBtn");
+        const exitPresenterModeBtn = document.getElementById("exitPresenterModeBtn");
+
+        if (presenterModeBtn) {
+            presenterModeBtn.addEventListener("click", () => {
+                document.body.classList.add("presenter-mode");
+                // Trigger re-render
+                if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
+                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("collapsed")) {
+                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
+                }
+            });
+        }
+
+        if (exitPresenterModeBtn) {
+            exitPresenterModeBtn.addEventListener("click", () => {
+                document.body.classList.remove("presenter-mode");
+                // Trigger re-render
+                if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
+                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("collapsed")) {
                     setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
                 }
             });

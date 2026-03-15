@@ -47,6 +47,7 @@
             <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="View task list">Task List</button>
             <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark" title="Configure task colors and legends">Legends</button>
             <button type="button" id="exportImageBtn" class="btn btn-sm btn-outline-secondary" title="Export Gantt Chart as Image">Export Image</button>
+            <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary" title="Toggle Presenter Mode">Presenter Mode</button>
         </div>
 
     </div>
@@ -93,6 +94,9 @@
     <!-- Print Timestamp (Hidden normally) -->
     <div id="printTimestamp" class="d-none"></div>
 
+    <!-- Presenter Mode Exit Button -->
+    <button type="button" id="exitPresenterModeBtn" class="btn btn-sm btn-secondary d-none" style="position: absolute; top: 10px; right: 10px; z-index: 1050; opacity: 0.8;">Exit Presenter Mode</button>
+
     <!-- Main Content Area -->
     <div class="main-content flex-column">
         <!-- Top Half: Planner Area (Gantt) -->
@@ -109,7 +113,10 @@
         <div class="analytics-panel p-0 d-flex flex-column collapsed" id="analyticsContainer">
              <div class="analytics-header d-flex justify-content-between align-items-center p-2 border-bottom bg-white" style="cursor: pointer;" id="analyticsToggleBtn">
                  <h6 class="m-0 text-muted" id="analyticsTitle">Analytics</h6>
-                 <span id="analyticsChevron" style="font-size: 0.8rem;">▲</span>
+                 <div class="d-flex align-items-center gap-2">
+                     <button type="button" id="analyticsFullScreenBtn" class="btn btn-sm btn-outline-secondary py-0 d-none" title="Toggle Full Screen" style="font-size: 0.75rem;">Full Screen</button>
+                     <span id="analyticsChevron" style="font-size: 0.8rem;">▲</span>
+                 </div>
              </div>
              <div class="analytics-content p-4 d-flex flex-column flex-grow-1 overflow-auto bg-light" id="analyticsContent">
                  <div class="text-center text-muted my-auto" id="analyticsPlaceholder">
