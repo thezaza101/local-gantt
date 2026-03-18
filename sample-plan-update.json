@@ -1,0 +1,272 @@
+{
+  "meta": {
+    "fileVersion": 1
+  },
+  "settings": {
+    "baseLink": "https://jira.company.com/browse/"
+  },
+  "plans": [
+    {
+      "id": "planA",
+      "name": "Updated Plan",
+      "timeline": {
+        "startDate": "2026-01-01",
+        "endDate": "2026-06-30"
+      },
+      "markers": [
+        {
+          "id": "marker_alpha",
+          "type": "vertical",
+          "date": "2026-02-20",
+          "label": "Alpha Release (Delayed)",
+          "color": "#ffaa00",
+          "importance": "major",
+          "repeats": false
+        },
+        {
+          "id": "marker_gamma",
+          "type": "vertical",
+          "date": "2026-05-15",
+          "label": "Gamma Release",
+          "color": "#4da3ff",
+          "importance": "major",
+          "repeats": true
+        },
+        {
+          "id": "marker_row_3",
+          "type": "horizontal",
+          "row": 3,
+          "label": "Frontend Domain",
+          "color": "#00cc66",
+          "importance": "note"
+        }
+      ],
+      "capacity": {
+        "granularity": "week",
+        "entries": [
+          {
+            "startDate": "2026-01-01",
+            "endDate": "2026-02-28",
+            "capacity": 150
+          },
+          {
+            "startDate": "2026-03-01",
+            "endDate": "2026-04-30",
+            "capacity": 120
+          },
+          {
+            "startDate": "2026-05-01",
+            "endDate": "2026-06-30",
+            "capacity": 100
+          }
+        ]
+      },
+      "demandAdjustmentPercent": 20,
+      "tasks": [
+        {
+          "id": "TASK-101",
+          "title": "Authentication Backend (Revised)",
+          "description": "Login system API with OAuth",
+          "startDate": "2026-01-05",
+          "endDate": "2026-01-25",
+          "row": 1,
+          "fillColor": "#4da3ff",
+          "borderColor": "#1c6ed5",
+          "tags": ["backend", "security"],
+          "effort": {
+            "design": 4,
+            "dev": 8,
+            "test": 4
+          }
+        },
+        {
+          "id": "TASK-102",
+          "title": "Database Schema",
+          "description": "User tables and indices",
+          "startDate": "2026-01-05",
+          "endDate": "2026-01-12",
+          "row": 2,
+          "fillColor": "#ff9f4d",
+          "borderColor": "#d57a1c",
+          "tags": ["backend", "database"],
+          "dependencies": [],
+          "effort": {
+            "design": 1,
+            "dev": 3,
+            "test": 1
+          }
+        },
+        {
+          "id": "TASK-103",
+          "title": "Login UI",
+          "description": "Frontend login and registration forms",
+          "startDate": "2026-01-15",
+          "endDate": "2026-01-28",
+          "row": 3,
+          "fillColor": "#4dff88",
+          "borderColor": "#1cd54c",
+          "tags": ["frontend", "ui"],
+          "dependencies": ["TASK-101", "TASK-102"],
+          "effort": {
+            "design": 3,
+            "dev": 5,
+            "test": 2
+          }
+        },
+        {
+          "id": "TASK-115",
+          "title": "OAuth Provider Integration",
+          "description": "Connect Google & GitHub logins",
+          "startDate": "2026-01-26",
+          "endDate": "2026-02-10",
+          "row": 1,
+          "fillColor": "#4da3ff",
+          "borderColor": "#1c6ed5",
+          "tags": ["backend", "security"],
+          "dependencies": ["TASK-101"],
+          "effort": {
+            "design": 2,
+            "dev": 6,
+            "test": 3
+          }
+        },
+        {
+          "id": "TASK-105",
+          "title": "User Dashboard",
+          "description": "Main user view post-login",
+          "startDate": "2026-02-10",
+          "endDate": "2026-03-05",
+          "row": 3,
+          "fillColor": "#4dff88",
+          "borderColor": "#1cd54c",
+          "tags": ["frontend", "ui"],
+          "dependencies": ["TASK-104", "TASK-106"],
+          "effort": {
+            "design": 4,
+            "dev": 8,
+            "test": 3
+          }
+        },
+        {
+          "id": "TASK-106",
+          "title": "Dashboard API",
+          "description": "Data endpoints for dashboard",
+          "startDate": "2026-02-05",
+          "endDate": "2026-02-25",
+          "row": 2,
+          "fillColor": "#4da3ff",
+          "borderColor": "#1c6ed5",
+          "tags": ["backend", "api"],
+          "dependencies": ["TASK-101"],
+          "effort": {
+            "design": 2,
+            "dev": 7,
+            "test": 3
+          }
+        },
+        {
+          "id": "TASK-107",
+          "title": "Setup CI/CD Pipeline",
+          "description": "Automated build and deployment",
+          "startDate": "2026-01-01",
+          "endDate": "2026-01-08",
+          "row": 5,
+          "fillColor": "#808080",
+          "borderColor": "#606060",
+          "tags": ["devops", "infrastructure"],
+          "dependencies": [],
+          "effort": {
+            "design": 1,
+            "dev": 5,
+            "test": 2
+          }
+        },
+        {
+          "id": "TASK-108",
+          "title": "Security Audit",
+          "description": "Review auth and API security",
+          "startDate": "2026-03-01",
+          "endDate": "2026-03-15",
+          "row": 4,
+          "fillColor": "#ff4d4d",
+          "borderColor": "#d51c1c",
+          "tags": ["security", "audit"],
+          "dependencies": ["TASK-104", "TASK-106"],
+          "effort": {
+            "design": 2,
+            "dev": 0,
+            "test": 10
+          }
+        },
+        {
+          "id": "TASK-109",
+          "title": "Scale Database",
+          "description": "Increase read replicas",
+          "startDate": "2026-03-10",
+          "endDate": "2026-03-25",
+          "row": 6,
+          "fillColor": "#ff9f4d",
+          "borderColor": "#d57a1c",
+          "tags": ["backend", "database"],
+          "dependencies": ["TASK-102"],
+          "effort": {
+            "design": 2,
+            "dev": 8,
+            "test": 4
+          }
+        },
+        {
+          "id": "TASK-110",
+          "title": "Performance Testing",
+          "description": "Load tests for scaled DB",
+          "startDate": "2026-03-20",
+          "endDate": "2026-04-10",
+          "row": 7,
+          "fillColor": "#b84dff",
+          "borderColor": "#8e1cd5",
+          "tags": ["testing", "database"],
+          "dependencies": ["TASK-109"],
+          "effort": {
+            "design": 1,
+            "dev": 2,
+            "test": 15
+          }
+        },
+        {
+          "id": "TASK-113",
+          "title": "Launch Marketing",
+          "description": "Prepare campaigns for V1",
+          "startDate": "2026-05-01",
+          "endDate": "2026-06-28",
+          "row": 10,
+          "fillColor": "#ffd166",
+          "borderColor": "#ffb703",
+          "tags": ["marketing", "launch"],
+          "dependencies": [],
+          "effort": {
+            "design": 10,
+            "dev": 0,
+            "test": 0
+          }
+        },
+        {
+          "id": "TASK-114",
+          "title": "Final QA Sign-off",
+          "description": "System wide testing before launch",
+          "startDate": "2026-06-15",
+          "endDate": "2026-06-29",
+          "row": 11,
+          "fillColor": "#ef476f",
+          "borderColor": "#d90429",
+          "tags": ["testing", "qa"],
+          "dependencies": ["TASK-112", "TASK-108", "TASK-110"],
+          "effort": {
+            "design": 1,
+            "dev": 0,
+            "test": 20
+          }
+        }
+      ]
+    }
+  ]
+}
