@@ -25,7 +25,7 @@
 
         <!-- Plan Management Group -->
         <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Select Plan">
-            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Select a Plan" id="planSelectorBtn">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Select a Plan" id="planSelectorBtn">
                 📑
             </button>
             <ul class="dropdown-menu" id="planSelectorMenu">
@@ -35,7 +35,7 @@
         </div>
 
         <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Plan Actions">
-            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Plan Actions">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Plan Actions">
                 📅
             </button>
             <ul class="dropdown-menu">
@@ -53,7 +53,7 @@
         </div>
 
         <div class="btn-group dropdown flex-shrink-0" role="group">
-            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Export options" id="exportDropdownBtn">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Export options" id="exportDropdownBtn">
                 ⬇️
             </button>
             <ul class="dropdown-menu">
@@ -202,7 +202,7 @@
                                 <label for="taskStartDate" class="form-label">Start Date</label>
                                 <div class="input-group">
                                     <input type="date" class="form-control" id="taskStartDate" required>
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Set from Marker" id="startMarkerBtn">📍</button>
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Set from Marker" id="startMarkerBtn">📍</button>
                                     <ul class="dropdown-menu dropdown-menu-end" id="startMarkerDropdown">
                                         <!-- Populated dynamically -->
                                     </ul>
@@ -212,7 +212,7 @@
                                 <label for="taskEndDate" class="form-label">End Date</label>
                                 <div class="input-group">
                                     <input type="date" class="form-control" id="taskEndDate" required>
-                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Set from Marker" id="endMarkerBtn">📍</button>
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Set from Marker" id="endMarkerBtn">📍</button>
                                     <ul class="dropdown-menu dropdown-menu-end" id="endMarkerDropdown">
                                         <!-- Populated dynamically -->
                                     </ul>

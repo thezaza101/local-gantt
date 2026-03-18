@@ -102,7 +102,7 @@ body.presenter-mode #exitPresenterModeBtn {
 .ribbon-container {
     position: relative;
     background-color: white;
-    z-index: 1050;
+    z-index: 1030;
 }
 
 .ribbon-container .nav-tabs {
