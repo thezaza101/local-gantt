@@ -283,62 +283,21 @@ class UI {
         if (exportCsvBtn) {
             exportCsvBtn.addEventListener("click", () => {
                 const currentPlan = this.planner.getCurrentPlan();
-                if (currentPlan && currentPlan.tasks) {
-                    const tasks = currentPlan.tasks;
-                    const headers = ["Title", "ID", "Start Date", "End Date", "Tags"];
-                    let csvContent = headers.join(",") + "\n";
-
-                    const formatDate = (dateStr) => {
-                        if (!dateStr) return "";
-                        const parts = dateStr.split("-");
-                        if (parts.length === 3) {
-                            return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
-                        }
-                        return dateStr;
-                    };
-
-                    const escapeCsv = (str) => {
-                        if (!str) return "";
-                        const strVal = String(str);
-                        // If string contains comma, quote, or newline, escape it
-                        if (strVal.includes(",") || strVal.includes('"') || strVal.includes('\n')) {
-                            return `"${strVal.replace(/"/g, '""')}"`;
-                        }
-                        return strVal;
-                    };
-
-                    tasks.forEach(task => {
-                        const title = escapeCsv(task.title);
-                        const id = escapeCsv(task.id);
-                        const startDate = escapeCsv(formatDate(task.startDate));
-                        const endDate = escapeCsv(formatDate(task.endDate));
-
-                        let tagsStr = "";
-                        if (task.tags && task.tags.length > 0) {
-                            tagsStr = escapeCsv(task.tags.join(", "));
-                        }
-
-                        const row = [title, id, startDate, endDate, tagsStr];
-                        csvContent += row.join(",") + "\n";
-                    });
-
-                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                    const link = document.createElement("a");
-                    const url = URL.createObjectURL(blob);
-
-                    const today = new Date();
-                    const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-                    const sanitizedPlanName = (currentPlan.name || 'Gantt').replace(/[^a-z0-9]/gi, '_').toLowerCase();
-
-                    link.setAttribute("href", url);
-                    link.setAttribute("download", `${sanitizedPlanName}_tasks_${dateString}.csv`);
-                    link.style.visibility = 'hidden';
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                } else if (currentPlan) {
+                if (currentPlan && currentPlan.tasks && currentPlan.tasks.length > 0) {
+                    const modalEl = document.getElementById('exportCsvModal');
+                    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+                    modal.show();
+                } else {
                     alert("No tasks to export.");
                 }
+            });
+        }
+
+        // Confirm Export CSV Button
+        const confirmExportCsvBtn = document.getElementById("confirmExportCsvBtn");
+        if (confirmExportCsvBtn) {
+            confirmExportCsvBtn.addEventListener("click", () => {
+                this.exportCsv();
             });
         }
 
@@ -1965,6 +1924,103 @@ class UI {
         }
 
         this.updateUI();
+    }
+
+    exportCsv() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan || !currentPlan.tasks || currentPlan.tasks.length === 0) {
+            alert("No tasks to export.");
+            return;
+        }
+
+        const tasks = currentPlan.tasks;
+        const selectedFields = [];
+        const checkboxes = document.querySelectorAll('.csv-field-checkbox:checked');
+
+        checkboxes.forEach(cb => {
+            selectedFields.push({
+                value: cb.value,
+                label: cb.nextElementSibling.textContent.trim()
+            });
+        });
+
+        if (selectedFields.length === 0) {
+            alert("Please select at least one field to export.");
+            return;
+        }
+
+        const headers = selectedFields.map(field => field.label);
+        let csvContent = headers.join(",") + "\n";
+
+        const formatDate = (dateStr) => {
+            if (!dateStr) return "";
+            const parts = dateStr.split("-");
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+            }
+            return dateStr;
+        };
+
+        const escapeCsv = (str) => {
+            if (str === null || str === undefined) return "";
+            const strVal = String(str);
+            if (strVal.includes(",") || strVal.includes('"') || strVal.includes('\n')) {
+                return `"${strVal.replace(/"/g, '""')}"`;
+            }
+            return strVal;
+        };
+
+        const getNestedValue = (obj, path) => {
+            return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+        };
+
+        tasks.forEach(task => {
+            const row = selectedFields.map(field => {
+                let value = '';
+
+                if (field.value === 'startDate' || field.value === 'endDate') {
+                    value = formatDate(task[field.value]);
+                } else if (field.value === 'tags' || field.value === 'dependencies') {
+                    const arr = task[field.value];
+                    value = arr && arr.length > 0 ? arr.join(", ") : "";
+                } else if (field.value.startsWith('effort.')) {
+                    if (field.value === 'effort.total') {
+                        const design = task.effort?.design ? parseFloat(task.effort.design) : 0;
+                        const dev = task.effort?.dev ? parseFloat(task.effort.dev) : 0;
+                        const test = task.effort?.test ? parseFloat(task.effort.test) : 0;
+                        value = design + dev + test;
+                    } else {
+                        value = getNestedValue(task, field.value) || 0;
+                    }
+                } else {
+                    value = task[field.value] || '';
+                }
+
+                return escapeCsv(value);
+            });
+            csvContent += row.join(",") + "\n";
+        });
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+
+        const today = new Date();
+        const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+        const sanitizedPlanName = (currentPlan.name || 'Gantt').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+        link.setAttribute("href", url);
+        link.setAttribute("download", `${sanitizedPlanName}_tasks_${dateString}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        const modalEl = document.getElementById('exportCsvModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        if (modal) {
+            modal.hide();
+        }
     }
 
     exportLegendImage() {
