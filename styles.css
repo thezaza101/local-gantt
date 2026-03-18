@@ -91,8 +91,7 @@ body.analytics-fullscreen .analytics-panel {
     max-height: none !important;
 }
 
-body.presenter-mode .toolbar,
-body.presenter-mode .tag-filters {
+body.presenter-mode .ribbon-container {
     display: none !important;
 }
 
@@ -117,20 +116,37 @@ body.presenter-mode #exitPresenterModeBtn {
     letter-spacing: 0.05em;
 }
 
-/* Toolbars */
-.toolbar {
+/* Ribbon Toolbar Customizations */
+.ribbon-container {
     background-color: white;
-    border-bottom: 1px solid var(--border-color);
-    padding: 0.5rem 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    z-index: 100;
 }
 
-.tag-filters {
-    padding: 0.5rem 1rem;
-    border-bottom: 1px solid var(--border-color);
-    background-color: #fcfcfc;
+.ribbon-container .nav-tabs {
+    border-bottom: none;
+}
+
+.ribbon-container .nav-link {
+    color: #495057;
+    border: 1px solid transparent;
+    border-top-left-radius: 0.25rem;
+    border-top-right-radius: 0.25rem;
+    margin-bottom: -1px;
+}
+
+.ribbon-container .nav-link:hover {
+    border-color: #e9ecef #e9ecef transparent;
+}
+
+.ribbon-container .nav-link.active {
+    color: #0d6efd;
+    background-color: #fff;
+    border-color: var(--border-color) var(--border-color) #fff;
+}
+
+.ribbon-container .vr {
+    height: 32px;
+    align-self: center;
 }
 
 /* Gantt Chart Custom Styles */
@@ -376,7 +392,7 @@ body.presenter-mode #exitPresenterModeBtn {
         display: block; /* Disable flex for printing to allow normal document flow */
     }
 
-    .navbar, .toolbar, .tag-filters, .analytics-panel, .btn {
+    .navbar, .ribbon-container, .analytics-panel, .btn {
         display: none !important;
     }
 

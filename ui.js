@@ -2066,7 +2066,8 @@ class UI {
 
         html += `
             </div>
-            <div class="d-flex align-items-center border-start ps-3 gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="vr"></div>
                 <div class="d-flex align-items-center gap-1">
                     <span class="text-muted small">Match:</span>
                     <div class="form-check form-check-inline m-0">
@@ -2078,7 +2079,8 @@ class UI {
                         <label class="form-check-label small" for="matchModeAll">All (AND)</label>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-1 border-start ps-3">
+                <div class="vr"></div>
+                <div class="d-flex align-items-center gap-1">
                     <span class="text-muted small">View:</span>
                     <div class="form-check form-check-inline m-0">
                         <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeShow" value="show" ${filterState.visualMode === 'show' ? 'checked' : ''}>
@@ -2089,7 +2091,8 @@ class UI {
                         <label class="form-check-label small" for="visualModeHighlight">Highlight</label>
                     </div>
                 </div>
-                <div class="d-flex align-items-center gap-1 border-start ps-3">
+                <div class="vr"></div>
+                <div class="d-flex align-items-center gap-1">
                     <div class="form-check m-0">
                         <input class="form-check-input" type="checkbox" id="showDependenciesCheckbox" ${this.planner.getShowDependencies() ? 'checked' : ''}>
                         <label class="form-check-label small text-muted" for="showDependenciesCheckbox">Show Dependencies</label>
