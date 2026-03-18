@@ -505,3 +505,23 @@ body.presenter-mode #exitPresenterModeBtn {
         display: none !important;
     }
 }
+
+/* Shareable HTML Mode Overrides */
+.shareable-mode #dataAndFileGroupBtnGroup,
+.shareable-mode #planSelectorGroupBtnGroup,
+.shareable-mode #planActionsGroupBtnGroup,
+.shareable-mode #exportGroupBtnGroup,
+.shareable-mode #addTaskBtn,
+.shareable-mode #tasksAndElementsGroupBtnGroup,
+.shareable-mode #openAnalyticsBtn,
+.shareable-mode #helpBtn {
+    display: none !important;
+}
+
+/* Hide all top-level .vr elements in ribbon-container to clean up gaps */
+.shareable-mode .ribbon-container > .vr:nth-of-type(1),
+.shareable-mode .ribbon-container > .vr:nth-of-type(2),
+.shareable-mode .ribbon-container > .vr:nth-of-type(3),
+.shareable-mode .ribbon-container > .vr:nth-of-type(4) {
+    display: none !important;
+}

@@ -10,12 +10,30 @@ async function initApp() {
     // Initialize state
     window.PlannerState = new Planner();
 
-    // Try to load latest.json
-    console.log("Attempting to load latest.json...");
-    const latestPlanData = await Storage.fetchLatestPlan();
-    if (latestPlanData) {
-        console.log("Successfully loaded latest.json.");
-        window.PlannerState.loadState(latestPlanData);
+    // Check for embedded state (Shareable HTML mode)
+    const embeddedStateEl = document.getElementById('embedded-state');
+    let loadedState = null;
+
+    if (embeddedStateEl) {
+        try {
+            console.log("Found embedded state, loading as shareable mode...");
+            loadedState = JSON.parse(embeddedStateEl.textContent);
+            window.isShareableMode = true;
+            document.body.classList.add('shareable-mode');
+        } catch (e) {
+            console.error("Failed to parse embedded state:", e);
+        }
+    }
+
+    if (!loadedState) {
+        // Try to load latest.json
+        console.log("Attempting to load latest.json...");
+        loadedState = await Storage.fetchLatestPlan();
+    }
+
+    if (loadedState) {
+        console.log("Successfully loaded state.");
+        window.PlannerState.loadState(loadedState);
     } else {
         console.log("Could not load latest.json. Starting with default state.");
     }

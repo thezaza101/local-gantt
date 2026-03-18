@@ -14,7 +14,7 @@
     <!-- Ribbon Toolbar -->
     <div class="ribbon-container border-bottom bg-light px-2 py-2 d-flex align-items-center flex-nowrap gap-1 overflow-x-auto">
         <!-- Data/File Group -->
-        <div class="btn-group flex-shrink-0" role="group" aria-label="Data and File Management">
+        <div class="btn-group flex-shrink-0" role="group" aria-label="Data and File Management" id="dataAndFileGroupBtnGroup">
             <button id="importBtn" class="btn btn-outline-secondary btn-sm" title="Import JSON">📂</button>
             <button id="exportBtn" class="btn btn-outline-secondary btn-sm" title="Export JSON">💾</button>
             <input type="file" id="fileInput" accept=".json" style="display: none;">
@@ -24,7 +24,7 @@
         <div class="vr mx-1 flex-shrink-0"></div>
 
         <!-- Plan Management Group -->
-        <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Select Plan">
+        <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Select Plan" id="planSelectorGroupBtnGroup">
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Select a Plan" id="planSelectorBtn">
                 📑
             </button>
@@ -34,7 +34,7 @@
             </ul>
         </div>
 
-        <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Plan Actions">
+        <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Plan Actions" id="planActionsGroupBtnGroup">
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Plan Actions">
                 📅
             </button>
@@ -52,7 +52,7 @@
             <input type="file" id="importPlanFileInput" accept=".json" style="display: none;">
         </div>
 
-        <div class="btn-group dropdown flex-shrink-0" role="group">
+        <div class="btn-group dropdown flex-shrink-0" role="group" id="exportGroupBtnGroup">
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" data-bs-popper-config='{"strategy":"fixed"}' aria-expanded="false" title="Export options" id="exportDropdownBtn">
                 ⬇️
             </button>
@@ -60,6 +60,8 @@
                 <li><button class="dropdown-item" type="button" id="exportImageBtn">Export Image</button></li>
                 <li><button class="dropdown-item" type="button" id="exportCsvBtn">Export CSV</button></li>
                 <li><button class="dropdown-item" type="button" id="exportLegendBtn">Export Legend</button></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><button class="dropdown-item" type="button" id="exportHtmlBtn">Shareable HTML</button></li>
             </ul>
         </div>
 
@@ -67,7 +69,7 @@
 
         <!-- Tasks & Elements -->
         <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary flex-shrink-0" title="Add Task">➕</button>
-        <div class="btn-group flex-shrink-0" role="group">
+        <div class="btn-group flex-shrink-0" role="group" id="tasksAndElementsGroupBtnGroup">
             <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Manage Markers">📍</button>
             <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="Task List">📋</button>
             <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-secondary" title="Legends">🎨</button>
