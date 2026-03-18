@@ -9,54 +9,40 @@ class UI {
     }
 
     bindEvents() {
-        // Collapse/Expand functionality
-        const analyticsToggleBtn = document.getElementById("analyticsToggleBtn");
         const analyticsContainer = document.getElementById("analyticsContainer");
-        const analyticsChevron = document.getElementById("analyticsChevron");
-        const analyticsFullScreenBtn = document.getElementById("analyticsFullScreenBtn");
+        const openAnalyticsBtn = document.getElementById("openAnalyticsBtn");
+        const closeAnalyticsBtn = document.getElementById("closeAnalyticsBtn");
 
-        if (analyticsToggleBtn) {
-            analyticsToggleBtn.addEventListener("click", (e) => {
-                // Ignore clicks on the full screen button
-                if (e.target === analyticsFullScreenBtn) return;
+        // Analytics Open/Close
+        if (openAnalyticsBtn && analyticsContainer) {
+            openAnalyticsBtn.addEventListener("click", () => {
+                document.body.classList.add("analytics-fullscreen");
+                analyticsContainer.classList.remove("d-none");
 
-                analyticsContainer.classList.toggle("collapsed");
-                if (analyticsContainer.classList.contains("collapsed")) {
-                    analyticsChevron.textContent = "◀";
-                    if (analyticsFullScreenBtn) analyticsFullScreenBtn.classList.add("d-none");
-                    // Exit full screen if collapsed
-                    if (document.body.classList.contains("analytics-fullscreen")) {
-                        document.body.classList.remove("analytics-fullscreen");
-                        if (analyticsFullScreenBtn) analyticsFullScreenBtn.textContent = "Full Screen";
-                    }
-                } else {
-                    analyticsChevron.textContent = "▼";
-                    if (analyticsFullScreenBtn) analyticsFullScreenBtn.classList.remove("d-none");
-                }
-
-                // Trigger re-render to adjust to new space
-                if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
-                if (window.AnalyticsEngine && !analyticsContainer.classList.contains("collapsed")) {
+                if (window.AnalyticsEngine) {
                     setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
                 }
             });
         }
 
-        // Full Screen Analytics
-        if (analyticsFullScreenBtn) {
-            analyticsFullScreenBtn.addEventListener("click", (e) => {
-                e.stopPropagation(); // Prevent triggering the collapse/expand toggle
-                document.body.classList.toggle("analytics-fullscreen");
+        // Help Modal
+        const helpBtn = document.getElementById("helpBtn");
+        if (helpBtn) {
+            helpBtn.addEventListener("click", () => {
+                const helpModalEl = document.getElementById('helpModal');
+                const helpModal = bootstrap.Modal.getOrCreateInstance(helpModalEl);
+                helpModal.show();
+            });
+        }
 
-                if (document.body.classList.contains("analytics-fullscreen")) {
-                    analyticsFullScreenBtn.textContent = "Exit Full Screen";
-                } else {
-                    analyticsFullScreenBtn.textContent = "Full Screen";
-                }
+        if (closeAnalyticsBtn && analyticsContainer) {
+            closeAnalyticsBtn.addEventListener("click", () => {
+                document.body.classList.remove("analytics-fullscreen");
+                analyticsContainer.classList.add("d-none");
 
-                // Trigger re-render to adjust charts to new space
-                if (window.AnalyticsEngine) {
-                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
+                // Re-render Gantt when closing analytics
+                if (window.GanttEngine) {
+                    window.GanttEngine.render(this.planner.getCurrentPlan());
                 }
             });
         }
@@ -70,7 +56,7 @@ class UI {
                 document.body.classList.add("presenter-mode");
                 // Trigger re-render
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
-                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("collapsed")) {
+                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("d-none")) {
                     setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
                 }
             });
@@ -81,7 +67,7 @@ class UI {
                 document.body.classList.remove("presenter-mode");
                 // Trigger re-render
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
-                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("collapsed")) {
+                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("d-none")) {
                     setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
                 }
             });
@@ -270,18 +256,6 @@ class UI {
                     if (this.planner.deletePlan()) {
                         this.updateUI();
                     }
-                }
-            });
-        }
-
-        // Plan Selector
-        const planSelector = document.getElementById("planSelector");
-        if (planSelector) {
-            planSelector.addEventListener("change", (e) => {
-                const newIndex = parseInt(e.target.value, 10);
-                if (!isNaN(newIndex)) {
-                    this.planner.setCurrentPlanIndex(newIndex);
-                    this.updateUI();
                 }
             });
         }
@@ -1270,7 +1244,7 @@ class UI {
         // Trigger Analytics re-render if visible
         if (window.AnalyticsEngine) {
             const container = document.getElementById("analyticsContainer");
-            if (container && !container.classList.contains("collapsed")) {
+            if (container && !container.classList.contains("d-none")) {
                 window.AnalyticsEngine.render(this.planner.getCurrentPlan());
             }
         }
@@ -1991,28 +1965,38 @@ class UI {
     }
 
     updateUI() {
-        const planSelector = document.getElementById("planSelector");
+        const planSelectorBtn = document.getElementById("planSelectorBtn");
+        const planSelectorMenu = document.getElementById("planSelectorMenu");
         const plans = this.planner.getState().plans || [];
 
-        if (planSelector) {
-            planSelector.innerHTML = "";
+        if (planSelectorMenu) {
+            planSelectorMenu.innerHTML = "";
 
             if (plans.length === 0) {
-                const option = document.createElement("option");
-                option.value = "";
-                option.disabled = true;
-                option.selected = true;
-                option.textContent = "No plans available";
-                planSelector.appendChild(option);
+                const li = document.createElement("li");
+                li.innerHTML = '<span class="dropdown-item text-muted">No plans available</span>';
+                planSelectorMenu.appendChild(li);
+                if (planSelectorBtn) planSelectorBtn.title = "No Plans";
             } else {
                 plans.forEach((plan, index) => {
-                    const option = document.createElement("option");
-                    option.value = index;
-                    option.textContent = plan.name || "Unnamed Plan";
+                    const li = document.createElement("li");
+                    const a = document.createElement("button");
+                    a.className = "dropdown-item";
+                    a.type = "button";
+                    a.textContent = plan.name || "Unnamed Plan";
+
                     if (index === this.planner.currentPlanIndex) {
-                        option.selected = true;
+                        a.classList.add("active");
+                        if (planSelectorBtn) planSelectorBtn.title = `Current Plan: ${a.textContent}`;
                     }
-                    planSelector.appendChild(option);
+
+                    a.addEventListener("click", () => {
+                        this.planner.setCurrentPlanIndex(index);
+                        this.updateUI();
+                    });
+
+                    li.appendChild(a);
+                    planSelectorMenu.appendChild(li);
                 });
             }
         }
@@ -2050,7 +2034,7 @@ class UI {
         // Trigger Analytics re-render if visible
         if (window.AnalyticsEngine) {
             const container = document.getElementById("analyticsContainer");
-            if (container && !container.classList.contains("collapsed")) {
+            if (container && !container.classList.contains("d-none")) {
                 window.AnalyticsEngine.render(this.planner.getCurrentPlan());
             }
         }
@@ -2064,17 +2048,21 @@ class UI {
         const filterState = this.planner.getFilterState();
 
         if (uniqueTags.length === 0) {
-            container.innerHTML = '<span class="text-muted small">No tags in current plan</span>';
+            container.innerHTML = '<span class="text-muted small">No tags</span>';
             return;
         }
 
         let html = `
-            <div class="d-flex align-items-center me-3">
-                <span class="fw-bold text-muted small me-2">Tags:</span>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" id="selectAllTagsBtn" style="font-size: 0.75rem;">All</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="unselectAllTagsBtn" style="font-size: 0.75rem;">None</button>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-secondary px-2" id="selectAllTagsBtn" title="Select All Tags">✓</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary px-2" id="unselectAllTagsBtn" title="Deselect All Tags">✗</button>
             </div>
-            <div class="d-flex flex-wrap gap-2 me-3">
+
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="tagFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" title="Filter Tags">
+                    🏷️ (${filterState.selectedTags.length}/${uniqueTags.length})
+                </button>
+                <ul class="dropdown-menu shadow-sm" aria-labelledby="tagFilterDropdown" style="max-height: 300px; overflow-y: auto;">
         `;
 
         // Prune phantom tags from filterState if they don't exist in the current plan
@@ -2094,19 +2082,55 @@ class UI {
                 .replace(/'/g, "&#039;");
         };
 
+        const fillLegends = this.planner.getFillLegends();
+        const borderLegends = this.planner.getBorderLegends();
+
+        // Check if a tag corresponds to a legend color or status color
+        const getTagColorHtml = (tag) => {
+            const fillLegend = fillLegends.find(l => l.tag === tag);
+            const borderLegend = borderLegends.find(l => l.tag === tag);
+
+            // Typical status colors used in gantt.js
+            let statusColor = null;
+            if (tag.toLowerCase() === 'completed') statusColor = '#28a745';
+            else if (tag.toLowerCase() === 'in progress') statusColor = '#007bff';
+            else if (tag.toLowerCase() === 'blocked') statusColor = '#dc3545';
+            else if (tag.toLowerCase() === 'on hold') statusColor = '#ffc107';
+            else if (tag.toLowerCase() === 'committed') statusColor = '#17a2b8';
+            else if (tag.toLowerCase() === 'refined') statusColor = '#e2e3e5';
+
+            if (fillLegend) {
+                return `<span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: ${fillLegend.color}; border: 1px solid #ccc;"></span>`;
+            } else if (borderLegend) {
+                return `<span class="d-inline-block me-2" style="width: 12px; height: 12px; border: 2px solid ${borderLegend.color};"></span>`;
+            } else if (statusColor) {
+                return `<span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: ${statusColor}; border: 1px solid #ccc;"></span>`;
+            }
+            return '';
+        };
+
         uniqueTags.forEach(tag => {
             const isChecked = filterState.selectedTags.includes(tag) ? 'checked' : '';
             const safeTagAttr = tag.replace(/"/g, '&quot;');
             const safeTagText = escapeHtml(tag);
+            const colorHtml = getTagColorHtml(tag);
+
             html += `
-                <div class="form-check form-check-inline m-0 d-flex align-items-center">
-                    <input class="form-check-input tag-checkbox me-1" type="checkbox" id="tagFilter_${safeTagAttr}" value="${safeTagAttr}" ${isChecked}>
-                    <label class="form-check-label small" for="tagFilter_${safeTagAttr}">${safeTagText}</label>
-                </div>
+                <li>
+                    <div class="dropdown-item d-flex align-items-center">
+                        <div class="form-check m-0 d-flex align-items-center w-100">
+                            <input class="form-check-input tag-checkbox me-2" type="checkbox" id="tagFilter_${safeTagAttr}" value="${safeTagAttr}" ${isChecked}>
+                            <label class="form-check-label small w-100 d-flex align-items-center" for="tagFilter_${safeTagAttr}">
+                                ${colorHtml}${safeTagText}
+                            </label>
+                        </div>
+                    </div>
+                </li>
             `;
         });
 
         html += `
+                </ul>
             </div>
         `;
 
@@ -2116,7 +2140,7 @@ class UI {
         const iconsContainer = document.getElementById('tagFiltersIconsContainer');
         if (iconsContainer) {
             let iconsHtml = `
-                <div class="vr me-1"></div>
+                <div class="vr me-1 ms-1"></div>
 
                 <div class="btn-group" role="group" aria-label="Tag Match Mode">
                     <input type="radio" class="btn-check tag-match-mode-radio" name="tagMatchMode" id="matchModeAny" value="any" autocomplete="off" ${filterState.matchMode === 'any' ? 'checked' : ''}>
