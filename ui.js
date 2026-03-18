@@ -25,6 +25,16 @@ class UI {
             });
         }
 
+        // Help Modal
+        const helpBtn = document.getElementById("helpBtn");
+        if (helpBtn) {
+            helpBtn.addEventListener("click", () => {
+                const helpModalEl = document.getElementById('helpModal');
+                const helpModal = bootstrap.Modal.getOrCreateInstance(helpModalEl);
+                helpModal.show();
+            });
+        }
+
         if (closeAnalyticsBtn && analyticsContainer) {
             closeAnalyticsBtn.addEventListener("click", () => {
                 document.body.classList.remove("analytics-fullscreen");
@@ -2015,20 +2025,19 @@ class UI {
         const filterState = this.planner.getFilterState();
 
         if (uniqueTags.length === 0) {
-            container.innerHTML = '<span class="text-muted small">No tags in current plan</span>';
+            container.innerHTML = '<span class="text-muted small">No tags</span>';
             return;
         }
 
         let html = `
-            <div class="d-flex align-items-center">
-                <span class="fw-bold text-muted small me-2">Tags:</span>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" id="selectAllTagsBtn" style="font-size: 0.75rem;">All</button>
-                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-2" id="unselectAllTagsBtn" style="font-size: 0.75rem;">None</button>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-sm btn-outline-secondary px-2" id="selectAllTagsBtn" title="Select All Tags">✓</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary px-2" id="unselectAllTagsBtn" title="Deselect All Tags">✗</button>
             </div>
 
             <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="tagFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
-                    Filter Tags (${filterState.selectedTags.length}/${uniqueTags.length})
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="tagFilterDropdown" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside" title="Filter Tags">
+                    🏷️ (${filterState.selectedTags.length}/${uniqueTags.length})
                 </button>
                 <ul class="dropdown-menu shadow-sm" aria-labelledby="tagFilterDropdown" style="max-height: 300px; overflow-y: auto;">
         `;
