@@ -79,7 +79,7 @@ class Gantt {
 
                 if (monthNum !== currentMonth) {
                     if (currentMonth !== -1) {
-                        topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;">${currentMonthName}</div>`;
+                        topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentMonthName}</div>`;
                     }
                     currentMonth = monthNum;
                     currentMonthName = monthName;
@@ -88,10 +88,10 @@ class Gantt {
                     daysInCurrentMonth++;
                 }
 
-                headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${this.cellWidth}px; flex: none; font-size: 0.8em; padding: 2px 0;">${dayNum}</div>`;
+                headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${this.cellWidth}px; flex: none; font-size: 0.8em; padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${dayNum}</div>`;
             }
             if (daysInCurrentMonth > 0) {
-                topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none;">${currentMonthName}</div>`;
+                topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentMonthName}</div>`;
             }
         } else if (zoomLevel === 'weekly' || zoomLevel === 'fortnight') {
             let currentMonth = -1;
@@ -163,7 +163,7 @@ class Gantt {
                 // Top header (Years)
                 if (yearNum !== currentYear) {
                     if (currentYear !== -1) {
-                        topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentYear * this.cellWidth}px; flex: none;">${currentYear}</div>`;
+                        topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentYear * this.cellWidth}px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentYear}</div>`;
                     }
                     currentYear = yearNum;
                     daysInCurrentYear = 1;
@@ -184,7 +184,7 @@ class Gantt {
                 }
             }
             if (daysInCurrentYear > 0) {
-                topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentYear * this.cellWidth}px; flex: none;">${currentYear}</div>`;
+                topHeadersHtml += `<div class="gantt-month text-center border-end border-bottom fw-bold" style="width: ${daysInCurrentYear * this.cellWidth}px; flex: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentYear}</div>`;
             }
             if (daysInCurrentMonth > 0) {
                 headersHtml += `<div class="gantt-day text-center border-end border-bottom" style="width: ${daysInCurrentMonth * this.cellWidth}px; flex: none; font-size: 0.8em; padding: 2px 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentMonthName}</div>`;
