@@ -350,6 +350,43 @@ class UI {
             });
         }
 
+        // Export Shareable HTML Button
+        const exportHtmlBtn = document.getElementById("exportHtmlBtn");
+        if (exportHtmlBtn) {
+            exportHtmlBtn.addEventListener("click", () => {
+                if (confirm("This will prepare the page for sharing by removing editing features and embedding the current plan. You will then need to save the page (Ctrl+S or Cmd+S). Proceed?")) {
+                    const currentPlan = this.planner.getCurrentPlan();
+                    if (!currentPlan) {
+                        alert("No plan selected.");
+                        return;
+                    }
+
+                    // Keep only the current plan in the file state to avoid leaking other plans
+                    this.planner.file.plans = [JSON.parse(JSON.stringify(currentPlan))];
+                    this.planner.currentPlanIndex = 0;
+
+                    // Create or update embedded state tag
+                    let embeddedStateEl = document.getElementById("embedded-state");
+                    if (!embeddedStateEl) {
+                        embeddedStateEl = document.createElement("script");
+                        embeddedStateEl.id = "embedded-state";
+                        embeddedStateEl.type = "application/json";
+                        document.head.appendChild(embeddedStateEl);
+                    }
+                    embeddedStateEl.textContent = JSON.stringify(this.planner.getState());
+
+                    // Enter shareable mode
+                    window.isShareableMode = true;
+                    document.body.classList.add("shareable-mode");
+
+                    // Trigger a re-render
+                    this.updateUI();
+
+                    alert("Ready to share! Press Ctrl+S or Cmd+S to save this page.");
+                }
+            });
+        }
+
         // Export Image Button
         const exportImageBtn = document.getElementById("exportImageBtn");
         if (exportImageBtn) {

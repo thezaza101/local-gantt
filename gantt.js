@@ -824,6 +824,8 @@ class Gantt {
 
         tasks.forEach(taskEl => {
             taskEl.addEventListener('mousedown', (e) => {
+                if (window.isShareableMode) return;
+
                 // Ignore clicks on task control buttons
                 if (e.target.closest('.gantt-task-control-btn')) {
                     return;
@@ -1011,6 +1013,8 @@ class Gantt {
         const ganttContent = this.container.querySelector('.gantt-content');
         if (ganttContent) {
             ganttContent.addEventListener('mousedown', (e) => {
+                if (window.isShareableMode) return;
+
                 // If the click is directly on the background (not on a task)
                 if (!e.target.closest('.gantt-task') && !e.target.closest('.gantt-marker-horizontal') && !e.target.closest('.gantt-marker') && !e.target.closest('.gantt-row-number')) {
                     if (window.PlannerState) {
