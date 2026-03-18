@@ -840,11 +840,26 @@ class UI {
             tasksTbody.appendChild(tr);
         };
 
+        const getChangedFieldsStr = (current, imported) => {
+            const changedKeys = [];
+            const allKeys = new Set([...Object.keys(current || {}), ...Object.keys(imported || {})]);
+            allKeys.forEach(key => {
+                if (JSON.stringify(current[key]) !== JSON.stringify(imported[key])) {
+                    changedKeys.push(key);
+                }
+            });
+            if (changedKeys.length === 0) return 'No visible changes';
+            return 'Changed fields: ' + changedKeys.join(', ');
+        };
+
         if (diff.tasks.new.length === 0 && diff.tasks.modified.length === 0 && diff.tasks.deleted.length === 0) {
             tasksTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No task changes detected.</td></tr>';
         } else {
             diff.tasks.new.forEach(task => renderTaskRow('new', task, `Start: ${task.startDate}, End: ${task.endDate}`));
-            diff.tasks.modified.forEach(mod => renderTaskRow('modified', mod.imported, 'Data differs from current plan'));
+            diff.tasks.modified.forEach(mod => {
+                const diffStr = getChangedFieldsStr(mod.current, mod.imported);
+                renderTaskRow('modified', mod.imported, diffStr);
+            });
             diff.tasks.deleted.forEach(task => renderTaskRow('deleted', task, 'Task exists in current plan but not in imported plan'));
         }
 
@@ -874,7 +889,10 @@ class UI {
             markersTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No marker changes detected.</td></tr>';
         } else {
             diff.markers.new.forEach(marker => renderMarkerRow('new', marker, `Type: ${marker.type}`));
-            diff.markers.modified.forEach(mod => renderMarkerRow('modified', mod.imported, 'Data differs from current plan'));
+            diff.markers.modified.forEach(mod => {
+                const diffStr = getChangedFieldsStr(mod.current, mod.imported);
+                renderMarkerRow('modified', mod.imported, diffStr);
+            });
             diff.markers.deleted.forEach(marker => renderMarkerRow('deleted', marker, 'Marker exists in current plan but not in imported plan'));
         }
 
