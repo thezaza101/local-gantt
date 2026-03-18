@@ -129,6 +129,86 @@ class UI {
             });
         }
 
+        // Import Single Plan
+        const importPlanBtn = document.getElementById("importPlanBtn");
+        const importPlanFileInput = document.getElementById("importPlanFileInput");
+
+        if (importPlanBtn && importPlanFileInput) {
+            importPlanBtn.addEventListener("click", () => {
+                importPlanFileInput.click();
+            });
+
+            importPlanFileInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    Storage.importPlanFile(file, (error, data) => {
+                        if (error) {
+                            console.error("Error importing plan file:", error);
+                            alert("Failed to import file. See console for details.");
+                        } else {
+                            if (data && data.plans && data.plans.length > 0) {
+                                this.importedFileData = data;
+                                this.openImportPlanOptionsModal(data);
+                            } else {
+                                alert("No valid plans found in the file.");
+                            }
+                        }
+                    });
+                }
+                importPlanFileInput.value = "";
+            });
+        }
+
+        // Handle Continue on Import Plan Options Modal
+        const continueImportPlanBtn = document.getElementById("continueImportPlanBtn");
+        if (continueImportPlanBtn) {
+            continueImportPlanBtn.addEventListener("click", () => {
+                this.handleImportPlanOptionsContinue();
+            });
+        }
+
+        // Export Single Plan
+        const exportPlanBtn = document.getElementById("exportPlanBtn");
+        if (exportPlanBtn) {
+            exportPlanBtn.addEventListener("click", () => {
+                const state = this.planner.getState();
+                const currentPlanIndex = this.planner.currentPlanIndex;
+                if (currentPlanIndex !== -1) {
+                    Storage.exportSinglePlanFile(state, currentPlanIndex);
+                    console.log("Single plan exported.");
+                } else {
+                    alert("No plan selected to export.");
+                }
+            });
+        }
+
+        // Handle Merge Confirm
+        const confirmMergePlanBtn = document.getElementById("confirmMergePlanBtn");
+        if (confirmMergePlanBtn) {
+            confirmMergePlanBtn.addEventListener("click", () => {
+                this.confirmMergePlan();
+            });
+        }
+
+        // Select All / Deselect All for Merge Modal
+        const setupSelectAll = (btnId, deselectBtnId, checkboxClass) => {
+            const btn = document.getElementById(btnId);
+            const deselectBtn = document.getElementById(deselectBtnId);
+            if (btn && deselectBtn) {
+                btn.addEventListener("click", () => {
+                    const checkboxes = document.querySelectorAll(`.${checkboxClass}`);
+                    checkboxes.forEach(cb => cb.checked = true);
+                });
+                deselectBtn.addEventListener("click", () => {
+                    const checkboxes = document.querySelectorAll(`.${checkboxClass}`);
+                    checkboxes.forEach(cb => cb.checked = false);
+                });
+            }
+        };
+
+        setupSelectAll("selectAllTasksBtn", "deselectAllTasksBtn", "merge-task-check");
+        setupSelectAll("selectAllMarkersBtn", "deselectAllMarkersBtn", "merge-marker-check");
+
         // Settings Actions
         const settingsBtn = document.getElementById("settingsBtn");
         if (settingsBtn) {
@@ -709,6 +789,211 @@ class UI {
                     this.updateTagFiltersState();
                 }
             });
+        }
+    }
+
+    openImportPlanOptionsModal(data) {
+        if (!data || !data.plans || data.plans.length === 0) return;
+
+        const modalEl = document.getElementById('importPlanOptionsModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        const selectContainer = document.getElementById('importPlanSelectContainer');
+        const planSelect = document.getElementById('importPlanSelect');
+        planSelect.innerHTML = '';
+
+        if (data.plans.length === 1) {
+            selectContainer.style.display = 'none';
+            const option = document.createElement('option');
+            option.value = 0;
+            option.textContent = data.plans[0].name || "Unnamed Plan";
+            option.selected = true;
+            planSelect.appendChild(option);
+        } else {
+            selectContainer.style.display = 'block';
+            data.plans.forEach((plan, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = plan.name || `Plan ${index + 1}`;
+                planSelect.appendChild(option);
+            });
+        }
+
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) {
+            document.getElementById('importPlanActionMerge').disabled = true;
+            document.getElementById('importPlanActionNew').checked = true;
+        } else {
+            document.getElementById('importPlanActionMerge').disabled = false;
+        }
+
+        modal.show();
+    }
+
+    handleImportPlanOptionsContinue() {
+        const action = document.querySelector('input[name="importPlanAction"]:checked').value;
+        const planIndex = parseInt(document.getElementById('importPlanSelect').value, 10);
+
+        if (!this.importedFileData || !this.importedFileData.plans || isNaN(planIndex)) {
+            alert("Invalid plan selection.");
+            return;
+        }
+
+        const selectedPlan = this.importedFileData.plans[planIndex];
+
+        const optionsModalEl = document.getElementById('importPlanOptionsModal');
+        const optionsModal = bootstrap.Modal.getInstance(optionsModalEl);
+        if (optionsModal) optionsModal.hide();
+
+        if (action === 'new') {
+            if (this.planner.appendPlan(selectedPlan)) {
+                this.updateUI();
+                console.log("Plan imported as new.");
+            } else {
+                alert("Failed to import plan.");
+            }
+        } else if (action === 'merge') {
+            const diff = this.planner.calculatePlanDiff(selectedPlan);
+            if (diff) {
+                this.pendingImportedPlan = selectedPlan;
+                this.openMergeDiffModal(diff);
+            } else {
+                alert("Error calculating plan differences.");
+            }
+        }
+    }
+
+    openMergeDiffModal(diff) {
+        if (!diff) return;
+
+        const modalEl = document.getElementById('mergePlanDiffModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        // Render Capacity diff
+        const capacityCheck = document.getElementById('mergeCapacityCheck');
+        if (diff.capacity.different) {
+            capacityCheck.checked = false;
+            capacityCheck.disabled = false;
+            capacityCheck.parentElement.style.display = 'block';
+        } else {
+            capacityCheck.checked = false;
+            capacityCheck.disabled = true;
+            capacityCheck.parentElement.style.display = 'none';
+        }
+
+        // Render Tasks diff
+        const tasksTbody = document.getElementById('mergeTasksTableBody');
+        tasksTbody.innerHTML = '';
+
+        const renderTaskRow = (type, task, extraInfo = '') => {
+            let statusBadge = '';
+            if (type === 'new') statusBadge = '<span class="badge bg-success">New</span>';
+            else if (type === 'modified') statusBadge = '<span class="badge bg-warning text-dark">Modified</span>';
+            else if (type === 'deleted') statusBadge = '<span class="badge bg-danger">Deleted</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center align-middle">
+                    <input class="form-check-input merge-task-check" type="checkbox" data-type="${type}" data-id="${this.escapeHtml(task.id)}">
+                </td>
+                <td class="align-middle">${statusBadge}</td>
+                <td class="align-middle fw-bold">${this.escapeHtml(task.id)}</td>
+                <td class="align-middle">${this.escapeHtml(task.title)}</td>
+                <td class="align-middle small text-muted">${extraInfo}</td>
+            `;
+            tasksTbody.appendChild(tr);
+        };
+
+        const getChangedFieldsStr = (current, imported) => {
+            const changedKeys = [];
+            const allKeys = new Set([...Object.keys(current || {}), ...Object.keys(imported || {})]);
+            allKeys.forEach(key => {
+                if (JSON.stringify(current[key]) !== JSON.stringify(imported[key])) {
+                    changedKeys.push(key);
+                }
+            });
+            if (changedKeys.length === 0) return 'No visible changes';
+            return 'Changed fields: ' + changedKeys.join(', ');
+        };
+
+        if (diff.tasks.new.length === 0 && diff.tasks.modified.length === 0 && diff.tasks.deleted.length === 0) {
+            tasksTbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No task changes detected.</td></tr>';
+        } else {
+            diff.tasks.new.forEach(task => renderTaskRow('new', task, `Start: ${task.startDate}, End: ${task.endDate}`));
+            diff.tasks.modified.forEach(mod => {
+                const diffStr = getChangedFieldsStr(mod.current, mod.imported);
+                renderTaskRow('modified', mod.imported, diffStr);
+            });
+            diff.tasks.deleted.forEach(task => renderTaskRow('deleted', task, 'Task exists in current plan but not in imported plan'));
+        }
+
+        // Render Markers diff
+        const markersTbody = document.getElementById('mergeMarkersTableBody');
+        markersTbody.innerHTML = '';
+
+        const renderMarkerRow = (type, marker, extraInfo = '') => {
+            let statusBadge = '';
+            if (type === 'new') statusBadge = '<span class="badge bg-success">New</span>';
+            else if (type === 'modified') statusBadge = '<span class="badge bg-warning text-dark">Modified</span>';
+            else if (type === 'deleted') statusBadge = '<span class="badge bg-danger">Deleted</span>';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="text-center align-middle">
+                    <input class="form-check-input merge-marker-check" type="checkbox" data-type="${type}" data-id="${this.escapeHtml(marker.id)}">
+                </td>
+                <td class="align-middle">${statusBadge}</td>
+                <td class="align-middle fw-bold">${this.escapeHtml(marker.label)}</td>
+                <td class="align-middle small text-muted">${extraInfo}</td>
+            `;
+            markersTbody.appendChild(tr);
+        };
+
+        if (diff.markers.new.length === 0 && diff.markers.modified.length === 0 && diff.markers.deleted.length === 0) {
+            markersTbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No marker changes detected.</td></tr>';
+        } else {
+            diff.markers.new.forEach(marker => renderMarkerRow('new', marker, `Type: ${marker.type}`));
+            diff.markers.modified.forEach(mod => {
+                const diffStr = getChangedFieldsStr(mod.current, mod.imported);
+                renderMarkerRow('modified', mod.imported, diffStr);
+            });
+            diff.markers.deleted.forEach(marker => renderMarkerRow('deleted', marker, 'Marker exists in current plan but not in imported plan'));
+        }
+
+        modal.show();
+    }
+
+    confirmMergePlan() {
+        if (!this.pendingImportedPlan) return;
+
+        const diffSelection = {
+            capacity: document.getElementById('mergeCapacityCheck').checked,
+            tasks: { new: [], modified: [], deleted: [] },
+            markers: { new: [], modified: [], deleted: [] }
+        };
+
+        document.querySelectorAll('.merge-task-check:checked').forEach(cb => {
+            const type = cb.getAttribute('data-type');
+            const id = cb.getAttribute('data-id');
+            if (diffSelection.tasks[type]) diffSelection.tasks[type].push(id);
+        });
+
+        document.querySelectorAll('.merge-marker-check:checked').forEach(cb => {
+            const type = cb.getAttribute('data-type');
+            const id = cb.getAttribute('data-id');
+            if (diffSelection.markers[type]) diffSelection.markers[type].push(id);
+        });
+
+        if (this.planner.applyPlanMerge(diffSelection, this.pendingImportedPlan)) {
+            const modalEl = document.getElementById('mergePlanDiffModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+
+            this.pendingImportedPlan = null;
+            this.updateUI();
+            alert("Changes applied successfully.");
+        } else {
+            alert("Failed to apply merge changes.");
         }
     }
 
@@ -1698,6 +1983,8 @@ class UI {
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         const taskListBtn = document.getElementById("taskListBtn");
         const capacityPlanBtn = document.getElementById("capacityPlanBtn");
+        const exportImageBtn = document.getElementById("exportImageBtn");
+        const exportPlanBtn = document.getElementById("exportPlanBtn");
         const exportDropdownBtn = document.getElementById("exportDropdownBtn");
 
         if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
@@ -1707,6 +1994,8 @@ class UI {
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
         if (taskListBtn) taskListBtn.disabled = !hasPlans;
         if (capacityPlanBtn) capacityPlanBtn.disabled = !hasPlans;
+        if (exportImageBtn) exportImageBtn.disabled = !hasPlans;
+        if (exportPlanBtn) exportPlanBtn.disabled = !hasPlans;
         if (exportDropdownBtn) exportDropdownBtn.disabled = !hasPlans;
 
         this.renderTagFilters();

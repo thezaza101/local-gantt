@@ -16,6 +16,32 @@ class Storage {
         URL.revokeObjectURL(url);
     }
 
+    static exportSinglePlanFile(state, planIndex) {
+        if (!state || !state.plans || planIndex < 0 || planIndex >= state.plans.length) return;
+
+        const singlePlanState = {
+            meta: state.meta,
+            settings: state.settings,
+            plans: [state.plans[planIndex]]
+        };
+
+        const json = JSON.stringify(singlePlanState, null, 2);
+        const blob = new Blob([json], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+
+        const planName = state.plans[planIndex].name || "plan";
+        const safePlanName = planName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${safePlanName}-export.json`;
+        document.body.appendChild(a);
+        a.click();
+
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
     static importPlanFile(file, callback) {
         const reader = new FileReader();
 

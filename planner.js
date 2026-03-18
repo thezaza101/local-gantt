@@ -549,6 +549,164 @@ class Planner {
         return true;
     }
 
+    appendPlan(planData) {
+        if (!planData) return false;
+
+        const clonedPlan = JSON.parse(JSON.stringify(planData));
+        clonedPlan.id = this.generateId();
+
+        const baseName = (clonedPlan.name || "Imported Plan").replace(/ \(Imported( \d+)?\)$/, '');
+        let newName = baseName;
+        let copyIndex = 2;
+
+        const nameExists = (name) => this.file.plans.some(p => p.name === name);
+
+        if (nameExists(newName)) {
+            newName = `${baseName} (Imported)`;
+        }
+
+        while (nameExists(newName)) {
+            newName = `${baseName} (Imported ${copyIndex})`;
+            copyIndex++;
+        }
+
+        clonedPlan.name = newName;
+        this.file.plans.push(clonedPlan);
+        this.currentPlanIndex = this.file.plans.length - 1;
+        return true;
+    }
+
+    calculatePlanDiff(importedPlan) {
+        const currentPlan = this.getCurrentPlan();
+        if (!currentPlan || !importedPlan) return null;
+
+        const diff = {
+            tasks: { new: [], modified: [], deleted: [] },
+            markers: { new: [], modified: [], deleted: [] },
+            capacity: { different: false }
+        };
+
+        // Tasks Diff
+        const currentTasks = currentPlan.tasks || [];
+        const importedTasks = importedPlan.tasks || [];
+        const currentTasksMap = new Map(currentTasks.map(t => [t.id, t]));
+        const importedTasksMap = new Map(importedTasks.map(t => [t.id, t]));
+
+        importedTasks.forEach(impTask => {
+            const currTask = currentTasksMap.get(impTask.id);
+            if (!currTask) {
+                diff.tasks.new.push(impTask);
+            } else {
+                if (JSON.stringify(currTask) !== JSON.stringify(impTask)) {
+                    diff.tasks.modified.push({ current: currTask, imported: impTask });
+                }
+            }
+        });
+
+        currentTasks.forEach(currTask => {
+            if (!importedTasksMap.has(currTask.id)) {
+                diff.tasks.deleted.push(currTask);
+            }
+        });
+
+        // Markers Diff
+        const currentMarkers = (currentPlan.markers || []).filter(m => m.id !== 'marker_today');
+        const importedMarkers = (importedPlan.markers || []).filter(m => m.id !== 'marker_today');
+        const currentMarkersMap = new Map(currentMarkers.map(m => [m.id, m]));
+        const importedMarkersMap = new Map(importedMarkers.map(m => [m.id, m]));
+
+        importedMarkers.forEach(impMarker => {
+            const currMarker = currentMarkersMap.get(impMarker.id);
+            if (!currMarker) {
+                diff.markers.new.push(impMarker);
+            } else {
+                if (JSON.stringify(currMarker) !== JSON.stringify(impMarker)) {
+                    diff.markers.modified.push({ current: currMarker, imported: impMarker });
+                }
+            }
+        });
+
+        currentMarkers.forEach(currMarker => {
+            if (!importedMarkersMap.has(currMarker.id)) {
+                diff.markers.deleted.push(currMarker);
+            }
+        });
+
+        // Capacity Diff
+        const currentCapacityStr = JSON.stringify({
+            capacity: currentPlan.capacity,
+            demandAdjustmentPercent: currentPlan.demandAdjustmentPercent,
+            capacityAdjustmentPercent: currentPlan.capacityAdjustmentPercent
+        });
+        const importedCapacityStr = JSON.stringify({
+            capacity: importedPlan.capacity,
+            demandAdjustmentPercent: importedPlan.demandAdjustmentPercent,
+            capacityAdjustmentPercent: importedPlan.capacityAdjustmentPercent
+        });
+
+        if (currentCapacityStr !== importedCapacityStr) {
+            diff.capacity.different = true;
+        }
+
+        return diff;
+    }
+
+    applyPlanMerge(diffSelection, importedPlan) {
+        const currentPlan = this.getCurrentPlan();
+        if (!currentPlan || !importedPlan) return false;
+
+        // Apply Capacity
+        if (diffSelection.capacity) {
+            currentPlan.capacity = JSON.parse(JSON.stringify(importedPlan.capacity || {}));
+            currentPlan.demandAdjustmentPercent = importedPlan.demandAdjustmentPercent;
+            currentPlan.capacityAdjustmentPercent = importedPlan.capacityAdjustmentPercent;
+        }
+
+        // Apply Tasks
+        if (!currentPlan.tasks) currentPlan.tasks = [];
+        const taskMap = new Map(currentPlan.tasks.map((t, idx) => [t.id, idx]));
+
+        diffSelection.tasks.new.forEach(taskId => {
+            const taskToMerge = importedPlan.tasks.find(t => t.id === taskId);
+            if (taskToMerge) currentPlan.tasks.push(JSON.parse(JSON.stringify(taskToMerge)));
+        });
+
+        diffSelection.tasks.modified.forEach(taskId => {
+            const idx = taskMap.get(taskId);
+            const taskToMerge = importedPlan.tasks.find(t => t.id === taskId);
+            if (idx !== undefined && taskToMerge) {
+                currentPlan.tasks[idx] = JSON.parse(JSON.stringify(taskToMerge));
+            }
+        });
+
+        diffSelection.tasks.deleted.forEach(taskId => {
+            currentPlan.tasks = currentPlan.tasks.filter(t => t.id !== taskId);
+        });
+
+        // Apply Markers
+        if (!currentPlan.markers) currentPlan.markers = [];
+        const markerMap = new Map(currentPlan.markers.map((m, idx) => [m.id, idx]));
+
+        diffSelection.markers.new.forEach(markerId => {
+            const markerToMerge = importedPlan.markers.find(m => m.id === markerId);
+            if (markerToMerge) currentPlan.markers.push(JSON.parse(JSON.stringify(markerToMerge)));
+        });
+
+        diffSelection.markers.modified.forEach(markerId => {
+            const idx = markerMap.get(markerId);
+            const markerToMerge = importedPlan.markers.find(m => m.id === markerId);
+            if (idx !== undefined && markerToMerge) {
+                currentPlan.markers[idx] = JSON.parse(JSON.stringify(markerToMerge));
+            }
+        });
+
+        diffSelection.markers.deleted.forEach(markerId => {
+            currentPlan.markers = currentPlan.markers.filter(m => m.id !== markerId || m.id === 'marker_today');
+        });
+
+        return true;
+    }
+
     loadState(newState) {
         if (newState && newState.meta && newState.plans) {
             this.file = newState;

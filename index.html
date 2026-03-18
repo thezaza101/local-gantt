@@ -37,6 +37,9 @@
                 <button type="button" id="capacityPlanBtn" class="btn btn-sm btn-outline-info" title="Manage capacity planning">Capacity</button>
                 <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary" title="Duplicate the current plan">Duplicate</button>
                 <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-danger" title="Delete the current plan">Delete</button>
+                <button type="button" id="importPlanBtn" class="btn btn-sm btn-outline-secondary" title="Import a plan">Import Plan</button>
+                <button type="button" id="exportPlanBtn" class="btn btn-sm btn-outline-secondary" title="Export the current plan">Export Plan</button>
+                <input type="file" id="importPlanFileInput" accept=".json" style="display: none;">
             </div>
         </div>
 
@@ -594,6 +597,114 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary" id="saveCapacityBtn">Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Plan Options Modal -->
+    <div class="modal fade" id="importPlanOptionsModal" tabindex="-1" aria-labelledby="importPlanOptionsModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="importPlanOptionsModalLabel">Import Plan Options</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3" id="importPlanSelectContainer">
+                        <label for="importPlanSelect" class="form-label">Select Plan to Import</label>
+                        <select class="form-select" id="importPlanSelect">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Action</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="importPlanAction" id="importPlanActionNew" value="new" checked>
+                            <label class="form-check-label" for="importPlanActionNew">
+                                Add as New Plan
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="importPlanAction" id="importPlanActionMerge" value="merge">
+                            <label class="form-check-label" for="importPlanActionMerge">
+                                Merge into Current Plan
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="continueImportPlanBtn">Continue</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Merge Plan Diff Modal -->
+    <div class="modal fade" id="mergePlanDiffModal" tabindex="-1" aria-labelledby="mergePlanDiffModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mergePlanDiffModalLabel">Merge Plan Changes</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Review the differences between the current plan and the imported plan. Select the changes you wish to apply.</p>
+
+                    <div class="form-check mb-4 border-bottom pb-2">
+                        <input class="form-check-input" type="checkbox" id="mergeCapacityCheck" value="capacity">
+                        <label class="form-check-label fw-bold" for="mergeCapacityCheck">
+                            Overwrite Capacity Settings with Imported Plan
+                        </label>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                        <h6 class="m-0 fw-bold">Tasks</h6>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" id="selectAllTasksBtn">Select All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" id="deselectAllTasksBtn">Deselect All</button>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-hover table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40px;" class="text-center">#</th>
+                                <th style="width: 80px;">Status</th>
+                                <th>Task ID</th>
+                                <th>Title</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mergeTasksTableBody">
+                            <!-- Task diff rows injected here -->
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-between align-items-center mb-2 mt-4">
+                        <h6 class="m-0 fw-bold">Markers</h6>
+                        <div>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" id="selectAllMarkersBtn">Select All</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary py-0" id="deselectAllMarkersBtn">Deselect All</button>
+                        </div>
+                    </div>
+                    <table class="table table-sm table-hover table-bordered">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40px;" class="text-center">#</th>
+                                <th style="width: 80px;">Status</th>
+                                <th>Label</th>
+                                <th>Details</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mergeMarkersTableBody">
+                            <!-- Marker diff rows injected here -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmMergePlanBtn">Apply Selected Changes</button>
                 </div>
             </div>
         </div>
