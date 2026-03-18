@@ -224,6 +224,70 @@ class UI {
             });
         }
 
+        // Export CSV Button
+        const exportCsvBtn = document.getElementById("exportCsvBtn");
+        if (exportCsvBtn) {
+            exportCsvBtn.addEventListener("click", () => {
+                const currentPlan = this.planner.getCurrentPlan();
+                if (currentPlan && currentPlan.tasks) {
+                    const tasks = currentPlan.tasks;
+                    const headers = ["Title", "ID", "Start Date", "End Date", "Tags"];
+                    let csvContent = headers.join(",") + "\n";
+
+                    const formatDate = (dateStr) => {
+                        if (!dateStr) return "";
+                        const parts = dateStr.split("-");
+                        if (parts.length === 3) {
+                            return `${parts[2]}/${parts[1]}/${parts[0]}`; // DD/MM/YYYY
+                        }
+                        return dateStr;
+                    };
+
+                    const escapeCsv = (str) => {
+                        if (!str) return "";
+                        const strVal = String(str);
+                        // If string contains comma, quote, or newline, escape it
+                        if (strVal.includes(",") || strVal.includes('"') || strVal.includes('\n')) {
+                            return `"${strVal.replace(/"/g, '""')}"`;
+                        }
+                        return strVal;
+                    };
+
+                    tasks.forEach(task => {
+                        const title = escapeCsv(task.title);
+                        const id = escapeCsv(task.id);
+                        const startDate = escapeCsv(formatDate(task.startDate));
+                        const endDate = escapeCsv(formatDate(task.endDate));
+
+                        let tagsStr = "";
+                        if (task.tags && task.tags.length > 0) {
+                            tagsStr = escapeCsv(task.tags.join(", "));
+                        }
+
+                        const row = [title, id, startDate, endDate, tagsStr];
+                        csvContent += row.join(",") + "\n";
+                    });
+
+                    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                    const link = document.createElement("a");
+                    const url = URL.createObjectURL(blob);
+
+                    const today = new Date();
+                    const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+                    const sanitizedPlanName = (currentPlan.name || 'Gantt').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+                    link.setAttribute("href", url);
+                    link.setAttribute("download", `${sanitizedPlanName}_tasks_${dateString}.csv`);
+                    link.style.visibility = 'hidden';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                } else if (currentPlan) {
+                    alert("No tasks to export.");
+                }
+            });
+        }
+
         // Export Image Button
         const exportImageBtn = document.getElementById("exportImageBtn");
         if (exportImageBtn) {
@@ -1634,7 +1698,7 @@ class UI {
         const addMarkerBtn = document.getElementById("addMarkerBtn");
         const taskListBtn = document.getElementById("taskListBtn");
         const capacityPlanBtn = document.getElementById("capacityPlanBtn");
-        const exportImageBtn = document.getElementById("exportImageBtn");
+        const exportDropdownBtn = document.getElementById("exportDropdownBtn");
 
         if (addTaskBtn) addTaskBtn.disabled = !hasPlans;
         if (editPlanBtn) editPlanBtn.disabled = !hasPlans;
@@ -1643,7 +1707,7 @@ class UI {
         if (addMarkerBtn) addMarkerBtn.disabled = !hasPlans;
         if (taskListBtn) taskListBtn.disabled = !hasPlans;
         if (capacityPlanBtn) capacityPlanBtn.disabled = !hasPlans;
-        if (exportImageBtn) exportImageBtn.disabled = !hasPlans;
+        if (exportDropdownBtn) exportDropdownBtn.disabled = !hasPlans;
 
         this.renderTagFilters();
 
