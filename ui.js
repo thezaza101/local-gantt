@@ -385,6 +385,9 @@ class UI {
                         const legend = ganttContainer.querySelector('.gantt-legend');
                         if (legend) legend.style.display = 'none';
 
+                        const rowNumbers = ganttContainer.querySelectorAll('.gantt-row-number');
+                        rowNumbers.forEach(r => r.style.display = 'none');
+
                         // We also need to capture the full scrolled content, so we pass the gantt-container
                         // to html2canvas or adjust scroll
                         const ganttContent = ganttContainer.querySelector('.gantt-content');
@@ -520,6 +523,7 @@ class UI {
                             // Restore controls and legend
                             controls.forEach(c => c.style.display = '');
                             if (legend) legend.style.display = '';
+                            rowNumbers.forEach(r => r.style.display = '');
 
                             if (printTimestamp) {
                                 printTimestamp.classList.add('d-none');
@@ -564,6 +568,7 @@ class UI {
                             }
                             controls.forEach(c => c.style.display = '');
                             if (legend) legend.style.display = '';
+                            rowNumbers.forEach(r => r.style.display = '');
                             if (printTimestamp) {
                                 printTimestamp.classList.add('d-none');
                                 document.body.appendChild(printTimestamp);
