@@ -2066,37 +2066,28 @@ class UI {
 
         html += `
             </div>
-            <div class="d-flex align-items-center gap-3">
-                <div class="vr"></div>
-                <div class="d-flex align-items-center gap-1">
-                    <span class="text-muted small">Match:</span>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-match-mode-radio" type="radio" name="tagMatchMode" id="matchModeAny" value="any" ${filterState.matchMode === 'any' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="matchModeAny">Any (OR)</label>
-                    </div>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-match-mode-radio" type="radio" name="tagMatchMode" id="matchModeAll" value="all" ${filterState.matchMode === 'all' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="matchModeAll">All (AND)</label>
-                    </div>
+            <div class="d-flex align-items-center gap-2">
+                <div class="vr ms-2 me-1"></div>
+
+                <div class="btn-group" role="group" aria-label="Tag Match Mode">
+                    <input type="radio" class="btn-check tag-match-mode-radio" name="tagMatchMode" id="matchModeAny" value="any" autocomplete="off" ${filterState.matchMode === 'any' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="matchModeAny" title="Match Any (OR)">∪</label>
+
+                    <input type="radio" class="btn-check tag-match-mode-radio" name="tagMatchMode" id="matchModeAll" value="all" autocomplete="off" ${filterState.matchMode === 'all' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="matchModeAll" title="Match All (AND)">∩</label>
                 </div>
-                <div class="vr"></div>
-                <div class="d-flex align-items-center gap-1">
-                    <span class="text-muted small">View:</span>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeShow" value="show" ${filterState.visualMode === 'show' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="visualModeShow">Show Only</label>
-                    </div>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeHighlight" value="highlight" ${filterState.visualMode === 'highlight' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="visualModeHighlight">Highlight</label>
-                    </div>
+
+                <div class="btn-group ms-2" role="group" aria-label="Tag Visual Mode">
+                    <input type="radio" class="btn-check tag-visual-mode-radio" name="tagVisualMode" id="visualModeShow" value="show" autocomplete="off" ${filterState.visualMode === 'show' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="visualModeShow" title="Show Only">👁️</label>
+
+                    <input type="radio" class="btn-check tag-visual-mode-radio" name="tagVisualMode" id="visualModeHighlight" value="highlight" autocomplete="off" ${filterState.visualMode === 'highlight' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="visualModeHighlight" title="Highlight">🔦</label>
                 </div>
-                <div class="vr"></div>
-                <div class="d-flex align-items-center gap-1">
-                    <div class="form-check m-0">
-                        <input class="form-check-input" type="checkbox" id="showDependenciesCheckbox" ${this.planner.getShowDependencies() ? 'checked' : ''}>
-                        <label class="form-check-label small text-muted" for="showDependenciesCheckbox">Show Dependencies</label>
-                    </div>
+
+                <div class="btn-group ms-2" role="group" aria-label="Dependencies Toggle">
+                    <input type="checkbox" class="btn-check" id="showDependenciesCheckbox" autocomplete="off" ${this.planner.getShowDependencies() ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="showDependenciesCheckbox" title="Show Dependencies">🔗</label>
                 </div>
             </div>
         `;
