@@ -748,6 +748,8 @@ class Analytics {
              .replace(/>/g, "&gt;")
              .replace(/"/g, "&quot;")
              .replace(/'/g, "&#039;");
+    }
+
     bindExportEvents() {
         const container = document.getElementById('analyticsContent');
         if (!container) return;
