@@ -11,93 +11,127 @@
 </head>
 <body>
 
-    <!-- Toolbar / Plan Selector -->
-    <div class="toolbar d-flex justify-content-between align-items-center gap-3">
+    <!-- Ribbon Toolbar -->
+    <div class="ribbon-container">
+        <ul class="nav nav-tabs px-3 pt-2 bg-light" id="ribbonTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active py-1" id="file-plan-tab" data-bs-toggle="tab" data-bs-target="#file-plan" type="button" role="tab" aria-controls="file-plan" aria-selected="true"><span class="small fw-bold">File & Plan</span></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1" id="tasks-elements-tab" data-bs-toggle="tab" data-bs-target="#tasks-elements" type="button" role="tab" aria-controls="tasks-elements" aria-selected="false"><span class="small fw-bold">Tasks & Elements</span></button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1" id="view-filters-tab" data-bs-toggle="tab" data-bs-target="#view-filters" type="button" role="tab" aria-controls="view-filters" aria-selected="false"><span class="small fw-bold">View & Filters</span></button>
+            </li>
+        </ul>
+        <div class="tab-content border-bottom bg-white px-3 py-2" id="ribbonTabsContent">
+            <!-- File & Plan Tab -->
+            <div class="tab-pane fade show active" id="file-plan" role="tabpanel" aria-labelledby="file-plan-tab">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <!-- Data/File Group -->
+                    <div class="btn-group" role="group" aria-label="Data and File Management">
+                        <button id="importBtn" class="btn btn-outline-secondary btn-sm" title="Import a plan from a JSON file">Import JSON</button>
+                        <button id="exportBtn" class="btn btn-outline-secondary btn-sm" title="Export the current plan to a JSON file">Export JSON</button>
+                        <input type="file" id="fileInput" accept=".json" style="display: none;">
+                    </div>
 
-        <!-- Data/File Group -->
-        <div class="btn-group" role="group" aria-label="Data and File Management">
-            <button id="importBtn" class="btn btn-outline-secondary btn-sm" title="Import a plan from a JSON file">Import JSON</button>
-            <button id="exportBtn" class="btn btn-outline-secondary btn-sm" title="Export the current plan to a JSON file">Export JSON</button>
-            <input type="file" id="fileInput" accept=".json" style="display: none;">
-        </div>
+                    <button id="settingsBtn" class="btn btn-outline-secondary btn-sm" title="Global Settings">Settings</button>
 
-        <button id="settingsBtn" class="btn btn-outline-secondary btn-sm" title="Global Settings">Settings</button>
+                    <div class="vr"></div>
 
-        <!-- Plan Management Group -->
-        <div class="d-flex align-items-center gap-2">
-            <div class="d-flex align-items-center gap-2">
-                <label for="planSelector" class="form-label mb-0 fw-bold">Plan:</label>
-                <select class="form-select form-select-sm w-auto" id="planSelector" title="Select a plan to view or edit">
-                    <option value="" disabled selected id="currentPlanDisplay">Select a Plan</option>
-                </select>
-            </div>
-            <div class="btn-group" role="group" aria-label="Plan Management">
-                <button type="button" id="newPlanBtn" class="btn btn-sm btn-outline-secondary" title="Create a new plan">New Plan</button>
-                <button type="button" id="editPlanBtn" class="btn btn-sm btn-outline-secondary" title="Edit the current plan">Edit</button>
-                <button type="button" id="capacityPlanBtn" class="btn btn-sm btn-outline-info" title="Manage capacity planning">Capacity</button>
-                <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary" title="Duplicate the current plan">Duplicate</button>
-                <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-danger" title="Delete the current plan">Delete</button>
-                <button type="button" id="importPlanBtn" class="btn btn-sm btn-outline-secondary" title="Import a plan">Import Plan</button>
-                <button type="button" id="exportPlanBtn" class="btn btn-sm btn-outline-secondary" title="Export the current plan">Export Plan</button>
-                <input type="file" id="importPlanFileInput" accept=".json" style="display: none;">
-            </div>
-        </div>
+                    <!-- Plan Management Group -->
+                    <div class="d-flex align-items-center gap-2">
+                        <label for="planSelector" class="form-label mb-0 fw-bold small">Plan:</label>
+                        <select class="form-select form-select-sm w-auto" id="planSelector" title="Select a plan to view or edit">
+                            <option value="" disabled selected id="currentPlanDisplay">Select a Plan</option>
+                        </select>
+                    </div>
+                    <div class="btn-group" role="group" aria-label="Plan Management">
+                        <button type="button" id="newPlanBtn" class="btn btn-sm btn-outline-secondary" title="Create a new plan">New Plan</button>
+                        <button type="button" id="editPlanBtn" class="btn btn-sm btn-outline-secondary" title="Edit the current plan">Edit</button>
+                        <button type="button" id="capacityPlanBtn" class="btn btn-sm btn-outline-info" title="Manage capacity planning">Capacity</button>
+                        <button type="button" id="duplicatePlanBtn" class="btn btn-sm btn-outline-secondary" title="Duplicate the current plan">Duplicate</button>
+                        <button type="button" id="deletePlanBtn" class="btn btn-sm btn-outline-danger" title="Delete the current plan">Delete</button>
+                        <button type="button" id="importPlanBtn" class="btn btn-sm btn-outline-secondary" title="Import a plan">Import Plan</button>
+                        <button type="button" id="exportPlanBtn" class="btn btn-sm btn-outline-secondary" title="Export the current plan">Export Plan</button>
+                        <input type="file" id="importPlanFileInput" accept=".json" style="display: none;">
+                    </div>
 
-        <!-- Plan Elements & Views Group -->
-        <div class="btn-group" role="group" aria-label="Plan Elements and Views">
-            <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary" title="Add a new task to the plan">Add Task</button>
-            <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Manage timeline markers">Markers</button>
-            <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="View task list">Task List</button>
-            <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark" title="Configure task colors and legends">Legends</button>
-            <div class="btn-group" role="group">
-                <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Export options" id="exportDropdownBtn">
-                    Export
-                </button>
-                <ul class="dropdown-menu">
-                    <li><button class="dropdown-item" type="button" id="exportImageBtn">Export Image</button></li>
-                    <li><button class="dropdown-item" type="button" id="exportCsvBtn">Export CSV</button></li>
-                </ul>
-            </div>
-            <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary" title="Toggle Presenter Mode">Presenter Mode</button>
-        </div>
+                    <div class="vr"></div>
 
-    </div>
-
-    <!-- Tag Filters and Zoom Controls -->
-    <div class="tag-filters d-flex justify-content-between align-items-center flex-wrap">
-        <div class="d-flex gap-2 align-items-center flex-wrap" id="tagFiltersContainer">
-            <!-- Dynamically generated tags will appear here -->
-        </div>
-
-        <div class="zoom-controls d-flex align-items-center gap-2 border-start ps-3 ms-auto">
-            <span class="text-muted small fw-bold">Zoom:</span>
-            <div class="btn-group" role="group" aria-label="Zoom levels">
-                <input type="radio" class="btn-check" name="zoomLevel" id="zoomDaily" value="daily" autocomplete="off" checked>
-                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomDaily">Daily</label>
-
-                <input type="radio" class="btn-check" name="zoomLevel" id="zoomWeekly" value="weekly" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomWeekly">Weekly</label>
-
-                <input type="radio" class="btn-check" name="zoomLevel" id="zoomFortnight" value="fortnight" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomFortnight">Fortnight</label>
-
-                <input type="radio" class="btn-check" name="zoomLevel" id="zoomMonthly" value="monthly" autocomplete="off">
-                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomMonthly">Monthly</label>
+                    <!-- Export dropdown -->
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Export options" id="exportDropdownBtn">
+                            Export Options
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><button class="dropdown-item" type="button" id="exportImageBtn">Export Image</button></li>
+                            <li><button class="dropdown-item" type="button" id="exportCsvBtn">Export CSV</button></li>
+                        </ul>
+                    </div>
+                </div>
             </div>
 
-            <input type="checkbox" class="btn-check" id="showEffortPerDayBtn" autocomplete="off">
-            <label class="btn btn-outline-secondary btn-sm py-0" for="showEffortPerDayBtn">Effort/Day</label>
+            <!-- Tasks & Elements Tab -->
+            <div class="tab-pane fade" id="tasks-elements" role="tabpanel" aria-labelledby="tasks-elements-tab">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
+                    <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary" title="Add a new task to the plan">Add Task</button>
+                    <div class="btn-group" role="group">
+                        <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Manage timeline markers">Markers</button>
+                        <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="View task list">Task List</button>
+                        <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark" title="Configure task colors and legends">Legends</button>
+                    </div>
+                </div>
+            </div>
 
-            <span class="text-muted small fw-bold ms-2">Markers:</span>
-            <div class="btn-group" role="group" aria-label="Marker visibility">
-                <input type="checkbox" class="btn-check" id="showMarkerMajorBtn" autocomplete="off" checked>
-                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerMajorBtn">Major</label>
+            <!-- View & Filters Tab -->
+            <div class="tab-pane fade" id="view-filters" role="tabpanel" aria-labelledby="view-filters-tab">
+                <div class="d-flex flex-column gap-2 w-100">
+                    <div class="d-flex gap-2 align-items-center flex-wrap" id="tagFiltersContainer">
+                        <!-- Dynamically generated tags will appear here -->
+                    </div>
 
-                <input type="checkbox" class="btn-check" id="showMarkerMinorBtn" autocomplete="off" checked>
-                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerMinorBtn">Minor</label>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div class="d-flex align-items-center gap-2" id="tagFiltersIconsContainer">
+                            <!-- Dynamically generated tag icons will appear here -->
+                        </div>
 
-                <input type="checkbox" class="btn-check" id="showMarkerNoteBtn" autocomplete="off" checked>
-                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerNoteBtn">Note</label>
+                        <div class="d-flex align-items-center gap-2 ms-auto">
+                            <span class="text-muted small fw-bold">Zoom:</span>
+                            <div class="btn-group" role="group" aria-label="Zoom levels">
+                                <input type="radio" class="btn-check" name="zoomLevel" id="zoomDaily" value="daily" autocomplete="off" checked>
+                                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomDaily">Daily</label>
+
+                                <input type="radio" class="btn-check" name="zoomLevel" id="zoomWeekly" value="weekly" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomWeekly">Weekly</label>
+
+                                <input type="radio" class="btn-check" name="zoomLevel" id="zoomFortnight" value="fortnight" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomFortnight">Fortnight</label>
+
+                                <input type="radio" class="btn-check" name="zoomLevel" id="zoomMonthly" value="monthly" autocomplete="off">
+                                <label class="btn btn-outline-secondary btn-sm py-0" for="zoomMonthly">Monthly</label>
+                            </div>
+
+                            <input type="checkbox" class="btn-check" id="showEffortPerDayBtn" autocomplete="off">
+                            <label class="btn btn-outline-secondary btn-sm py-0" for="showEffortPerDayBtn">Effort/Day</label>
+
+                            <span class="text-muted small fw-bold ms-2">Markers:</span>
+                            <div class="btn-group" role="group" aria-label="Marker visibility">
+                                <input type="checkbox" class="btn-check" id="showMarkerMajorBtn" autocomplete="off" checked>
+                                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerMajorBtn">Major</label>
+
+                                <input type="checkbox" class="btn-check" id="showMarkerMinorBtn" autocomplete="off" checked>
+                                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerMinorBtn">Minor</label>
+
+                                <input type="checkbox" class="btn-check" id="showMarkerNoteBtn" autocomplete="off" checked>
+                                <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerNoteBtn">Note</label>
+                            </div>
+
+                            <div class="vr ms-2 me-2"></div>
+                            <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary" title="Toggle Presenter Mode">Presenter Mode</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
