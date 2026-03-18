@@ -10,6 +10,71 @@ class Analytics {
             '#4da3ff', '#ff6b6b', '#51cf66', '#fcc419', '#20c997',
             '#cc5de8', '#ff922b', '#845ef7', '#339af0', '#f06595'
         ];
+
+        // Analytics-specific filter state
+        this.filterState = {
+            selectedTags: [],
+            startDate: '',
+            endDate: ''
+        };
+    }
+
+    /**
+     * Filters tasks based on the Analytics panel filter state.
+     * @param {Object} plan The plan object containing tasks.
+     * @returns {Array} Filtered list of tasks.
+     */
+    getFilteredTasks(plan) {
+        if (!plan || !plan.tasks) return [];
+
+        let filtered = plan.tasks;
+
+        // Apply Tag Filter (OR logic)
+        if (this.filterState.selectedTags && this.filterState.selectedTags.length > 0) {
+            filtered = filtered.filter(task => {
+                const taskTags = (task.tags || []).map(t => t.trim()).filter(t => t);
+                return this.filterState.selectedTags.some(tag => taskTags.includes(tag));
+            });
+        }
+
+        // Apply Date Range Filter (Overlap logic)
+        if (this.filterState.startDate || this.filterState.endDate) {
+            const startStr = this.filterState.startDate;
+            const endStr = this.filterState.endDate;
+
+            let filterStart = new Date(-8640000000000000); // Min date
+            if (startStr) {
+                const parts = startStr.split('-');
+                if (parts.length === 3) filterStart = new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            let filterEnd = new Date(8640000000000000); // Max date
+            if (endStr) {
+                const parts = endStr.split('-');
+                if (parts.length === 3) filterEnd = new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            // Ensure valid Date objects
+            if (!isNaN(filterStart) && !isNaN(filterEnd)) {
+                filtered = filtered.filter(task => {
+                    if (!task.startDate || !task.endDate) return false;
+
+                    const startParts = task.startDate.split('-');
+                    const endParts = task.endDate.split('-');
+                    if (startParts.length !== 3 || endParts.length !== 3) return false;
+
+                    const taskStart = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+                    const taskEnd = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+
+                    if (isNaN(taskStart) || isNaN(taskEnd)) return false;
+
+                    // Task overlaps with filter range if its start is before the filter end AND its end is after the filter start
+                    return taskStart <= filterEnd && taskEnd >= filterStart;
+                });
+            }
+        }
+
+        return filtered;
     }
 
     /**
@@ -229,7 +294,31 @@ class Analytics {
         });
 
         const result = [];
-        const periods = Array.from(periodMap.keys()).sort();
+        let periods = Array.from(periodMap.keys()).sort();
+
+        // If date range filter is active, filter out periods that fall entirely outside
+        if (this.filterState.startDate || this.filterState.endDate) {
+            let filterStart = new Date(-8640000000000000); // Min date
+            if (this.filterState.startDate) {
+                const parts = this.filterState.startDate.split('-');
+                if (parts.length === 3) filterStart = new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            let filterEnd = new Date(8640000000000000); // Max date
+            if (this.filterState.endDate) {
+                const parts = this.filterState.endDate.split('-');
+                if (parts.length === 3) filterEnd = new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+
+            if (!isNaN(filterStart) && !isNaN(filterEnd)) {
+                periods = periods.filter(period => {
+                    const parts = period.split('-'); // e.g., "2024-01-01"
+                    if (parts.length !== 3) return true; // keep if format is unexpected
+                    const periodDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                    return periodDate >= filterStart && periodDate <= filterEnd;
+                });
+            }
+        }
 
         periods.forEach(period => {
             const data = periodMap.get(period);
@@ -370,44 +459,67 @@ class Analytics {
             return;
         }
 
-        // Apply filters
-        const filterState = this.planner.getFilterState();
-        let filteredTasks = plan.tasks;
-
-        // Mode 1: Filtered Analytics - ONLY include selected tags
-        // Mode 2: Highlight Mode - Include ALL tasks, emphasize selected tags (for tables/charts, usually means just show all data)
-        if (filterState.selectedTags && filterState.selectedTags.length > 0) {
-            if (filterState.visualMode === 'show') {
-                filteredTasks = plan.tasks.filter(task => this.taskMatchesTags(task, filterState.selectedTags, filterState.matchMode));
-            } else {
-                // If highlight mode, we still show all tasks in analytics
-                // A more advanced implementation might fade out non-highlighted items in charts
-                filteredTasks = plan.tasks;
-            }
+        // Generate UI for Analytics Filters
+        const uniqueTags = this.getUniqueTags();
+        let tagFilterHtml = `<div class="d-flex flex-wrap gap-2 me-3">`;
+        if (uniqueTags.length === 0) {
+            tagFilterHtml += `<span class="text-muted small">No tags available</span>`;
+        } else {
+            uniqueTags.forEach(tag => {
+                const isChecked = this.filterState.selectedTags.includes(tag) ? 'checked' : '';
+                const safeTagAttr = tag.replace(/"/g, '&quot;');
+                const safeTagText = this.escapeHtml(tag);
+                tagFilterHtml += `
+                    <div class="form-check form-check-inline m-0 d-flex align-items-center">
+                        <input class="form-check-input analytics-tag-checkbox me-1" type="checkbox" id="analyticsTagFilter_${safeTagAttr}" value="${safeTagAttr}" ${isChecked}>
+                        <label class="form-check-label small" for="analyticsTagFilter_${safeTagAttr}">${safeTagText}</label>
+                    </div>
+                `;
+            });
         }
+        tagFilterHtml += `</div>`;
 
-        if (filteredTasks.length === 0) {
-            container.innerHTML = `
-                <div class="text-center text-muted">
-                    <h5>Analytics Panel</h5>
-                    <p class="small">No tasks match the current filters.</p>
+        const filterBarHtml = `
+            <div class="analytics-filters d-flex justify-content-between align-items-center flex-wrap p-3 mb-3 bg-white border-bottom shadow-sm rounded">
+                <div class="d-flex align-items-center flex-wrap" id="analyticsTagFiltersContainer">
+                    <span class="fw-bold text-muted small me-2">Tags:</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" id="analyticsSelectAllTagsBtn" style="font-size: 0.75rem;">All</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-3" id="analyticsUnselectAllTagsBtn" style="font-size: 0.75rem;">None</button>
+                    ${tagFilterHtml}
                 </div>
-            `;
-            return;
-        }
+                <div class="d-flex align-items-center gap-2 border-start ps-3 ms-auto" id="analyticsDateFiltersContainer">
+                    <span class="fw-bold text-muted small">Date Range:</span>
+                    <input type="date" class="form-control form-control-sm" id="analyticsStartDate" value="${this.filterState.startDate}" title="Start Date">
+                    <span class="text-muted small">to</span>
+                    <input type="date" class="form-control form-control-sm" id="analyticsEndDate" value="${this.filterState.endDate}" title="End Date">
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2" id="analyticsClearDateFilterBtn" style="font-size: 0.75rem;" title="Clear Dates">&times;</button>
+                </div>
+            </div>
+        `;
 
-        // Calculate Data
+        // Get filtered tasks ONLY for specific charts, or apply different rules
+        // As requested: the global filters still apply to ALL charts (we were previously using this.getFilteredTasks)
+        // Wait, the prompt said: "can the charts in the analytics have filters to filter out tags/date ranges"
+        // And then: "the only change i want beyond what you have already done is #3" (keep applying filters to all charts, but add the X-axis restriction to the Demand chart)
+
+        // Let's use getFilteredTasks for all charts, as I previously implemented (and as requested).
+        const filteredTasks = this.getFilteredTasks(plan);
+
+        // Calculate Data using FILTERED tasks for all charts
         const effortByTagData = this.calculateEffortByTag(plan, filteredTasks);
         const effortByStatusData = this.calculateEffortByStatus(plan, filteredTasks);
         const taskCountByStatusData = this.calculateTaskCountByStatus(plan, filteredTasks);
         const effortByTypeData = this.calculateEffortByType(plan, filteredTasks);
         const topTasksData = this.calculateEffortByTask(plan, filteredTasks);
-        const demandCapacityData = this.calculateDemandCapacity(plan, filteredTasks);
         const tagEffortOverTimeData = this.calculateTagEffortByPeriod(plan, filteredTasks);
+
+        // Calculate Demand/Capacity using FILTERED tasks
+        const demandCapacityData = this.calculateDemandCapacity(plan, filteredTasks);
 
         // Build UI Framework
         container.innerHTML = `
             <div class="container-fluid p-0">
+                ${filterBarHtml}
                 <div class="row g-4">
                     <!-- Top Row -->
                     <div class="col-md-6 col-lg-3">
@@ -512,6 +624,11 @@ class Analytics {
             </div>
         `;
 
+        // Bind Filter Events
+        setTimeout(() => {
+            this.bindFilterEvents();
+        }, 0);
+
         // Wait a tick for DOM to update before rendering charts
         setTimeout(() => {
             this.renderChartEffortByTag(effortByTagData);
@@ -525,6 +642,112 @@ class Analytics {
         }, 0);
     }
 
+    /**
+     * Binds events for the analytics filter UI elements.
+     */
+    bindFilterEvents() {
+        const tagFiltersContainer = document.getElementById('analyticsTagFiltersContainer');
+        const dateFiltersContainer = document.getElementById('analyticsDateFiltersContainer');
+
+        if (tagFiltersContainer) {
+            tagFiltersContainer.addEventListener('change', (e) => {
+                if (e.target.matches('.analytics-tag-checkbox')) {
+                    this.updateFilterState();
+                }
+            });
+
+            tagFiltersContainer.addEventListener('click', (e) => {
+                if (e.target.id === 'analyticsSelectAllTagsBtn') {
+                    const checkboxes = tagFiltersContainer.querySelectorAll('.analytics-tag-checkbox');
+                    checkboxes.forEach(cb => cb.checked = true);
+                    this.updateFilterState();
+                } else if (e.target.id === 'analyticsUnselectAllTagsBtn') {
+                    const checkboxes = tagFiltersContainer.querySelectorAll('.analytics-tag-checkbox');
+                    checkboxes.forEach(cb => cb.checked = false);
+                    this.updateFilterState();
+                }
+            });
+        }
+
+        if (dateFiltersContainer) {
+            const startDateInput = document.getElementById('analyticsStartDate');
+            const endDateInput = document.getElementById('analyticsEndDate');
+            const clearDatesBtn = document.getElementById('analyticsClearDateFilterBtn');
+
+            if (startDateInput) {
+                startDateInput.addEventListener('change', () => this.updateFilterState());
+            }
+            if (endDateInput) {
+                endDateInput.addEventListener('change', () => this.updateFilterState());
+            }
+            if (clearDatesBtn) {
+                clearDatesBtn.addEventListener('click', () => {
+                    if (startDateInput) startDateInput.value = '';
+                    if (endDateInput) endDateInput.value = '';
+                    this.updateFilterState();
+                });
+            }
+        }
+    }
+
+    /**
+     * Updates the internal filter state from the UI and re-renders the analytics.
+     */
+    updateFilterState() {
+        const tagFiltersContainer = document.getElementById('analyticsTagFiltersContainer');
+        if (tagFiltersContainer) {
+            const selectedTags = Array.from(tagFiltersContainer.querySelectorAll('.analytics-tag-checkbox:checked')).map(cb => cb.value);
+            this.filterState.selectedTags = selectedTags;
+        }
+
+        const startDateInput = document.getElementById('analyticsStartDate');
+        const endDateInput = document.getElementById('analyticsEndDate');
+
+        if (startDateInput) {
+            this.filterState.startDate = startDateInput.value;
+        }
+        if (endDateInput) {
+            this.filterState.endDate = endDateInput.value;
+        }
+
+        // Re-render
+        const plan = this.planner ? this.planner.getCurrentPlan() : null;
+        if (plan) {
+            this.render(plan);
+        }
+    }
+
+    /**
+     * Gets all unique tags across all tasks in the current plan.
+     * @returns {string[]} Array of unique tags.
+     */
+    getUniqueTags() {
+        const plan = this.planner.getCurrentPlan();
+        if (!plan || !plan.tasks) return [];
+
+        const tags = new Set();
+        plan.tasks.forEach(task => {
+            if (task.tags && Array.isArray(task.tags)) {
+                task.tags.forEach(tag => tags.add(tag));
+            }
+        });
+
+        return Array.from(tags).sort();
+    }
+
+    /**
+     * Helper to safely escape HTML to prevent XSS.
+     * @param {string} unsafe
+     * @returns {string} Safe HTML string.
+     */
+    escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return String(unsafe)
+             .replace(/&/g, "&amp;")
+             .replace(/</g, "&lt;")
+             .replace(/>/g, "&gt;")
+             .replace(/"/g, "&quot;")
+             .replace(/'/g, "&#039;");
     bindExportEvents() {
         const container = document.getElementById('analyticsContent');
         if (!container) return;
