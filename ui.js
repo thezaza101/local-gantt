@@ -260,18 +260,6 @@ class UI {
             });
         }
 
-        // Plan Selector
-        const planSelector = document.getElementById("planSelector");
-        if (planSelector) {
-            planSelector.addEventListener("change", (e) => {
-                const newIndex = parseInt(e.target.value, 10);
-                if (!isNaN(newIndex)) {
-                    this.planner.setCurrentPlanIndex(newIndex);
-                    this.updateUI();
-                }
-            });
-        }
-
         // Capacity Button
         const capacityPlanBtn = document.getElementById("capacityPlanBtn");
         if (capacityPlanBtn) {
@@ -1952,28 +1940,38 @@ class UI {
     }
 
     updateUI() {
-        const planSelector = document.getElementById("planSelector");
+        const planSelectorBtn = document.getElementById("planSelectorBtn");
+        const planSelectorMenu = document.getElementById("planSelectorMenu");
         const plans = this.planner.getState().plans || [];
 
-        if (planSelector) {
-            planSelector.innerHTML = "";
+        if (planSelectorMenu) {
+            planSelectorMenu.innerHTML = "";
 
             if (plans.length === 0) {
-                const option = document.createElement("option");
-                option.value = "";
-                option.disabled = true;
-                option.selected = true;
-                option.textContent = "No plans available";
-                planSelector.appendChild(option);
+                const li = document.createElement("li");
+                li.innerHTML = '<span class="dropdown-item text-muted">No plans available</span>';
+                planSelectorMenu.appendChild(li);
+                if (planSelectorBtn) planSelectorBtn.title = "No Plans";
             } else {
                 plans.forEach((plan, index) => {
-                    const option = document.createElement("option");
-                    option.value = index;
-                    option.textContent = plan.name || "Unnamed Plan";
+                    const li = document.createElement("li");
+                    const a = document.createElement("button");
+                    a.className = "dropdown-item";
+                    a.type = "button";
+                    a.textContent = plan.name || "Unnamed Plan";
+
                     if (index === this.planner.currentPlanIndex) {
-                        option.selected = true;
+                        a.classList.add("active");
+                        if (planSelectorBtn) planSelectorBtn.title = `Current Plan: ${a.textContent}`;
                     }
-                    planSelector.appendChild(option);
+
+                    a.addEventListener("click", () => {
+                        this.planner.setCurrentPlanIndex(index);
+                        this.updateUI();
+                    });
+
+                    li.appendChild(a);
+                    planSelectorMenu.appendChild(li);
                 });
             }
         }

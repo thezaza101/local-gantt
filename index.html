@@ -12,23 +12,29 @@
 <body>
 
     <!-- Ribbon Toolbar -->
-    <div class="ribbon-container border-bottom bg-light px-2 py-2 d-flex align-items-center flex-wrap gap-2">
+    <div class="ribbon-container border-bottom bg-light px-2 py-2 d-flex align-items-center flex-nowrap gap-1 overflow-x-auto">
         <!-- Data/File Group -->
-        <div class="btn-group" role="group" aria-label="Data and File Management">
+        <div class="btn-group flex-shrink-0" role="group" aria-label="Data and File Management">
             <button id="importBtn" class="btn btn-outline-secondary btn-sm" title="Import JSON">📂</button>
             <button id="exportBtn" class="btn btn-outline-secondary btn-sm" title="Export JSON">💾</button>
             <input type="file" id="fileInput" accept=".json" style="display: none;">
             <button id="settingsBtn" class="btn btn-outline-secondary btn-sm" title="Global Settings">⚙️</button>
         </div>
 
-        <div class="vr mx-1"></div>
+        <div class="vr mx-1 flex-shrink-0"></div>
 
         <!-- Plan Management Group -->
-        <select class="form-select form-select-sm w-auto" id="planSelector" title="Select a plan to view or edit">
-            <option value="" disabled selected id="currentPlanDisplay">Select a Plan</option>
-        </select>
+        <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Select Plan">
+            <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Select a Plan" id="planSelectorBtn">
+                📑
+            </button>
+            <ul class="dropdown-menu" id="planSelectorMenu">
+                <!-- Dynamically populated -->
+                <li><span class="dropdown-item text-muted">No plans available</span></li>
+            </ul>
+        </div>
 
-        <div class="btn-group dropdown" role="group" aria-label="Plan Management">
+        <div class="btn-group dropdown flex-shrink-0" role="group" aria-label="Plan Actions">
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Plan Actions">
                 📅
             </button>
@@ -46,7 +52,7 @@
             <input type="file" id="importPlanFileInput" accept=".json" style="display: none;">
         </div>
 
-        <div class="btn-group dropdown" role="group">
+        <div class="btn-group dropdown flex-shrink-0" role="group">
             <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" title="Export options" id="exportDropdownBtn">
                 ⬇️
             </button>
@@ -56,28 +62,28 @@
             </ul>
         </div>
 
-        <div class="vr mx-1"></div>
+        <div class="vr mx-1 flex-shrink-0"></div>
 
         <!-- Tasks & Elements -->
-        <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary" title="Add Task">➕</button>
-        <div class="btn-group" role="group">
+        <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary flex-shrink-0" title="Add Task">➕</button>
+        <div class="btn-group flex-shrink-0" role="group">
             <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Manage Markers">📍</button>
             <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="Task List">📋</button>
             <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-secondary" title="Legends">🎨</button>
         </div>
 
-        <div class="vr mx-1"></div>
+        <div class="vr mx-1 flex-shrink-0"></div>
 
         <!-- Tag Filters Container -->
-        <div class="d-flex gap-1 align-items-center" id="tagFiltersContainer">
+        <div class="d-flex gap-1 align-items-center flex-shrink-0" id="tagFiltersContainer">
             <!-- Dynamically generated tags will appear here -->
         </div>
 
-        <div class="d-flex align-items-center gap-1" id="tagFiltersIconsContainer">
+        <div class="d-flex align-items-center gap-1 flex-shrink-0" id="tagFiltersIconsContainer">
             <!-- Dynamically generated tag icons will appear here -->
         </div>
 
-        <div class="d-flex align-items-center gap-2 ms-auto">
+        <div class="d-flex align-items-center gap-1 ms-auto flex-shrink-0">
             <!-- Zoom -->
             <div class="btn-group" role="group" aria-label="Zoom levels">
                 <input type="radio" class="btn-check" name="zoomLevel" id="zoomDaily" value="daily" autocomplete="off" checked>
@@ -95,7 +101,7 @@
 
             <!-- Effort/Day -->
             <input type="checkbox" class="btn-check" id="showEffortPerDayBtn" autocomplete="off">
-            <label class="btn btn-outline-secondary btn-sm py-0" for="showEffortPerDayBtn" title="Show Effort/Day">⏱️</label>
+            <label class="btn btn-outline-secondary btn-sm py-0 flex-shrink-0" for="showEffortPerDayBtn" title="Show Effort/Day">⏱️</label>
 
             <!-- Markers Visibility -->
             <div class="btn-group" role="group" aria-label="Marker visibility">
@@ -109,12 +115,12 @@
                 <label class="btn btn-outline-secondary btn-sm py-0" for="showMarkerNoteBtn" title="Note Markers">📝</label>
             </div>
 
-            <div class="vr mx-1"></div>
+            <div class="vr mx-1 flex-shrink-0"></div>
 
-            <button type="button" id="openAnalyticsBtn" class="btn btn-sm btn-outline-secondary" title="Open Analytics">📊</button>
-            <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary" title="Presenter Mode">📺</button>
+            <button type="button" id="openAnalyticsBtn" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Open Analytics">📊</button>
+            <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Presenter Mode">📺</button>
 
-            <button type="button" id="helpBtn" class="btn btn-sm btn-outline-info" title="Help">❓</button>
+            <button type="button" id="helpBtn" class="btn btn-sm btn-outline-info flex-shrink-0" title="Help">❓</button>
         </div>
     </div>
 
