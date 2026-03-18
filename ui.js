@@ -916,16 +916,41 @@ class UI {
             tasksTbody.appendChild(tr);
         };
 
-        const getChangedFieldsStr = (current, imported) => {
+        const getChangedFieldsHtml = (current, imported) => {
             const changedKeys = [];
+            let tooltipContent = '';
+
             const allKeys = new Set([...Object.keys(current || {}), ...Object.keys(imported || {})]);
             allKeys.forEach(key => {
-                if (JSON.stringify(current[key]) !== JSON.stringify(imported[key])) {
+                const currVal = JSON.stringify(current[key]);
+                const impVal = JSON.stringify(imported[key]);
+                if (currVal !== impVal) {
                     changedKeys.push(key);
+                    // Format strings for tooltip
+                    const fromStr = current[key] !== undefined ? current[key] : 'none';
+                    const toStr = imported[key] !== undefined ? imported[key] : 'none';
+
+                    // formatting arrays like tags or dependencies to read nicer
+                    const formatVal = (v) => {
+                        if (Array.isArray(v)) return v.length ? v.join(', ') : 'none';
+                        if (typeof v === 'object' && v !== null) return JSON.stringify(v);
+                        return v;
+                    };
+
+                    tooltipContent += `${key}:\n  Before: ${formatVal(fromStr)}\n  After: ${formatVal(toStr)}\n`;
                 }
             });
+
             if (changedKeys.length === 0) return 'No visible changes';
-            return 'Changed fields: ' + changedKeys.join(', ');
+
+            let html = 'Changed fields: ' + changedKeys.join(', ');
+
+            if (tooltipContent) {
+                const safeTooltip = this.escapeHtml(tooltipContent.trim());
+                html += ` <span class="badge rounded-pill bg-info text-dark ms-1" style="cursor: help; vertical-align: middle;" title="${safeTooltip}">i</span>`;
+            }
+
+            return html;
         };
 
         if (diff.tasks.new.length === 0 && diff.tasks.modified.length === 0 && diff.tasks.deleted.length === 0) {
@@ -933,8 +958,8 @@ class UI {
         } else {
             diff.tasks.new.forEach(task => renderTaskRow('new', task, `Start: ${task.startDate}, End: ${task.endDate}`));
             diff.tasks.modified.forEach(mod => {
-                const diffStr = getChangedFieldsStr(mod.current, mod.imported);
-                renderTaskRow('modified', mod.imported, diffStr);
+                const diffHtml = getChangedFieldsHtml(mod.current, mod.imported);
+                renderTaskRow('modified', mod.imported, diffHtml);
             });
             diff.tasks.deleted.forEach(task => renderTaskRow('deleted', task, 'Task exists in current plan but not in imported plan'));
         }
@@ -966,8 +991,8 @@ class UI {
         } else {
             diff.markers.new.forEach(marker => renderMarkerRow('new', marker, `Type: ${marker.type}`));
             diff.markers.modified.forEach(mod => {
-                const diffStr = getChangedFieldsStr(mod.current, mod.imported);
-                renderMarkerRow('modified', mod.imported, diffStr);
+                const diffHtml = getChangedFieldsHtml(mod.current, mod.imported);
+                renderMarkerRow('modified', mod.imported, diffHtml);
             });
             diff.markers.deleted.forEach(marker => renderMarkerRow('deleted', marker, 'Marker exists in current plan but not in imported plan'));
         }
