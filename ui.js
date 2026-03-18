@@ -768,13 +768,6 @@ class UI {
             tagFiltersContainer.addEventListener('change', (e) => {
                 if (e.target.matches('.tag-checkbox')) {
                     this.updateTagFiltersState();
-                } else if (e.target.matches('.tag-match-mode-radio') || e.target.matches('.tag-visual-mode-radio')) {
-                    this.updateTagFiltersState();
-                } else if (e.target.id === 'showDependenciesCheckbox') {
-                    this.planner.setShowDependencies(e.target.checked);
-                    if (window.GanttEngine) {
-                        window.GanttEngine.render(this.planner.getCurrentPlan());
-                    }
                 }
             });
 
@@ -787,6 +780,20 @@ class UI {
                     const checkboxes = tagFiltersContainer.querySelectorAll('.tag-checkbox');
                     checkboxes.forEach(cb => cb.checked = false);
                     this.updateTagFiltersState();
+                }
+            });
+        }
+
+        const tagFiltersIconsContainer = document.getElementById('tagFiltersIconsContainer');
+        if (tagFiltersIconsContainer) {
+            tagFiltersIconsContainer.addEventListener('change', (e) => {
+                if (e.target.matches('.tag-match-mode-radio') || e.target.matches('.tag-visual-mode-radio')) {
+                    this.updateTagFiltersState();
+                } else if (e.target.id === 'showDependenciesCheckbox') {
+                    this.planner.setShowDependencies(e.target.checked);
+                    if (window.GanttEngine) {
+                        window.GanttEngine.render(this.planner.getCurrentPlan());
+                    }
                 }
             });
         }
@@ -1207,13 +1214,18 @@ class UI {
 
         const selectedTags = Array.from(container.querySelectorAll('.tag-checkbox:checked')).map(cb => cb.value);
 
-        let matchMode = 'any';
-        const matchModeEl = container.querySelector('.tag-match-mode-radio:checked');
-        if (matchModeEl) matchMode = matchModeEl.value;
+        const iconsContainer = document.getElementById('tagFiltersIconsContainer');
 
+        let matchMode = 'any';
         let visualMode = 'show';
-        const visualModeEl = container.querySelector('.tag-visual-mode-radio:checked');
-        if (visualModeEl) visualMode = visualModeEl.value;
+
+        if (iconsContainer) {
+            const matchModeEl = iconsContainer.querySelector('.tag-match-mode-radio:checked');
+            if (matchModeEl) matchMode = matchModeEl.value;
+
+            const visualModeEl = iconsContainer.querySelector('.tag-visual-mode-radio:checked');
+            if (visualModeEl) visualMode = visualModeEl.value;
+        }
 
         this.planner.setFilterState({
             selectedTags,
@@ -2066,8 +2078,15 @@ class UI {
 
         html += `
             </div>
-            <div class="d-flex align-items-center gap-2">
-                <div class="vr ms-2 me-1"></div>
+        `;
+
+        container.innerHTML = html;
+
+        // Render the icons separately into their own container to fix layout
+        const iconsContainer = document.getElementById('tagFiltersIconsContainer');
+        if (iconsContainer) {
+            let iconsHtml = `
+                <div class="vr me-1"></div>
 
                 <div class="btn-group" role="group" aria-label="Tag Match Mode">
                     <input type="radio" class="btn-check tag-match-mode-radio" name="tagMatchMode" id="matchModeAny" value="any" autocomplete="off" ${filterState.matchMode === 'any' ? 'checked' : ''}>
@@ -2089,9 +2108,8 @@ class UI {
                     <input type="checkbox" class="btn-check" id="showDependenciesCheckbox" autocomplete="off" ${this.planner.getShowDependencies() ? 'checked' : ''}>
                     <label class="btn btn-outline-secondary btn-sm py-0" for="showDependenciesCheckbox" title="Show Dependencies">🔗</label>
                 </div>
-            </div>
-        `;
-
-        container.innerHTML = html;
+            `;
+            iconsContainer.innerHTML = iconsHtml;
+        }
     }
 }
