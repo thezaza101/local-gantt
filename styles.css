@@ -56,30 +56,12 @@ body {
 
 .analytics-panel {
     flex: 1 1 auto; /* Grow to take up remaining space, shrink if needed */
-    max-height: 50%; /* Don't let it take over the whole screen */
+    max-height: none; /* Let it take the full screen height now */
     background-color: var(--background-color);
-    border: 1px solid var(--border-color);
-    border-radius: 0.25rem;
+    border: none;
+    border-radius: 0;
     padding: 0;
     overflow: hidden;
-}
-
-.analytics-panel.collapsed {
-    flex: 0 0 auto; /* Don't grow when collapsed */
-    max-height: auto;
-    min-height: 0;
-}
-
-.analytics-panel.collapsed .analytics-header h6 {
-    display: block;
-}
-
-.analytics-panel.collapsed .analytics-header {
-    justify-content: space-between !important;
-}
-
-.analytics-panel.collapsed .analytics-content {
-    display: none !important;
 }
 
 /* Full Screen Modes */
@@ -88,7 +70,7 @@ body.analytics-fullscreen .planner-area {
 }
 
 body.analytics-fullscreen .analytics-panel {
-    max-height: none !important;
+    display: flex !important;
 }
 
 body.presenter-mode .ribbon-container {

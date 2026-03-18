@@ -18,10 +18,7 @@
                 <button class="nav-link active py-1" id="file-plan-tab" data-bs-toggle="tab" data-bs-target="#file-plan" type="button" role="tab" aria-controls="file-plan" aria-selected="true"><span class="small fw-bold">File & Plan</span></button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link py-1" id="tasks-elements-tab" data-bs-toggle="tab" data-bs-target="#tasks-elements" type="button" role="tab" aria-controls="tasks-elements" aria-selected="false"><span class="small fw-bold">Tasks & Elements</span></button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link py-1" id="view-filters-tab" data-bs-toggle="tab" data-bs-target="#view-filters" type="button" role="tab" aria-controls="view-filters" aria-selected="false"><span class="small fw-bold">View & Filters</span></button>
+                <button class="nav-link py-1" id="gantt-tab" data-bs-toggle="tab" data-bs-target="#gantt" type="button" role="tab" aria-controls="gantt" aria-selected="false"><span class="small fw-bold">Gantt</span></button>
             </li>
         </ul>
         <div class="tab-content border-bottom bg-white px-3 py-2" id="ribbonTabsContent">
@@ -72,26 +69,23 @@
                 </div>
             </div>
 
-            <!-- Tasks & Elements Tab -->
-            <div class="tab-pane fade" id="tasks-elements" role="tabpanel" aria-labelledby="tasks-elements-tab">
-                <div class="d-flex align-items-center gap-3 flex-wrap">
-                    <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary" title="Add a new task to the plan">Add Task</button>
-                    <div class="btn-group" role="group">
-                        <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Manage timeline markers">Markers</button>
-                        <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="View task list">Task List</button>
-                        <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark" title="Configure task colors and legends">Legends</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- View & Filters Tab -->
-            <div class="tab-pane fade" id="view-filters" role="tabpanel" aria-labelledby="view-filters-tab">
+            <!-- Gantt Tab -->
+            <div class="tab-pane fade" id="gantt" role="tabpanel" aria-labelledby="gantt-tab">
                 <div class="d-flex flex-column gap-2 w-100">
-                    <div class="d-flex gap-2 align-items-center flex-wrap" id="tagFiltersContainer">
-                        <!-- Dynamically generated tags will appear here -->
-                    </div>
+                    <div class="d-flex align-items-center gap-3 flex-wrap">
+                        <button type="button" id="addTaskBtn" class="btn btn-sm btn-primary" title="Add a new task to the plan">Add Task</button>
+                        <div class="btn-group" role="group">
+                            <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Manage timeline markers">Markers</button>
+                            <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="View task list">Task List</button>
+                            <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-dark" title="Configure task colors and legends">Legends</button>
+                        </div>
 
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div class="vr"></div>
+
+                        <div class="d-flex gap-2 align-items-center flex-wrap" id="tagFiltersContainer">
+                            <!-- Dynamically generated tags will appear here -->
+                        </div>
+
                         <div class="d-flex align-items-center gap-2" id="tagFiltersIconsContainer">
                             <!-- Dynamically generated tag icons will appear here -->
                         </div>
@@ -128,7 +122,8 @@
                             </div>
 
                             <div class="vr ms-2 me-2"></div>
-                            <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary" title="Toggle Presenter Mode">Presenter Mode</button>
+                            <button type="button" id="openAnalyticsBtn" class="btn btn-sm btn-outline-secondary" title="Open Analytics">📊</button>
+                            <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary ms-1" title="Toggle Presenter Mode">📺</button>
                         </div>
                     </div>
                 </div>
@@ -143,9 +138,9 @@
     <button type="button" id="exitPresenterModeBtn" class="btn btn-sm btn-secondary d-none" style="position: absolute; top: 10px; right: 10px; z-index: 1050; opacity: 0.8;">Exit Presenter Mode</button>
 
     <!-- Main Content Area -->
-    <div class="main-content flex-column">
+    <div class="main-content flex-column" style="position: relative;">
         <!-- Top Half: Planner Area (Gantt) -->
-        <div class="planner-area d-flex flex-column mb-3">
+        <div class="planner-area d-flex flex-column mb-3 h-100">
             <div id="gantt-chart-container" class="gantt-chart-container p-4 d-flex align-items-center justify-content-center">
                 <div class="text-center text-muted">
                     <h5>Gantt Chart Area</h5>
@@ -154,16 +149,15 @@
             </div>
         </div>
 
-        <!-- Bottom Half: Analytics Panel -->
-        <div class="analytics-panel p-0 d-flex flex-column collapsed" id="analyticsContainer">
-             <div class="analytics-header d-flex justify-content-between align-items-center p-2 border-bottom bg-white" style="cursor: pointer;" id="analyticsToggleBtn">
-                 <h6 class="m-0 text-muted" id="analyticsTitle">Analytics</h6>
+        <!-- Analytics Panel -->
+        <div class="analytics-panel p-0 d-flex flex-column bg-white d-none" id="analyticsContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1040;">
+             <div class="analytics-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
+                 <h6 class="m-0 text-dark fw-bold" id="analyticsTitle">Analytics</h6>
                  <div class="d-flex align-items-center gap-2">
-                     <button type="button" id="analyticsFullScreenBtn" class="btn btn-sm btn-outline-secondary py-0 d-none" title="Toggle Full Screen" style="font-size: 0.75rem;">Full Screen</button>
-                     <span id="analyticsChevron" style="font-size: 0.8rem;">▲</span>
+                     <button type="button" id="closeAnalyticsBtn" class="btn-close" aria-label="Close" title="Close Analytics"></button>
                  </div>
              </div>
-             <div class="analytics-content p-4 d-flex flex-column flex-grow-1 overflow-auto bg-light" id="analyticsContent">
+             <div class="analytics-content p-4 d-flex flex-column flex-grow-1 overflow-auto bg-white" id="analyticsContent">
                  <div class="text-center text-muted my-auto" id="analyticsPlaceholder">
                      <h5>Analytics Panel</h5>
                      <p class="small">Effort summaries and tag metrics will render here</p>
