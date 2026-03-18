@@ -37,5 +37,11 @@ async function initApp() {
     // Initial UI update
     window.UIController.updateUI();
 
+    // Prevent accidental navigation/closing
+    window.addEventListener('beforeunload', (event) => {
+        event.preventDefault();
+        event.returnValue = '';
+    });
+
     console.log("App ready.");
 }
