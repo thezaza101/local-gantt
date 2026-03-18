@@ -789,6 +789,86 @@
         </div>
     </div>
 
+
+    <!-- Export CSV Modal -->
+    <div class="modal fade" id="exportCsvModal" tabindex="-1" aria-labelledby="exportCsvModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportCsvModalLabel">Export CSV Options</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">Select the fields you want to include in the CSV export.</p>
+                    <form id="exportCsvForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldId" value="id" checked>
+                                    <label class="form-check-label" for="csvFieldId">Task ID</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldTitle" value="title" checked>
+                                    <label class="form-check-label" for="csvFieldTitle">Title</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldDescription" value="description">
+                                    <label class="form-check-label" for="csvFieldDescription">Description</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldStartDate" value="startDate" checked>
+                                    <label class="form-check-label" for="csvFieldStartDate">Start Date</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldEndDate" value="endDate" checked>
+                                    <label class="form-check-label" for="csvFieldEndDate">End Date</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldRow" value="row">
+                                    <label class="form-check-label" for="csvFieldRow">Row</label>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldStatus" value="status">
+                                    <label class="form-check-label" for="csvFieldStatus">Status</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldTags" value="tags" checked>
+                                    <label class="form-check-label" for="csvFieldTags">Tags</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldDependencies" value="dependencies">
+                                    <label class="form-check-label" for="csvFieldDependencies">Dependencies</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldEffortDesign" value="effort.design">
+                                    <label class="form-check-label" for="csvFieldEffortDesign">Effort (Design)</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldEffortDev" value="effort.dev">
+                                    <label class="form-check-label" for="csvFieldEffortDev">Effort (Dev)</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldEffortTest" value="effort.test">
+                                    <label class="form-check-label" for="csvFieldEffortTest">Effort (Test)</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldTotalEffort" value="effort.total">
+                                    <label class="form-check-label" for="csvFieldTotalEffort">Total Effort</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmExportCsvBtn">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Local Bootstrap JS -->
     <script src="vendor/bootstrap.bundle.min.js"></script>
 </body>
