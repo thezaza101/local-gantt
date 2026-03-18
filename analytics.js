@@ -524,8 +524,9 @@ class Analytics {
                     <!-- Top Row -->
                     <div class="col-md-6 col-lg-3">
                         <div class="card h-100 shadow-sm">
-                            <div class="card-header bg-white py-2">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Effort by Tag</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="effortByTag" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <div style="height: 150px; position: relative;">
@@ -537,8 +538,9 @@ class Analytics {
                     </div>
                     <div class="col-md-6 col-lg-3">
                         <div class="card h-100 shadow-sm">
-                            <div class="card-header bg-white py-2">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Effort by Status</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="effortByStatus" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
                             </div>
                             <div class="card-body d-flex flex-column">
                                 <div style="height: 150px; position: relative;">
@@ -550,8 +552,9 @@ class Analytics {
                     </div>
                     <div class="col-md-6 col-lg-3">
                         <div class="card h-100 shadow-sm">
-                            <div class="card-header bg-white py-2">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Task Count by Status</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="taskCountByStatus" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
                             </div>
                             <div class="card-body d-flex flex-column align-items-center">
                                 <div style="width: 100%; height: 150px; position: relative;">
@@ -563,8 +566,9 @@ class Analytics {
                     </div>
                     <div class="col-md-12 col-lg-3">
                         <div class="card h-100 shadow-sm">
-                            <div class="card-header bg-white py-2">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Effort by Type</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="effortByType" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
                             </div>
                             <div class="card-body d-flex flex-column justify-content-center align-items-center">
                                 <div style="width: 80%; height: 250px; position: relative;">
@@ -587,8 +591,9 @@ class Analytics {
                     </div>
                     <div class="col-md-12 col-lg-8">
                         <div class="card shadow-sm">
-                            <div class="card-header bg-white py-2">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Capacity vs Demand</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="capacityVsDemand" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -606,8 +611,9 @@ class Analytics {
                     <!-- Bottom Row -->
                     <div class="col-12">
                         <div class="card h-100 shadow-sm">
-                            <div class="card-header bg-white py-2">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Effort by Tag Over Time</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="tagEffortOverTime" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
                             </div>
                             <div class="card-body">
                                 <canvas id="chartTagEffortOverTime" style="max-height: 300px;"></canvas>
@@ -631,6 +637,8 @@ class Analytics {
             this.renderChartEffortByType(effortByTypeData);
             this.renderChartTagEffortOverTime(tagEffortOverTimeData);
             this.renderChartCapacityVsDemand(demandCapacityData);
+
+            this.bindExportEvents();
         }, 0);
     }
 
@@ -740,6 +748,54 @@ class Analytics {
              .replace(/>/g, "&gt;")
              .replace(/"/g, "&quot;")
              .replace(/'/g, "&#039;");
+    bindExportEvents() {
+        const container = document.getElementById('analyticsContent');
+        if (!container) return;
+
+        const exportBtns = container.querySelectorAll('.export-chart-btn');
+        exportBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const chartId = btn.getAttribute('data-chart-id');
+                this.exportChartToImage(chartId);
+            });
+        });
+    }
+
+    exportChartToImage(chartId) {
+        if (!this.charts[chartId]) {
+            console.error(`Chart with ID ${chartId} not found.`);
+            return;
+        }
+
+        const chart = this.charts[chartId];
+        // Ensure background is white before exporting (default canvas is transparent)
+        // Chart.js allows us to do this by forcing a render with a white background, or we can use toBase64Image directly
+        // if we set the backgroundColor option, or we can use a temporary canvas.
+        // A simpler approach is to draw the existing canvas onto a new canvas with a white background.
+
+        const originalCanvas = chart.canvas;
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = originalCanvas.width;
+        tempCanvas.height = originalCanvas.height;
+        const ctx = tempCanvas.getContext('2d');
+
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        ctx.drawImage(originalCanvas, 0, 0);
+
+        const image = tempCanvas.toDataURL("image/png");
+        const link = document.createElement('a');
+
+        const planName = this.planner.getCurrentPlan()?.name || 'Unnamed_Plan';
+        const sanitizedPlanName = planName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+        const today = new Date();
+        const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+        link.download = `${sanitizedPlanName}_${chartId}_${dateString}.png`;
+        link.href = image;
+        link.click();
     }
 
     renderChartCapacityVsDemand(data) {

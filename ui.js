@@ -385,6 +385,9 @@ class UI {
                         const legend = ganttContainer.querySelector('.gantt-legend');
                         if (legend) legend.style.display = 'none';
 
+                        const rowNumbers = ganttContainer.querySelectorAll('.gantt-row-number');
+                        rowNumbers.forEach(r => r.style.display = 'none');
+
                         // We also need to capture the full scrolled content, so we pass the gantt-container
                         // to html2canvas or adjust scroll
                         const ganttContent = ganttContainer.querySelector('.gantt-content');
@@ -520,6 +523,7 @@ class UI {
                             // Restore controls and legend
                             controls.forEach(c => c.style.display = '');
                             if (legend) legend.style.display = '';
+                            rowNumbers.forEach(r => r.style.display = '');
 
                             if (printTimestamp) {
                                 printTimestamp.classList.add('d-none');
@@ -564,6 +568,7 @@ class UI {
                             }
                             controls.forEach(c => c.style.display = '');
                             if (legend) legend.style.display = '';
+                            rowNumbers.forEach(r => r.style.display = '');
                             if (printTimestamp) {
                                 printTimestamp.classList.add('d-none');
                                 document.body.appendChild(printTimestamp);
@@ -768,13 +773,6 @@ class UI {
             tagFiltersContainer.addEventListener('change', (e) => {
                 if (e.target.matches('.tag-checkbox')) {
                     this.updateTagFiltersState();
-                } else if (e.target.matches('.tag-match-mode-radio') || e.target.matches('.tag-visual-mode-radio')) {
-                    this.updateTagFiltersState();
-                } else if (e.target.id === 'showDependenciesCheckbox') {
-                    this.planner.setShowDependencies(e.target.checked);
-                    if (window.GanttEngine) {
-                        window.GanttEngine.render(this.planner.getCurrentPlan());
-                    }
                 }
             });
 
@@ -787,6 +785,20 @@ class UI {
                     const checkboxes = tagFiltersContainer.querySelectorAll('.tag-checkbox');
                     checkboxes.forEach(cb => cb.checked = false);
                     this.updateTagFiltersState();
+                }
+            });
+        }
+
+        const tagFiltersIconsContainer = document.getElementById('tagFiltersIconsContainer');
+        if (tagFiltersIconsContainer) {
+            tagFiltersIconsContainer.addEventListener('change', (e) => {
+                if (e.target.matches('.tag-match-mode-radio') || e.target.matches('.tag-visual-mode-radio')) {
+                    this.updateTagFiltersState();
+                } else if (e.target.id === 'showDependenciesCheckbox') {
+                    this.planner.setShowDependencies(e.target.checked);
+                    if (window.GanttEngine) {
+                        window.GanttEngine.render(this.planner.getCurrentPlan());
+                    }
                 }
             });
         }
@@ -1207,13 +1219,18 @@ class UI {
 
         const selectedTags = Array.from(container.querySelectorAll('.tag-checkbox:checked')).map(cb => cb.value);
 
-        let matchMode = 'any';
-        const matchModeEl = container.querySelector('.tag-match-mode-radio:checked');
-        if (matchModeEl) matchMode = matchModeEl.value;
+        const iconsContainer = document.getElementById('tagFiltersIconsContainer');
 
+        let matchMode = 'any';
         let visualMode = 'show';
-        const visualModeEl = container.querySelector('.tag-visual-mode-radio:checked');
-        if (visualModeEl) visualMode = visualModeEl.value;
+
+        if (iconsContainer) {
+            const matchModeEl = iconsContainer.querySelector('.tag-match-mode-radio:checked');
+            if (matchModeEl) matchMode = matchModeEl.value;
+
+            const visualModeEl = iconsContainer.querySelector('.tag-visual-mode-radio:checked');
+            if (visualModeEl) visualMode = visualModeEl.value;
+        }
 
         this.planner.setFilterState({
             selectedTags,
@@ -2066,38 +2083,38 @@ class UI {
 
         html += `
             </div>
-            <div class="d-flex align-items-center border-start ps-3 gap-3">
-                <div class="d-flex align-items-center gap-1">
-                    <span class="text-muted small">Match:</span>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-match-mode-radio" type="radio" name="tagMatchMode" id="matchModeAny" value="any" ${filterState.matchMode === 'any' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="matchModeAny">Any (OR)</label>
-                    </div>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-match-mode-radio" type="radio" name="tagMatchMode" id="matchModeAll" value="all" ${filterState.matchMode === 'all' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="matchModeAll">All (AND)</label>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-1 border-start ps-3">
-                    <span class="text-muted small">View:</span>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeShow" value="show" ${filterState.visualMode === 'show' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="visualModeShow">Show Only</label>
-                    </div>
-                    <div class="form-check form-check-inline m-0">
-                        <input class="form-check-input tag-visual-mode-radio" type="radio" name="tagVisualMode" id="visualModeHighlight" value="highlight" ${filterState.visualMode === 'highlight' ? 'checked' : ''}>
-                        <label class="form-check-label small" for="visualModeHighlight">Highlight</label>
-                    </div>
-                </div>
-                <div class="d-flex align-items-center gap-1 border-start ps-3">
-                    <div class="form-check m-0">
-                        <input class="form-check-input" type="checkbox" id="showDependenciesCheckbox" ${this.planner.getShowDependencies() ? 'checked' : ''}>
-                        <label class="form-check-label small text-muted" for="showDependenciesCheckbox">Show Dependencies</label>
-                    </div>
-                </div>
-            </div>
         `;
 
         container.innerHTML = html;
+
+        // Render the icons separately into their own container to fix layout
+        const iconsContainer = document.getElementById('tagFiltersIconsContainer');
+        if (iconsContainer) {
+            let iconsHtml = `
+                <div class="vr me-1"></div>
+
+                <div class="btn-group" role="group" aria-label="Tag Match Mode">
+                    <input type="radio" class="btn-check tag-match-mode-radio" name="tagMatchMode" id="matchModeAny" value="any" autocomplete="off" ${filterState.matchMode === 'any' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="matchModeAny" title="Match Any (OR)">∪</label>
+
+                    <input type="radio" class="btn-check tag-match-mode-radio" name="tagMatchMode" id="matchModeAll" value="all" autocomplete="off" ${filterState.matchMode === 'all' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="matchModeAll" title="Match All (AND)">∩</label>
+                </div>
+
+                <div class="btn-group ms-2" role="group" aria-label="Tag Visual Mode">
+                    <input type="radio" class="btn-check tag-visual-mode-radio" name="tagVisualMode" id="visualModeShow" value="show" autocomplete="off" ${filterState.visualMode === 'show' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="visualModeShow" title="Show Only">👁️</label>
+
+                    <input type="radio" class="btn-check tag-visual-mode-radio" name="tagVisualMode" id="visualModeHighlight" value="highlight" autocomplete="off" ${filterState.visualMode === 'highlight' ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="visualModeHighlight" title="Highlight">🔦</label>
+                </div>
+
+                <div class="btn-group ms-2" role="group" aria-label="Dependencies Toggle">
+                    <input type="checkbox" class="btn-check" id="showDependenciesCheckbox" autocomplete="off" ${this.planner.getShowDependencies() ? 'checked' : ''}>
+                    <label class="btn btn-outline-secondary btn-sm py-0" for="showDependenciesCheckbox" title="Show Dependencies">🔗</label>
+                </div>
+            `;
+            iconsContainer.innerHTML = iconsHtml;
+        }
     }
 }
