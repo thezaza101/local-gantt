@@ -119,8 +119,7 @@ body.presenter-mode #exitPresenterModeBtn {
 /* Ribbon Toolbar Customizations */
 .ribbon-container {
     background-color: white;
-    position: relative;
-    z-index: 1050;
+    z-index: 100;
 }
 
 .ribbon-container .nav-tabs {
