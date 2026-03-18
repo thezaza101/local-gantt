@@ -342,6 +342,14 @@ class UI {
             });
         }
 
+        // Export Legend Button
+        const exportLegendBtn = document.getElementById("exportLegendBtn");
+        if (exportLegendBtn) {
+            exportLegendBtn.addEventListener("click", () => {
+                this.exportLegendImage();
+            });
+        }
+
         // Export Image Button
         const exportImageBtn = document.getElementById("exportImageBtn");
         if (exportImageBtn) {
@@ -355,9 +363,6 @@ class UI {
                         // We temporarily hide the task controls and legend to clean up the image
                         const controls = ganttContainer.querySelectorAll('.gantt-task-controls');
                         controls.forEach(c => c.style.display = 'none');
-
-                        const legend = ganttContainer.querySelector('.gantt-legend');
-                        if (legend) legend.style.display = 'none';
 
                         const rowNumbers = ganttContainer.querySelectorAll('.gantt-row-number');
                         rowNumbers.forEach(r => r.style.display = 'none');
@@ -494,9 +499,8 @@ class UI {
                                 ganttSidebar.style.position = originalSidebarPosition;
                             }
 
-                            // Restore controls and legend
+                            // Restore controls
                             controls.forEach(c => c.style.display = '');
-                            if (legend) legend.style.display = '';
                             rowNumbers.forEach(r => r.style.display = '');
 
                             if (printTimestamp) {
@@ -541,7 +545,6 @@ class UI {
                                 ganttSidebar.style.position = originalSidebarPosition;
                             }
                             controls.forEach(c => c.style.display = '');
-                            if (legend) legend.style.display = '';
                             rowNumbers.forEach(r => r.style.display = '');
                             if (printTimestamp) {
                                 printTimestamp.classList.add('d-none');
@@ -1964,6 +1967,128 @@ class UI {
         this.updateUI();
     }
 
+    exportLegendImage() {
+        const currentPlan = this.planner.getCurrentPlan();
+        if (!currentPlan) return;
+
+        // Ensure we have uniqueTags via AnalyticsEngine to group them accurately
+        if (!window.AnalyticsEngine) return;
+        const uniqueTags = window.AnalyticsEngine.getUniqueTags();
+
+        const fillLegends = this.planner.getFillLegends();
+        const borderLegends = this.planner.getBorderLegends();
+        const statusColors = this.planner.getStatusColors ? this.planner.getStatusColors() : {};
+
+        const groupedTags = {
+            fill: [],
+            border: [],
+            status: [],
+            custom: []
+        };
+
+        uniqueTags.forEach(tag => {
+            const fillLegend = fillLegends.find(l => l.tag === tag);
+            const borderLegend = borderLegends.find(l => l.tag === tag);
+            let isStatus = false;
+            for (const status in statusColors) {
+                if (status.toLowerCase() === tag.toLowerCase()) {
+                    isStatus = true;
+                    break;
+                }
+            }
+
+            if (fillLegend) {
+                groupedTags.fill.push({ tag, label: fillLegend.label });
+            } else if (borderLegend) {
+                groupedTags.border.push({ tag, label: borderLegend.label });
+            } else if (isStatus) {
+                groupedTags.status.push({ tag, label: tag });
+            } else {
+                groupedTags.custom.push({ tag, label: tag });
+            }
+        });
+
+        const getTagColorHtml = (tag) => {
+            const fillLegend = fillLegends.find(l => l.tag === tag);
+            const borderLegend = borderLegends.find(l => l.tag === tag);
+
+            let statusColor = null;
+            if (tag.toLowerCase() === 'completed') statusColor = '#28a745';
+            else if (tag.toLowerCase() === 'in progress') statusColor = '#007bff';
+            else if (tag.toLowerCase() === 'blocked') statusColor = '#dc3545';
+            else if (tag.toLowerCase() === 'on hold') statusColor = '#ffc107';
+            else if (tag.toLowerCase() === 'committed') statusColor = '#17a2b8';
+            else if (tag.toLowerCase() === 'refined') statusColor = '#e2e3e5';
+
+            if (fillLegend) {
+                return `<span style="display:inline-block; width: 14px; height: 14px; background-color: ${fillLegend.color}; border: 1px solid #ccc; margin-right: 8px; border-radius: 2px; vertical-align: middle;"></span>`;
+            } else if (borderLegend) {
+                return `<span style="display:inline-block; width: 14px; height: 14px; border: 2px solid ${borderLegend.color}; background-color: transparent; margin-right: 8px; border-radius: 2px; vertical-align: middle;"></span>`;
+            } else if (statusColor) {
+                return `<span style="display:inline-block; width: 14px; height: 14px; background-color: ${statusColor}; border: 1px solid #ccc; margin-right: 8px; border-radius: 2px; vertical-align: middle;"></span>`;
+            }
+            return '';
+        };
+
+        const renderTagGroup = (groupTitle, items) => {
+            if (items.length === 0) return '';
+            let groupHtml = `<div style="margin-bottom: 15px;">
+                                <h6 style="margin: 0 0 8px 0; font-size: 14px; color: #555; text-transform: uppercase; border-bottom: 1px solid #eee; padding-bottom: 4px;">${groupTitle}</h6>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">`;
+            items.forEach(item => {
+                const safeTagText = this.escapeHtml(item.label || item.tag);
+                const colorHtml = getTagColorHtml(item.tag);
+                groupHtml += `
+                    <div style="display: flex; align-items: center; font-size: 13px; color: #333;">
+                        ${colorHtml}<span>${safeTagText}</span>
+                    </div>`;
+            });
+            groupHtml += `</div></div>`;
+            return groupHtml;
+        };
+
+        let containerHtml = `
+            <div id="temp-legend-export" style="
+                position: absolute;
+                top: -9999px;
+                left: -9999px;
+                width: 300px;
+                background-color: #fff;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            ">
+                <h4 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">Legend - ${this.escapeHtml(currentPlan.name || 'Plan')}</h4>
+                ${renderTagGroup('Fill Colors', groupedTags.fill)}
+                ${renderTagGroup('Border Colors', groupedTags.border)}
+                ${renderTagGroup('Status Indicators', groupedTags.status)}
+                ${renderTagGroup('Custom Tags', groupedTags.custom)}
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', containerHtml);
+        const tempElement = document.getElementById('temp-legend-export');
+
+        html2canvas(tempElement, {
+            scale: 2,
+            backgroundColor: '#ffffff'
+        }).then(canvas => {
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+            const sanitizedPlanName = (currentPlan.name || 'Gantt').replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            link.download = `${sanitizedPlanName}_legend.png`;
+            link.href = image;
+            link.click();
+
+            tempElement.remove();
+        }).catch(err => {
+            console.error("Error generating legend image:", err);
+            tempElement.remove();
+            alert("Failed to export legend image.");
+        });
+    }
+
     updateUI() {
         const planSelectorBtn = document.getElementById("planSelectorBtn");
         const planSelectorMenu = document.getElementById("planSelectorMenu");
@@ -2109,25 +2234,68 @@ class UI {
             return '';
         };
 
-        uniqueTags.forEach(tag => {
-            const isChecked = filterState.selectedTags.includes(tag) ? 'checked' : '';
-            const safeTagAttr = tag.replace(/"/g, '&quot;');
-            const safeTagText = escapeHtml(tag);
-            const colorHtml = getTagColorHtml(tag);
+        const groupedTags = {
+            fill: [],
+            border: [],
+            status: [],
+            custom: []
+        };
 
-            html += `
-                <li>
-                    <div class="dropdown-item d-flex align-items-center">
-                        <div class="form-check m-0 d-flex align-items-center w-100">
-                            <input class="form-check-input tag-checkbox me-2" type="checkbox" id="tagFilter_${safeTagAttr}" value="${safeTagAttr}" ${isChecked}>
-                            <label class="form-check-label small w-100 d-flex align-items-center" for="tagFilter_${safeTagAttr}">
-                                ${colorHtml}${safeTagText}
-                            </label>
-                        </div>
-                    </div>
-                </li>
-            `;
+        const plannerState = this.planner;
+        const statusColors = plannerState.getStatusColors ? plannerState.getStatusColors() : {};
+
+        uniqueTags.forEach(tag => {
+            const fillLegend = fillLegends.find(l => l.tag === tag);
+            const borderLegend = borderLegends.find(l => l.tag === tag);
+            let isStatus = false;
+            for (const status in statusColors) {
+                if (status.toLowerCase() === tag.toLowerCase()) {
+                    isStatus = true;
+                    break;
+                }
+            }
+
+            if (fillLegend) {
+                groupedTags.fill.push({ tag, label: fillLegend.label });
+            } else if (borderLegend) {
+                groupedTags.border.push({ tag, label: borderLegend.label });
+            } else if (isStatus) {
+                groupedTags.status.push({ tag, label: tag });
+            } else {
+                groupedTags.custom.push({ tag, label: tag });
+            }
         });
+
+        const renderTagGroup = (groupTitle, items) => {
+            if (items.length === 0) return '';
+            let groupHtml = `<li><h6 class="dropdown-header border-bottom mb-1 pb-1 text-uppercase fw-bold">${groupTitle}</h6></li>`;
+            items.forEach(item => {
+                const tag = item.tag;
+                const isChecked = filterState.selectedTags.includes(tag) ? 'checked' : '';
+                const safeTagAttr = tag.replace(/"/g, '&quot;');
+                const safeTagText = escapeHtml(item.label || tag);
+                const colorHtml = getTagColorHtml(tag);
+
+                groupHtml += `
+                    <li>
+                        <div class="dropdown-item d-flex align-items-center py-1">
+                            <div class="form-check m-0 d-flex align-items-center w-100">
+                                <input class="form-check-input tag-checkbox me-2" type="checkbox" id="tagFilter_${safeTagAttr}" value="${safeTagAttr}" ${isChecked}>
+                                <label class="form-check-label small w-100 d-flex align-items-center" for="tagFilter_${safeTagAttr}" style="cursor: pointer;">
+                                    ${colorHtml}${safeTagText}
+                                </label>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            });
+            return groupHtml;
+        };
+
+        html += renderTagGroup('Fill Colors', groupedTags.fill);
+        html += renderTagGroup('Border Colors', groupedTags.border);
+        html += renderTagGroup('Status Indicators', groupedTags.status);
+        html += renderTagGroup('Custom Tags', groupedTags.custom);
 
         html += `
                 </ul>

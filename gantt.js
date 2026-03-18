@@ -274,7 +274,6 @@ class Gantt {
             });
         }
 
-        const legendHtml = this.generateLegendHtml(plan);
         // Generate Row Numbers HTML
         let rowNumbersHtml = '';
 
@@ -346,7 +345,6 @@ class Gantt {
                     </div>
                 </div>
             </div>
-            ${legendHtml}
         `;
 
         // Sync vertical scrolling between wrapper and sidebar
@@ -385,7 +383,6 @@ class Gantt {
 
         // Bind events for tasks
         this.bindTaskEvents();
-        this.bindLegendEvents();
         this.bindRowEvents();
         this.bindBackgroundEvents();
     }
@@ -1009,78 +1006,6 @@ class Gantt {
         return lines;
     }
 
-    generateLegendHtml() {
-        if (!window.PlannerState) return '';
-
-        const fillLegends = window.PlannerState.getFillLegends();
-        const borderLegends = window.PlannerState.getBorderLegends();
-        const statusColors = window.PlannerState.getStatusColors();
-
-        const collapsedClass = this.isLegendCollapsed ? 'collapsed' : '';
-        const arrow = this.isLegendCollapsed ? '▲' : '▼';
-
-        let html = `
-            <div class="gantt-legend ${collapsedClass}" id="ganttLegend">
-                <div class="gantt-legend-header" id="ganttLegendHeader">
-                    <span>Legend</span>
-                    <span id="ganttLegendArrow">${arrow}</span>
-                </div>
-                <div class="gantt-legend-content">
-        `;
-
-        // Fill Colors
-        if (fillLegends && fillLegends.length > 0) {
-            html += `<div class="gantt-legend-section"><h6>Fill Colors</h6>`;
-            fillLegends.forEach(legend => {
-                const label = this.escapeHtml(legend.label);
-                html += `
-                    <div class="gantt-legend-item">
-                        <div class="gantt-legend-color-box" style="background-color: ${legend.color};"></div>
-                        <span>${label}</span>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-        }
-
-        // Border Colors
-        if (borderLegends && borderLegends.length > 0) {
-            html += `<div class="gantt-legend-section"><h6>Border Colors</h6>`;
-            borderLegends.forEach(legend => {
-                const label = this.escapeHtml(legend.label);
-                html += `
-                    <div class="gantt-legend-item">
-                        <div class="gantt-legend-color-box" style="border: 2px solid ${legend.color}; background-color: transparent;"></div>
-                        <span>${label}</span>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-        }
-
-        // Status Colors
-        if (statusColors && Object.keys(statusColors).length > 0) {
-            html += `<div class="gantt-legend-section"><h6>Status Indicators</h6>`;
-            for (const [status, color] of Object.entries(statusColors)) {
-                const label = this.escapeHtml(status);
-                html += `
-                    <div class="gantt-legend-item">
-                        <div class="gantt-legend-color-box" style="box-shadow: inset 6px 0 0 ${color}; background-color: #f8f9fa;"></div>
-                        <span>${label}</span>
-                    </div>
-                `;
-            }
-            html += `</div>`;
-        }
-
-        html += `
-                </div>
-            </div>
-        `;
-
-        return html;
-    }
-
     bindBackgroundEvents() {
         if (!this.container) return;
         const ganttContent = this.container.querySelector('.gantt-content');
@@ -1118,25 +1043,6 @@ class Gantt {
                 }
             });
         });
-    }
-
-    bindLegendEvents() {
-        const header = document.getElementById('ganttLegendHeader');
-        if (header) {
-            header.addEventListener('click', () => {
-                this.isLegendCollapsed = !this.isLegendCollapsed;
-                const legend = document.getElementById('ganttLegend');
-                const arrow = document.getElementById('ganttLegendArrow');
-
-                if (this.isLegendCollapsed) {
-                    legend.classList.add('collapsed');
-                    arrow.textContent = '▲';
-                } else {
-                    legend.classList.remove('collapsed');
-                    arrow.textContent = '▼';
-                }
-            });
-        }
     }
 
     escapeHtml(unsafe) {
