@@ -1304,8 +1304,6 @@ class Analytics {
         });
         headerHtml += `</div></div>`;
 
-        const statusColors = this.planner.getStatusColors();
-
         let rowsHtml = '';
         data.tags.forEach(agg => {
             const startOffsetDays = Math.max(0, Math.ceil((agg.minStartDate - minDate) / (1000 * 60 * 60 * 24)));
@@ -1314,16 +1312,14 @@ class Analytics {
             const leftPercent = (startOffsetDays / totalDays) * 100;
             const widthPercent = (durationDays / totalDays) * 100;
 
-            // Generate stacked progress bar for status
-            let progressHtml = '';
-            for (const [status, percent] of Object.entries(agg.statusPercentages)) {
-                const color = statusColors[status] || '#adb5bd';
-                progressHtml += `<div class="progress-bar" role="progressbar" style="width: ${percent}%; background-color: ${color};" title="${status}: ${percent.toFixed(0)}%"></div>`;
-            }
+            const inProgressPct = agg.statusPercentages['In progress'] || 0;
+            const completedPct = agg.statusPercentages['Completed'] || 0;
+
+            const pctText = `${inProgressPct.toFixed(0)}% In progress, ${completedPct.toFixed(0)}% Completed`;
 
             const startDateStr = `${agg.minStartDate.getFullYear()}-${String(agg.minStartDate.getMonth()+1).padStart(2,'0')}-${String(agg.minStartDate.getDate()).padStart(2,'0')}`;
             const endDateStr = `${agg.maxEndDate.getFullYear()}-${String(agg.maxEndDate.getMonth()+1).padStart(2,'0')}-${String(agg.maxEndDate.getDate()).padStart(2,'0')}`;
-            const tooltipStr = `Tag: ${this.escapeHtml(agg.tag)}\nStart: ${startDateStr}\nEnd: ${endDateStr}\nTasks: ${agg.totalTasks}`;
+            const tooltipStr = `Tag: ${this.escapeHtml(agg.tag)}\nStart: ${startDateStr}\nEnd: ${endDateStr}\nTasks: ${agg.totalTasks}\n${pctText}`;
 
             rowsHtml += `
                 <div class="d-flex align-items-center mb-2 py-1 hover-bg-light rounded">
@@ -1335,8 +1331,9 @@ class Analytics {
                         <div class="position-absolute h-100 d-flex flex-column justify-content-center"
                              style="left: ${leftPercent}%; width: ${widthPercent}%; min-width: 4px; z-index: 2;"
                              title="${this.escapeHtml(tooltipStr)}">
-                            <div class="progress shadow-sm w-100" style="height: 14px; border-radius: 3px; background-color: #e9ecef;">
-                                ${progressHtml}
+                            <div class="w-100 d-flex align-items-center justify-content-center shadow-sm text-white small fw-bold"
+                                 style="height: 16px; border-radius: 3px; background-color: #4da3ff; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; px-1;">
+                                ${widthPercent > 10 ? this.escapeHtml(pctText) : ''}
                             </div>
                         </div>
                     </div>
@@ -1380,15 +1377,6 @@ class Analytics {
                     </div>
                 </div>
 
-                <!-- Legend for Status Colors -->
-                <div class="d-flex flex-wrap gap-3 justify-content-center mt-3 pt-2 border-top">
-                    ${Object.entries(this.planner.getStatusColors()).map(([status, color]) => `
-                        <div class="d-flex align-items-center small">
-                            <div style="width: 12px; height: 12px; background-color: ${color}; border-radius: 2px;" class="me-1"></div>
-                            <span class="text-muted">${this.escapeHtml(status)}</span>
-                        </div>
-                    `).join('')}
-                </div>
             </div>
         `;
     }
