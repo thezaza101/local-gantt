@@ -380,6 +380,82 @@ class Analytics {
     }
 
     /**
+     * Aggregates tasks by tag to calculate min start date, max end date, and status counts.
+     * @param {Object} plan - The plan data model
+     * @param {Array} filteredTasks - The list of tasks to include in the calculation
+     * @returns {Object} Data object containing aggregated tag information and overall date range
+     */
+    calculateTagAggregates(plan, filteredTasks) {
+        if (!plan || !filteredTasks || filteredTasks.length === 0) return { tags: [], minDate: null, maxDate: null };
+
+        const tagMap = new Map();
+        let overallMinDate = null;
+        let overallMaxDate = null;
+
+        filteredTasks.forEach(task => {
+            if (!task.startDate || !task.endDate) return;
+
+            const startParts = task.startDate.split('-');
+            const endParts = task.endDate.split('-');
+            if (startParts.length !== 3 || endParts.length !== 3) return;
+
+            const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+            const endDate = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+
+            if (isNaN(startDate) || isNaN(endDate)) return;
+
+            // Track overall min/max dates
+            if (!overallMinDate || startDate < overallMinDate) overallMinDate = startDate;
+            if (!overallMaxDate || endDate > overallMaxDate) overallMaxDate = endDate;
+
+            const tags = task.tags && Array.isArray(task.tags) ? task.tags : [];
+            const status = task.status || 'Not started';
+
+            tags.forEach(tag => {
+                const t = tag.trim();
+                if (!t) return;
+
+                if (!tagMap.has(t)) {
+                    tagMap.set(t, {
+                        tag: t,
+                        minStartDate: startDate,
+                        maxEndDate: endDate,
+                        totalTasks: 0,
+                        statusCounts: {}
+                    });
+                }
+
+                const agg = tagMap.get(t);
+
+                // Update min/max for this tag
+                if (startDate < agg.minStartDate) agg.minStartDate = startDate;
+                if (endDate > agg.maxEndDate) agg.maxEndDate = endDate;
+
+                // Update counts
+                agg.totalTasks++;
+                agg.statusCounts[status] = (agg.statusCounts[status] || 0) + 1;
+            });
+        });
+
+        // Convert Map to Array and sort by minStartDate
+        const tags = Array.from(tagMap.values()).sort((a, b) => a.minStartDate - b.minStartDate);
+
+        // For each tag, calculate status percentages
+        tags.forEach(agg => {
+            agg.statusPercentages = {};
+            for (const [status, count] of Object.entries(agg.statusCounts)) {
+                agg.statusPercentages[status] = (count / agg.totalTasks) * 100;
+            }
+        });
+
+        return {
+            tags: tags,
+            minDate: overallMinDate,
+            maxDate: overallMaxDate
+        };
+    }
+
+    /**
      * Calculates effort by tag grouped by period.
      * @param {Object} plan - The plan data model
      * @param {Array} filteredTasks - The list of tasks to include in the calculation
@@ -551,6 +627,7 @@ class Analytics {
         const effortByTypeData = this.calculateEffortByType(plan, filteredTasks);
         const topTasksData = this.calculateEffortByTask(plan, filteredTasks);
         const tagEffortOverTimeData = this.calculateTagEffortByPeriod(plan, filteredTasks);
+        const tagAggregateData = this.calculateTagAggregates(plan, filteredTasks);
 
         // Calculate Demand/Capacity using FILTERED tasks
         const demandCapacityData = this.calculateDemandCapacity(plan, filteredTasks);
@@ -648,6 +725,17 @@ class Analytics {
                     </div>
 
                     <!-- Bottom Row -->
+                    <div class="col-12">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-muted">Tag Aggregates (Mini Gantt)</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-html-btn" data-target-id="tagAggregateGanttWrapper" data-export-name="tagAggregates" title="Export to Image" style="text-decoration: none;">⬇️</button>
+                            </div>
+                            <div class="card-body">
+                                ${this.renderTagAggregateGantt(tagAggregateData)}
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-12">
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
@@ -800,6 +888,70 @@ class Analytics {
                 const chartId = btn.getAttribute('data-chart-id');
                 this.exportChartToImage(chartId);
             });
+        });
+
+        const exportHtmlBtns = container.querySelectorAll('.export-html-btn');
+        exportHtmlBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = btn.getAttribute('data-target-id');
+                const exportName = btn.getAttribute('data-export-name');
+                this.exportHtmlToImage(targetId, exportName);
+            });
+        });
+    }
+
+    exportHtmlToImage(targetId, exportName) {
+        const targetElement = document.getElementById(targetId);
+        if (!targetElement) {
+            console.error(`Element with ID ${targetId} not found.`);
+            return;
+        }
+
+        if (typeof html2canvas === 'undefined') {
+            console.error("html2canvas library is not loaded.");
+            alert("Export failed: html2canvas library is missing.");
+            return;
+        }
+
+        // Temporarily adjust styles to capture the full scrolling content
+        const originalStyle = targetElement.getAttribute('style') || '';
+        const scrollWidth = targetElement.scrollWidth;
+        const scrollHeight = targetElement.scrollHeight;
+
+        targetElement.style.width = scrollWidth + 'px';
+        targetElement.style.height = scrollHeight + 'px';
+        targetElement.style.overflow = 'visible';
+        targetElement.style.maxWidth = 'none';
+
+        html2canvas(targetElement, {
+            scale: 2, // High resolution
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            width: scrollWidth,
+            height: scrollHeight,
+            windowWidth: scrollWidth,
+            windowHeight: scrollHeight
+        }).then(canvas => {
+            // Restore original styles
+            targetElement.setAttribute('style', originalStyle);
+
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+
+            const planName = this.planner.getCurrentPlan()?.name || 'Unnamed_Plan';
+            const sanitizedPlanName = planName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+            const today = new Date();
+            const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            link.download = `${sanitizedPlanName}_${exportName}_${dateString}.png`;
+            link.href = image;
+            link.click();
+        }).catch(err => {
+            console.error("Error exporting HTML to image:", err);
+            targetElement.setAttribute('style', originalStyle);
+            alert("An error occurred while exporting the image.");
         });
     }
 
@@ -1111,6 +1263,134 @@ class Analytics {
                 }
             }
         });
+    }
+
+    renderTagAggregateGantt(data) {
+        if (!data || !data.tags || data.tags.length === 0 || !data.minDate || !data.maxDate) {
+            return '<div class="p-3 text-center text-muted small">No aggregate tag data available in current date range.</div>';
+        }
+
+        const minDate = new Date(data.minDate);
+        minDate.setDate(1); // Start at beginning of month
+
+        const maxDate = new Date(data.maxDate);
+        maxDate.setMonth(maxDate.getMonth() + 1, 0); // End at end of month
+
+        const totalDays = Math.ceil((maxDate - minDate) / (1000 * 60 * 60 * 24)) + 1;
+        if (totalDays <= 0) return '';
+
+        // Generate Month Headers
+        const months = [];
+        let currentMonth = new Date(minDate);
+        while (currentMonth <= maxDate) {
+            const year = currentMonth.getFullYear();
+            const monthStr = currentMonth.toLocaleString('default', { month: 'short' });
+
+            // Calculate width percentage for this month
+            const daysInMonth = new Date(year, currentMonth.getMonth() + 1, 0).getDate();
+            const widthPercent = (daysInMonth / totalDays) * 100;
+
+            months.push({ label: `${monthStr} ${year.toString().slice(-2)}`, width: widthPercent });
+
+            currentMonth.setMonth(currentMonth.getMonth() + 1, 1);
+        }
+
+        let headerHtml = `<div class="d-flex border-bottom pb-1 mb-2">
+            <div style="width: 150px; flex-shrink: 0;" class="fw-bold text-muted small px-2">Tag</div>
+            <div class="d-flex flex-grow-1 position-relative" style="min-width: 400px;">`;
+
+        months.forEach(m => {
+            headerHtml += `<div class="text-muted small text-center border-start border-light" style="width: ${m.width}%;">${this.escapeHtml(m.label)}</div>`;
+        });
+        headerHtml += `</div></div>`;
+
+        const statusColors = this.planner.getStatusColors();
+
+        let rowsHtml = '';
+        data.tags.forEach(agg => {
+            const startOffsetDays = Math.max(0, Math.ceil((agg.minStartDate - minDate) / (1000 * 60 * 60 * 24)));
+            const durationDays = Math.max(1, Math.ceil((agg.maxEndDate - agg.minStartDate) / (1000 * 60 * 60 * 24)));
+
+            const leftPercent = (startOffsetDays / totalDays) * 100;
+            const widthPercent = (durationDays / totalDays) * 100;
+
+            // Generate stacked progress bar for status
+            let progressHtml = '';
+            for (const [status, percent] of Object.entries(agg.statusPercentages)) {
+                const color = statusColors[status] || '#adb5bd';
+                progressHtml += `<div class="progress-bar" role="progressbar" style="width: ${percent}%; background-color: ${color};" title="${status}: ${percent.toFixed(0)}%"></div>`;
+            }
+
+            const startDateStr = `${agg.minStartDate.getFullYear()}-${String(agg.minStartDate.getMonth()+1).padStart(2,'0')}-${String(agg.minStartDate.getDate()).padStart(2,'0')}`;
+            const endDateStr = `${agg.maxEndDate.getFullYear()}-${String(agg.maxEndDate.getMonth()+1).padStart(2,'0')}-${String(agg.maxEndDate.getDate()).padStart(2,'0')}`;
+            const tooltipStr = `Tag: ${this.escapeHtml(agg.tag)}\nStart: ${startDateStr}\nEnd: ${endDateStr}\nTasks: ${agg.totalTasks}`;
+
+            rowsHtml += `
+                <div class="d-flex align-items-center mb-2 py-1 hover-bg-light rounded">
+                    <div style="width: 150px; flex-shrink: 0;" class="small fw-medium text-truncate px-2" title="${this.escapeHtml(agg.tag)}">
+                        ${this.escapeHtml(agg.tag)}
+                    </div>
+                    <div class="d-flex flex-grow-1 position-relative" style="min-width: 400px; height: 24px; background-color: #f8f9fa; border-radius: 4px;">
+                        <!-- Task Aggregate Bar -->
+                        <div class="position-absolute h-100 d-flex flex-column justify-content-center"
+                             style="left: ${leftPercent}%; width: ${widthPercent}%; min-width: 4px; z-index: 2;"
+                             title="${this.escapeHtml(tooltipStr)}">
+                            <div class="progress shadow-sm w-100" style="height: 14px; border-radius: 3px; background-color: #e9ecef;">
+                                ${progressHtml}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Today Marker
+        let todayHtml = '';
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        if (today >= minDate && today <= maxDate) {
+            const todayOffsetDays = Math.max(0, Math.ceil((today - minDate) / (1000 * 60 * 60 * 24)));
+            const todayPercent = (todayOffsetDays / totalDays) * 100;
+            todayHtml = `
+                <div class="position-absolute top-0 bottom-0 border-start border-danger z-3"
+                     style="left: ${todayPercent}%; width: 1px; pointer-events: none;"
+                     title="Today">
+                     <div class="position-absolute bg-danger text-white small px-1 rounded shadow-sm" style="top: -18px; left: -14px; font-size: 0.6rem;">Today</div>
+                </div>
+            `;
+        }
+
+        return `
+            <div id="tagAggregateGanttWrapper" class="tag-aggregate-gantt w-100 overflow-auto position-relative py-2 bg-white">
+                ${headerHtml}
+                <div class="position-relative mt-3" style="min-height: 50px;">
+                    <!-- Background Grid Lines Container -->
+                    <div class="position-absolute top-0 bottom-0 d-flex opacity-25" style="left: 150px; right: 0; min-width: 400px; pointer-events: none; z-index: 1;">
+                        ${months.map(m => `<div class="border-start border-secondary h-100" style="width: ${m.width}%;"></div>`).join('')}
+                    </div>
+
+                    <!-- Rows -->
+                    <div class="position-relative" style="z-index: 2;">
+                        ${rowsHtml}
+                    </div>
+
+                    <!-- Today Marker Overlay Container -->
+                    <div class="position-absolute top-0 bottom-0" style="left: 150px; right: 0; min-width: 400px; pointer-events: none; z-index: 3;">
+                        ${todayHtml}
+                    </div>
+                </div>
+
+                <!-- Legend for Status Colors -->
+                <div class="d-flex flex-wrap gap-3 justify-content-center mt-3 pt-2 border-top">
+                    ${Object.entries(this.planner.getStatusColors()).map(([status, color]) => `
+                        <div class="d-flex align-items-center small">
+                            <div style="width: 12px; height: 12px; background-color: ${color}; border-radius: 2px;" class="me-1"></div>
+                            <span class="text-muted">${this.escapeHtml(status)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
     }
 
     renderChartEffortByType(data) {
