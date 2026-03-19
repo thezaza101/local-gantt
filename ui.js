@@ -2064,9 +2064,27 @@ class UI {
         const currentPlan = this.planner.getCurrentPlan();
         if (!currentPlan) return;
 
-        // Ensure we have uniqueTags via AnalyticsEngine to group them accurately
-        if (!window.AnalyticsEngine) return;
-        const uniqueTags = window.AnalyticsEngine.getUniqueTags();
+        // Collect tags only from tasks that are currently rendered on the Gantt chart
+        let activeTags = new Set();
+        let activeStatuses = new Set();
+
+        if (window.GanttEngine && window.GanttEngine.renderedTasks) {
+            window.GanttEngine.renderedTasks.forEach(renderedItem => {
+                // Exclude tasks that don't match the current filter visually (e.g. highlight mode out)
+                if (renderedItem.task && renderedItem.isMatch !== false) {
+                    const t = renderedItem.task;
+                    if (t.tags && Array.isArray(t.tags)) {
+                        t.tags.forEach(tag => activeTags.add(tag.trim()));
+                    }
+                    if (t.status) {
+                        activeStatuses.add(t.status.trim());
+                        activeTags.add(t.status.trim());
+                    }
+                }
+            });
+        }
+
+        const uniqueTags = Array.from(activeTags).filter(t => t);
 
         const fillLegends = this.planner.getFillLegends();
         const borderLegends = this.planner.getBorderLegends();
@@ -2083,6 +2101,8 @@ class UI {
             const fillLegend = fillLegends.find(l => l.tag === tag);
             const borderLegend = borderLegends.find(l => l.tag === tag);
             let isStatus = false;
+
+            // Check if this tag is a status color tag AND it's actively used as a status
             for (const status in statusColors) {
                 if (status.toLowerCase() === tag.toLowerCase()) {
                     isStatus = true;
