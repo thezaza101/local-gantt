@@ -729,6 +729,7 @@ class Analytics {
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Tag Aggregates (Mini Gantt)</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-html-btn" data-target-id="tagAggregateGanttWrapper" data-export-name="tagAggregates" title="Export to Image" style="text-decoration: none;">⬇️</button>
                             </div>
                             <div class="card-body">
                                 ${this.renderTagAggregateGantt(tagAggregateData)}
@@ -887,6 +888,70 @@ class Analytics {
                 const chartId = btn.getAttribute('data-chart-id');
                 this.exportChartToImage(chartId);
             });
+        });
+
+        const exportHtmlBtns = container.querySelectorAll('.export-html-btn');
+        exportHtmlBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetId = btn.getAttribute('data-target-id');
+                const exportName = btn.getAttribute('data-export-name');
+                this.exportHtmlToImage(targetId, exportName);
+            });
+        });
+    }
+
+    exportHtmlToImage(targetId, exportName) {
+        const targetElement = document.getElementById(targetId);
+        if (!targetElement) {
+            console.error(`Element with ID ${targetId} not found.`);
+            return;
+        }
+
+        if (typeof html2canvas === 'undefined') {
+            console.error("html2canvas library is not loaded.");
+            alert("Export failed: html2canvas library is missing.");
+            return;
+        }
+
+        // Temporarily adjust styles to capture the full scrolling content
+        const originalStyle = targetElement.getAttribute('style') || '';
+        const scrollWidth = targetElement.scrollWidth;
+        const scrollHeight = targetElement.scrollHeight;
+
+        targetElement.style.width = scrollWidth + 'px';
+        targetElement.style.height = scrollHeight + 'px';
+        targetElement.style.overflow = 'visible';
+        targetElement.style.maxWidth = 'none';
+
+        html2canvas(targetElement, {
+            scale: 2, // High resolution
+            useCORS: true,
+            backgroundColor: '#ffffff',
+            width: scrollWidth,
+            height: scrollHeight,
+            windowWidth: scrollWidth,
+            windowHeight: scrollHeight
+        }).then(canvas => {
+            // Restore original styles
+            targetElement.setAttribute('style', originalStyle);
+
+            const image = canvas.toDataURL("image/png");
+            const link = document.createElement('a');
+
+            const planName = this.planner.getCurrentPlan()?.name || 'Unnamed_Plan';
+            const sanitizedPlanName = planName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+
+            const today = new Date();
+            const dateString = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            link.download = `${sanitizedPlanName}_${exportName}_${dateString}.png`;
+            link.href = image;
+            link.click();
+        }).catch(err => {
+            console.error("Error exporting HTML to image:", err);
+            targetElement.setAttribute('style', originalStyle);
+            alert("An error occurred while exporting the image.");
         });
     }
 
@@ -1266,11 +1331,6 @@ class Analytics {
                         ${this.escapeHtml(agg.tag)}
                     </div>
                     <div class="d-flex flex-grow-1 position-relative" style="min-width: 400px; height: 24px; background-color: #f8f9fa; border-radius: 4px;">
-                        <!-- Timeline grid lines -->
-                        <div class="d-flex position-absolute w-100 h-100 opacity-25" style="pointer-events: none;">
-                            ${months.map(m => `<div class="border-start border-secondary h-100" style="width: ${m.width}%;"></div>`).join('')}
-                        </div>
-
                         <!-- Task Aggregate Bar -->
                         <div class="position-absolute h-100 d-flex flex-column justify-content-center"
                              style="left: ${leftPercent}%; width: ${widthPercent}%; min-width: 4px; z-index: 2;"
@@ -1295,22 +1355,29 @@ class Analytics {
                 <div class="position-absolute top-0 bottom-0 border-start border-danger z-3"
                      style="left: ${todayPercent}%; width: 1px; pointer-events: none;"
                      title="Today">
-                     <div class="position-absolute bg-danger text-white small px-1 rounded-bottom shadow-sm" style="top: 0; left: -14px; font-size: 0.6rem;">Today</div>
+                     <div class="position-absolute bg-danger text-white small px-1 rounded shadow-sm" style="top: -18px; left: -14px; font-size: 0.6rem;">Today</div>
                 </div>
             `;
         }
 
         return `
-            <div class="tag-aggregate-gantt w-100 overflow-auto position-relative py-2">
+            <div id="tagAggregateGanttWrapper" class="tag-aggregate-gantt w-100 overflow-auto position-relative py-2 bg-white">
                 ${headerHtml}
-                <div class="d-flex position-relative">
-                    <div style="width: 150px; flex-shrink: 0;"></div>
-                    <div class="flex-grow-1 position-absolute top-0 bottom-0" style="left: 150px; right: 0; min-width: 400px; pointer-events: none;">
+                <div class="position-relative mt-3" style="min-height: 50px;">
+                    <!-- Background Grid Lines Container -->
+                    <div class="position-absolute top-0 bottom-0 d-flex opacity-25" style="left: 150px; right: 0; min-width: 400px; pointer-events: none; z-index: 1;">
+                        ${months.map(m => `<div class="border-start border-secondary h-100" style="width: ${m.width}%;"></div>`).join('')}
+                    </div>
+
+                    <!-- Rows -->
+                    <div class="position-relative" style="z-index: 2;">
+                        ${rowsHtml}
+                    </div>
+
+                    <!-- Today Marker Overlay Container -->
+                    <div class="position-absolute top-0 bottom-0" style="left: 150px; right: 0; min-width: 400px; pointer-events: none; z-index: 3;">
                         ${todayHtml}
                     </div>
-                </div>
-                <div class="position-relative">
-                    ${rowsHtml}
                 </div>
 
                 <!-- Legend for Status Colors -->
