@@ -729,7 +729,13 @@ class Analytics {
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Tag Aggregates (Mini Gantt)</h6>
-                                <button class="btn btn-sm btn-link text-muted p-0 export-html-btn" data-target-id="tagAggregateGanttWrapper" data-export-name="tagAggregates" title="Export to Image" style="text-decoration: none;">⬇️</button>
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check form-switch m-0 me-3">
+                                        <input class="form-check-input" type="checkbox" id="analyticsToggleTagText" ${this.planner.getShowTagAggregateText() ? 'checked' : ''} title="Show Text on Bars">
+                                        <label class="form-check-label small text-muted" for="analyticsToggleTagText">Text</label>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-muted p-0 export-html-btn" data-target-id="tagAggregateGanttWrapper" data-export-name="tagAggregates" title="Export to Image" style="text-decoration: none;">⬇️</button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 ${this.renderTagAggregateGantt(tagAggregateData)}
@@ -814,6 +820,17 @@ class Analytics {
                     this.updateFilterState();
                 });
             }
+        }
+
+        const tagTextToggle = document.getElementById('analyticsToggleTagText');
+        if (tagTextToggle) {
+            tagTextToggle.addEventListener('change', (e) => {
+                this.planner.setShowTagAggregateText(e.target.checked);
+                const plan = this.planner.getCurrentPlan();
+                if (plan) {
+                    this.render(plan);
+                }
+            });
         }
     }
 
@@ -1321,6 +1338,9 @@ class Analytics {
             const endDateStr = `${agg.maxEndDate.getFullYear()}-${String(agg.maxEndDate.getMonth()+1).padStart(2,'0')}-${String(agg.maxEndDate.getDate()).padStart(2,'0')}`;
             const tooltipStr = `Tag: ${this.escapeHtml(agg.tag)}\nStart: ${startDateStr}\nEnd: ${endDateStr}\nTasks: ${agg.totalTasks}\n${pctText}`;
 
+            const showText = this.planner.getShowTagAggregateText();
+            const textToRender = (showText && widthPercent > 10) ? this.escapeHtml(pctText) : '';
+
             rowsHtml += `
                 <div class="d-flex align-items-center mb-2 py-1 hover-bg-light rounded">
                     <div style="width: 150px; flex-shrink: 0;" class="small fw-medium text-truncate px-2" title="${this.escapeHtml(agg.tag)}">
@@ -1332,8 +1352,8 @@ class Analytics {
                              style="left: ${leftPercent}%; width: ${widthPercent}%; min-width: 4px; z-index: 2;"
                              title="${this.escapeHtml(tooltipStr)}">
                             <div class="w-100 d-flex align-items-center justify-content-center shadow-sm text-white small fw-bold"
-                                 style="height: 16px; border-radius: 3px; background-color: #4da3ff; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; px-1;">
-                                ${widthPercent > 10 ? this.escapeHtml(pctText) : ''}
+                                 style="height: 16px; border-radius: 3px; background-color: #4da3ff; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">
+                                ${textToRender}
                             </div>
                         </div>
                     </div>
