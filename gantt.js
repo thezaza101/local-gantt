@@ -193,6 +193,9 @@ class Gantt {
 
         const { html: tasksHtml, maxRow, rowMap, renderedTasks } = this.generateTasksHtml(plan, startDate, endDate);
 
+        // Store for external access (e.g., legend export filtering)
+        this.renderedTasks = renderedTasks;
+
         // Calculate the required height to ensure the grid background goes down properly
         const requiredHeight = Math.max(300, (maxRow + 2) * this.rowHeight); // At least 300px, or tall enough for the rows + padding
 
@@ -498,6 +501,8 @@ class Gantt {
 
             renderedTasks.push({
                 id: task.id,
+                task: task,
+                isMatch: isMatch,
                 dependencies: task.dependencies || [],
                 left: leftPos,
                 top: topPos,
