@@ -312,10 +312,49 @@ class Analytics {
 
             if (!isNaN(filterStart) && !isNaN(filterEnd)) {
                 periods = periods.filter(period => {
-                    const parts = period.split('-'); // e.g., "2024-01-01"
-                    if (parts.length !== 3) return true; // keep if format is unexpected
-                    const periodDate = new Date(parts[0], parts[1] - 1, parts[2]);
-                    return periodDate >= filterStart && periodDate <= filterEnd;
+                    const parts = period.split('-');
+                    if (parts.length !== 2 && parts.length !== 3) return true; // keep if format is unexpected
+
+                    const year = parseInt(parts[0], 10);
+                    const subPeriod = parts[1];
+
+                    let periodStart, periodEnd;
+
+                    if (parts.length === 3) {
+                        // Daily: e.g. "2024-01-01"
+                        const m = parseInt(parts[1], 10);
+                        const d = parseInt(parts[2], 10);
+                        periodStart = new Date(year, m - 1, d);
+                        periodEnd = new Date(year, m - 1, d);
+                    } else if (subPeriod.startsWith('Q')) {
+                        // Quarter: e.g. "2024-Q1"
+                        const q = parseInt(subPeriod.substring(1), 10);
+                        periodStart = new Date(year, (q - 1) * 3, 1);
+                        periodEnd = new Date(year, q * 3, 0); // Last day of quarter
+                    } else if (subPeriod.startsWith('W')) {
+                        // Week: e.g. "2024-W01"
+                        const w = parseInt(subPeriod.substring(1), 10);
+                        // Approximate start of week (using ISO week logic)
+                        const simple = new Date(year, 0, 1 + (w - 1) * 7);
+                        const dow = simple.getDay();
+                        const ISOweekStart = simple;
+                        if (dow <= 4)
+                            ISOweekStart.setDate(simple.getDate() - simple.getDay() + 1);
+                        else
+                            ISOweekStart.setDate(simple.getDate() + 8 - simple.getDay());
+
+                        periodStart = new Date(ISOweekStart);
+                        periodEnd = new Date(ISOweekStart);
+                        periodEnd.setDate(periodStart.getDate() + 6);
+                    } else {
+                        // Month: e.g. "2024-01"
+                        const m = parseInt(subPeriod, 10);
+                        periodStart = new Date(year, m - 1, 1);
+                        periodEnd = new Date(year, m, 0); // Last day of month
+                    }
+
+                    // A period overlaps with the filter range if its start is before filterEnd AND its end is after filterStart
+                    return periodStart <= filterEnd && periodEnd >= filterStart;
                 });
             }
         }

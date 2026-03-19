@@ -35,21 +35,31 @@ class Capacity {
 
             if (isNaN(startDate) || isNaN(endDate) || startDate > endDate) return;
 
-            // Iterate over each day in the range and group by the selected granularity
+            // Calculate number of working days (weekdays) for the entry
+            let workingDays = 0;
+            let current = new Date(startDate);
+            while (current <= endDate) {
+                const dayOfWeek = current.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) { // 0 = Sunday, 6 = Saturday
+                    workingDays++;
+                }
+                current.setDate(current.getDate() + 1);
+            }
+
+            if (workingDays === 0) return; // Entry is entirely on weekends
+
+            // The entry's capacity is the total for the date range
+            const capacityPerDay = entry.capacity / workingDays;
+
+            // Iterate over each day in the range and distribute capacity to the selected granularity
             let currentDate = new Date(startDate);
             while (currentDate <= endDate) {
-                const periodKey = this.getPeriodKey(currentDate, granularity);
+                const dayOfWeek = currentDate.getDay();
+                if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+                    const periodKey = this.getPeriodKey(currentDate, granularity);
 
-                // We assume the entry's capacity represents the capacity *per period* (e.g., 40 per month).
-                // If multiple entries overlap the same period, we'll keep the highest capacity defined,
-                // or you could add them depending on business rules. The requirements imply a single capacity
-                // value per period defined by the ranges. We'll set the value.
-                if (!expandedMap.has(periodKey)) {
-                    expandedMap.set(periodKey, entry.capacity);
-                } else {
-                    // If ranges overlap and have different values, take max or sum?
-                    // Let's assume standard behavior is to take the most recent/max or they shouldn't overlap.
-                    expandedMap.set(periodKey, Math.max(expandedMap.get(periodKey), entry.capacity));
+                    const existingCapacity = expandedMap.get(periodKey) || 0;
+                    expandedMap.set(periodKey, existingCapacity + capacityPerDay);
                 }
 
                 // Advance by 1 day
