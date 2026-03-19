@@ -514,7 +514,12 @@ body.presenter-mode #exitPresenterModeBtn {
 .shareable-mode #addTaskBtn,
 .shareable-mode #tasksAndElementsGroupBtnGroup,
 .shareable-mode #openAnalyticsBtn,
-.shareable-mode #helpBtn {
+.shareable-mode #helpBtn,
+.shareable-mode .gantt-task-controls .sync-plan-btn,
+.shareable-mode .gantt-task-controls .sync-all-btn,
+.shareable-mode .gantt-task-controls .duplicate-btn,
+.shareable-mode .gantt-task-controls .delete-btn,
+.shareable-mode .gantt-insert-row-btn {
     display: none !important;
 }
 
