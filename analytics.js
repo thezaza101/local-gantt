@@ -1352,9 +1352,39 @@ class Analytics {
                 <div class="position-absolute top-0 bottom-0 border-start border-danger z-3"
                      style="left: ${todayPercent}%; width: 1px; pointer-events: none;"
                      title="Today">
-                     <div class="position-absolute bg-danger text-white small px-1 rounded shadow-sm" style="top: -18px; left: -14px; font-size: 0.6rem;">Today</div>
+                     <div class="position-absolute bg-danger text-white small px-1 rounded shadow-sm" style="top: -18px; left: -14px; font-size: 0.6rem; white-space: nowrap;">Today</div>
                 </div>
             `;
+        }
+
+        // Major Markers
+        let majorMarkersHtml = '';
+        if (this.planner.getShowMarkerMajor()) {
+            const currentPlan = this.planner.getCurrentPlan();
+            if (currentPlan && currentPlan.markers) {
+                const majorMarkers = currentPlan.markers.filter(m => m.type === 'vertical' && m.visible && m.importance === 'major');
+
+                majorMarkers.forEach(marker => {
+                    const parts = marker.date.split('-');
+                    if (parts.length === 3) {
+                        const mDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                        if (mDate >= minDate && mDate <= maxDate) {
+                            const offsetDays = Math.max(0, Math.ceil((mDate - minDate) / (1000 * 60 * 60 * 24)));
+                            const percent = (offsetDays / totalDays) * 100;
+                            const color = marker.color || '#ffc107'; // fallback color
+                            const label = this.escapeHtml(marker.label);
+
+                            majorMarkersHtml += `
+                                <div class="position-absolute top-0 bottom-0 border-start z-3"
+                                     style="left: ${percent}%; width: 1px; pointer-events: none; border-color: ${color} !important; border-left-style: dashed !important;"
+                                     title="${label}">
+                                     <div class="position-absolute text-white small px-1 rounded shadow-sm" style="background-color: ${color}; top: -18px; left: -14px; font-size: 0.6rem; white-space: nowrap;">${label}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            }
         }
 
         return `
@@ -1371,8 +1401,9 @@ class Analytics {
                         ${rowsHtml}
                     </div>
 
-                    <!-- Today Marker Overlay Container -->
+                    <!-- Markers Overlay Container -->
                     <div class="position-absolute top-0 bottom-0" style="left: 150px; right: 0; min-width: 400px; pointer-events: none; z-index: 3;">
+                        ${majorMarkersHtml}
                         ${todayHtml}
                     </div>
                 </div>
