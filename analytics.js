@@ -729,7 +729,13 @@ class Analytics {
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Tag Aggregates (Mini Gantt)</h6>
-                                <button class="btn btn-sm btn-link text-muted p-0 export-html-btn" data-target-id="tagAggregateGanttWrapper" data-export-name="tagAggregates" title="Export to Image" style="text-decoration: none;">⬇️</button>
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check form-switch m-0 me-3">
+                                        <input class="form-check-input" type="checkbox" id="analyticsToggleTagText" ${this.planner.getShowTagAggregateText() ? 'checked' : ''} title="Show Text on Bars">
+                                        <label class="form-check-label small text-muted" for="analyticsToggleTagText">Text</label>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-muted p-0 export-html-btn" data-target-id="tagAggregateGanttWrapper" data-export-name="tagAggregates" title="Export to Image" style="text-decoration: none;">⬇️</button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 ${this.renderTagAggregateGantt(tagAggregateData)}
@@ -814,6 +820,17 @@ class Analytics {
                     this.updateFilterState();
                 });
             }
+        }
+
+        const tagTextToggle = document.getElementById('analyticsToggleTagText');
+        if (tagTextToggle) {
+            tagTextToggle.addEventListener('change', (e) => {
+                this.planner.setShowTagAggregateText(e.target.checked);
+                const plan = this.planner.getCurrentPlan();
+                if (plan) {
+                    this.render(plan);
+                }
+            });
         }
     }
 
@@ -1304,8 +1321,6 @@ class Analytics {
         });
         headerHtml += `</div></div>`;
 
-        const statusColors = this.planner.getStatusColors();
-
         let rowsHtml = '';
         data.tags.forEach(agg => {
             const startOffsetDays = Math.max(0, Math.ceil((agg.minStartDate - minDate) / (1000 * 60 * 60 * 24)));
@@ -1314,16 +1329,17 @@ class Analytics {
             const leftPercent = (startOffsetDays / totalDays) * 100;
             const widthPercent = (durationDays / totalDays) * 100;
 
-            // Generate stacked progress bar for status
-            let progressHtml = '';
-            for (const [status, percent] of Object.entries(agg.statusPercentages)) {
-                const color = statusColors[status] || '#adb5bd';
-                progressHtml += `<div class="progress-bar" role="progressbar" style="width: ${percent}%; background-color: ${color};" title="${status}: ${percent.toFixed(0)}%"></div>`;
-            }
+            const inProgressPct = agg.statusPercentages['In progress'] || 0;
+            const completedPct = agg.statusPercentages['Completed'] || 0;
+
+            const pctText = `${inProgressPct.toFixed(0)}% In progress, ${completedPct.toFixed(0)}% Completed`;
 
             const startDateStr = `${agg.minStartDate.getFullYear()}-${String(agg.minStartDate.getMonth()+1).padStart(2,'0')}-${String(agg.minStartDate.getDate()).padStart(2,'0')}`;
             const endDateStr = `${agg.maxEndDate.getFullYear()}-${String(agg.maxEndDate.getMonth()+1).padStart(2,'0')}-${String(agg.maxEndDate.getDate()).padStart(2,'0')}`;
-            const tooltipStr = `Tag: ${this.escapeHtml(agg.tag)}\nStart: ${startDateStr}\nEnd: ${endDateStr}\nTasks: ${agg.totalTasks}`;
+            const tooltipStr = `Tag: ${this.escapeHtml(agg.tag)}\nStart: ${startDateStr}\nEnd: ${endDateStr}\nTasks: ${agg.totalTasks}\n${pctText}`;
+
+            const showText = this.planner.getShowTagAggregateText();
+            const textToRender = (showText && widthPercent > 10) ? this.escapeHtml(pctText) : '';
 
             rowsHtml += `
                 <div class="d-flex align-items-center mb-2 py-1 hover-bg-light rounded">
@@ -1335,8 +1351,9 @@ class Analytics {
                         <div class="position-absolute h-100 d-flex flex-column justify-content-center"
                              style="left: ${leftPercent}%; width: ${widthPercent}%; min-width: 4px; z-index: 2;"
                              title="${this.escapeHtml(tooltipStr)}">
-                            <div class="progress shadow-sm w-100" style="height: 14px; border-radius: 3px; background-color: #e9ecef;">
-                                ${progressHtml}
+                            <div class="w-100 d-flex align-items-center justify-content-center shadow-sm text-white small fw-bold"
+                                 style="height: 16px; border-radius: 3px; background-color: #4da3ff; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding: 0 4px;">
+                                ${textToRender}
                             </div>
                         </div>
                     </div>
@@ -1355,9 +1372,39 @@ class Analytics {
                 <div class="position-absolute top-0 bottom-0 border-start border-danger z-3"
                      style="left: ${todayPercent}%; width: 1px; pointer-events: none;"
                      title="Today">
-                     <div class="position-absolute bg-danger text-white small px-1 rounded shadow-sm" style="top: -18px; left: -14px; font-size: 0.6rem;">Today</div>
+                     <div class="position-absolute bg-danger text-white small px-1 rounded shadow-sm" style="top: -18px; left: -14px; font-size: 0.6rem; white-space: nowrap;">Today</div>
                 </div>
             `;
+        }
+
+        // Major Markers
+        let majorMarkersHtml = '';
+        if (this.planner.getShowMarkerMajor()) {
+            const currentPlan = this.planner.getCurrentPlan();
+            if (currentPlan && currentPlan.markers) {
+                const majorMarkers = currentPlan.markers.filter(m => m.type === 'vertical' && m.visible && m.importance === 'major');
+
+                majorMarkers.forEach(marker => {
+                    const parts = marker.date.split('-');
+                    if (parts.length === 3) {
+                        const mDate = new Date(parts[0], parts[1] - 1, parts[2]);
+                        if (mDate >= minDate && mDate <= maxDate) {
+                            const offsetDays = Math.max(0, Math.ceil((mDate - minDate) / (1000 * 60 * 60 * 24)));
+                            const percent = (offsetDays / totalDays) * 100;
+                            const color = marker.color || '#ffc107'; // fallback color
+                            const label = this.escapeHtml(marker.label);
+
+                            majorMarkersHtml += `
+                                <div class="position-absolute top-0 bottom-0 border-start z-3"
+                                     style="left: ${percent}%; width: 1px; pointer-events: none; border-color: ${color} !important; border-left-style: dashed !important;"
+                                     title="${label}">
+                                     <div class="position-absolute text-white small px-1 rounded shadow-sm" style="background-color: ${color}; top: -18px; left: -14px; font-size: 0.6rem; white-space: nowrap;">${label}</div>
+                                </div>
+                            `;
+                        }
+                    }
+                });
+            }
         }
 
         return `
@@ -1374,21 +1421,13 @@ class Analytics {
                         ${rowsHtml}
                     </div>
 
-                    <!-- Today Marker Overlay Container -->
+                    <!-- Markers Overlay Container -->
                     <div class="position-absolute top-0 bottom-0" style="left: 150px; right: 0; min-width: 400px; pointer-events: none; z-index: 3;">
+                        ${majorMarkersHtml}
                         ${todayHtml}
                     </div>
                 </div>
 
-                <!-- Legend for Status Colors -->
-                <div class="d-flex flex-wrap gap-3 justify-content-center mt-3 pt-2 border-top">
-                    ${Object.entries(this.planner.getStatusColors()).map(([status, color]) => `
-                        <div class="d-flex align-items-center small">
-                            <div style="width: 12px; height: 12px; background-color: ${color}; border-radius: 2px;" class="me-1"></div>
-                            <span class="text-muted">${this.escapeHtml(status)}</span>
-                        </div>
-                    `).join('')}
-                </div>
             </div>
         `;
     }

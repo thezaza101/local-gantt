@@ -41,6 +41,7 @@ class Planner {
         this.showDependencies = false;
         this.showEffortPerDay = false;
         this.selectedTaskIds = []; // Array of selected task IDs
+        this.showTagAggregateText = true; // Tag Aggregates text visibility
 
         // Marker Visibility State
         this.showMarkerMajor = true;
@@ -110,6 +111,14 @@ class Planner {
 
     setShowDependencies(show) {
         this.showDependencies = show;
+    }
+
+    getShowTagAggregateText() {
+        return this.showTagAggregateText;
+    }
+
+    setShowTagAggregateText(show) {
+        this.showTagAggregateText = show;
     }
 
     getShowEffortPerDay() {

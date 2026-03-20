@@ -44,6 +44,12 @@ class UI {
                 if (window.GanttEngine) {
                     window.GanttEngine.render(this.planner.getCurrentPlan());
                 }
+                if (window.AnalyticsEngine) {
+                    const container = document.getElementById("analyticsContainer");
+                    if (container && !container.classList.contains("d-none")) {
+                        window.AnalyticsEngine.render(this.planner.getCurrentPlan());
+                    }
+                }
             });
         }
 
