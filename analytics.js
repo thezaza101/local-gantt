@@ -415,6 +415,13 @@ class Analytics {
                 const t = tag.trim();
                 if (!t) return;
 
+                // If tag filters are active, only process selected tags
+                if (this.filterState.selectedTags && this.filterState.selectedTags.length > 0) {
+                    if (!this.filterState.selectedTags.includes(t)) {
+                        return;
+                    }
+                }
+
                 if (!tagMap.has(t)) {
                     tagMap.set(t, {
                         tag: t,
