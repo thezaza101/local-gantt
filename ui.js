@@ -98,7 +98,7 @@ class UI {
                         } else {
                             if (this.planner.loadState(data)) {
                                 console.log("File imported successfully!");
-                                document.title = `Browser-Based Work Planning - ${file.name}`;
+                                document.title = `Project Plan - ${file.name}`;
                                 // Here we would normally trigger a re-render of the Gantt chart
                                 // and other components in a later phase.
                                 this.updateUI();
