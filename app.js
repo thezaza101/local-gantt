@@ -1,5 +1,8 @@
 /* Application Bootstrap */
 
+const APP_VERSION = "1.0.0";
+const APP_DATE = "2023-10-27";
+
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("Application starting...");
     await initApp();
@@ -54,6 +57,12 @@ async function initApp() {
 
     // Initial UI update
     window.UIController.updateUI();
+
+    // Set App Version
+    const versionDisplay = document.getElementById('appVersionDisplay');
+    if (versionDisplay) {
+        versionDisplay.textContent = `Version ${APP_VERSION} (${APP_DATE})`;
+    }
 
     // Prevent accidental navigation/closing
     window.addEventListener('beforeunload', (event) => {
