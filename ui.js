@@ -115,9 +115,53 @@ class UI {
         const exportBtn = document.getElementById("exportBtn");
         if (exportBtn) {
             exportBtn.addEventListener("click", () => {
+                this.exportType = 'full';
+                const commentInput = document.getElementById("exportCommentInput");
+                if (commentInput) commentInput.value = '';
+                const modal = new bootstrap.Modal(document.getElementById('saveExportModal'));
+                modal.show();
+            });
+        }
+
+        // Handle Export Confirm
+        const confirmSaveExportBtn = document.getElementById("confirmSaveExportBtn");
+        if (confirmSaveExportBtn) {
+            confirmSaveExportBtn.addEventListener("click", () => {
+                const commentInput = document.getElementById("exportCommentInput");
+                const comment = commentInput ? commentInput.value.trim() : '';
+
+                if (comment) {
+                    this.planner.addHistoryLog(comment);
+                }
+
                 const state = this.planner.getState();
-                Storage.exportPlanFile(state);
-                console.log("File exported.");
+
+                if (this.exportType === 'full') {
+                    Storage.exportPlanFile(state);
+                    console.log("File exported.");
+                } else if (this.exportType === 'single') {
+                    const currentPlanIndex = this.planner.currentPlanIndex;
+                    if (currentPlanIndex !== -1) {
+                        Storage.exportSinglePlanFile(state, currentPlanIndex);
+                        console.log("Single plan exported.");
+                    }
+                }
+
+                const modalEl = document.getElementById('saveExportModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+            });
+        }
+
+        // Handle History View
+        const historyBtn = document.getElementById("historyBtn");
+        if (historyBtn) {
+            historyBtn.addEventListener("click", () => {
+                this.renderHistory();
+                const modal = new bootstrap.Modal(document.getElementById('historyModal'));
+                modal.show();
             });
         }
 
@@ -163,11 +207,13 @@ class UI {
         const exportPlanBtn = document.getElementById("exportPlanBtn");
         if (exportPlanBtn) {
             exportPlanBtn.addEventListener("click", () => {
-                const state = this.planner.getState();
                 const currentPlanIndex = this.planner.currentPlanIndex;
                 if (currentPlanIndex !== -1) {
-                    Storage.exportSinglePlanFile(state, currentPlanIndex);
-                    console.log("Single plan exported.");
+                    this.exportType = 'single';
+                    const commentInput = document.getElementById("exportCommentInput");
+                    if (commentInput) commentInput.value = '';
+                    const modal = new bootstrap.Modal(document.getElementById('saveExportModal'));
+                    modal.show();
                 } else {
                     alert("No plan selected to export.");
                 }
@@ -2317,6 +2363,34 @@ class UI {
                 window.AnalyticsEngine.render(this.planner.getCurrentPlan());
             }
         }
+    }
+
+    renderHistory() {
+        const historyContainer = document.getElementById('historyListContainer');
+        if (!historyContainer) return;
+
+        const historyLog = this.planner.getHistory() || [];
+
+        if (historyLog.length === 0) {
+            historyContainer.innerHTML = '<div class="text-center text-muted p-3">No version history available.</div>';
+            return;
+        }
+
+        historyContainer.innerHTML = historyLog.slice().reverse().map((entry, index) => {
+            const date = new Date(entry.timestamp);
+            const dateStr = date.toLocaleString();
+            const commentStr = entry.comment ? this.escapeHtml(entry.comment) : '<em>No comment provided</em>';
+
+            return `
+                <div class="list-group-item">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h6 class="mb-1">Export #${historyLog.length - index}</h6>
+                        <small class="text-muted">${dateStr}</small>
+                    </div>
+                    <p class="mb-1">${commentStr}</p>
+                </div>
+            `;
+        }).join('');
     }
 
     renderTagFilters() {

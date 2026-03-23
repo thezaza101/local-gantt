@@ -4,7 +4,8 @@ class Planner {
     constructor() {
         this.file = {
             meta: {
-                fileVersion: 1
+                fileVersion: 1,
+                history: []
             },
             settings: {
                 baseLink: "https://jira.company.com/browse/",
@@ -798,5 +799,24 @@ class Planner {
 
     getState() {
         return this.file;
+    }
+
+    getHistory() {
+        if (!this.file.meta.history) {
+            this.file.meta.history = [];
+        }
+        return this.file.meta.history;
+    }
+
+    addHistoryLog(comment) {
+        if (!this.file.meta.history) {
+            this.file.meta.history = [];
+        }
+
+        const timestamp = new Date().toISOString();
+        this.file.meta.history.push({
+            timestamp: timestamp,
+            comment: comment
+        });
     }
 }
