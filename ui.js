@@ -1371,7 +1371,6 @@ class UI {
 
     openTaskModal(taskId = null) {
         // We will implement modal logic in the next step
-        console.log("Opening task modal for task ID:", taskId);
         const taskModalEl = document.getElementById('taskModal');
         const taskModal = bootstrap.Modal.getOrCreateInstance(taskModalEl);
 
