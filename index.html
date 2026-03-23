@@ -18,6 +18,7 @@
             <button id="importBtn" class="btn btn-outline-secondary btn-sm" title="Import JSON">📂</button>
             <button id="exportBtn" class="btn btn-outline-secondary btn-sm" title="Export JSON">💾</button>
             <input type="file" id="fileInput" accept=".json" style="display: none;">
+            <button id="historyBtn" class="btn btn-outline-secondary btn-sm" title="Version History">🕒</button>
             <button id="settingsBtn" class="btn btn-outline-secondary btn-sm" title="Global Settings">⚙️</button>
         </div>
 
@@ -492,6 +493,51 @@
         </div>
     </div>
 
+    <!-- Save/Export Modal -->
+    <div class="modal fade" id="saveExportModal" tabindex="-1" aria-labelledby="saveExportModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="saveExportModalLabel">Export Options</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="saveExportForm">
+                        <div class="mb-3">
+                            <label for="exportCommentInput" class="form-label">Version Comment (Optional)</label>
+                            <textarea class="form-control" id="exportCommentInput" rows="3" placeholder="Enter a comment or description for this version..."></textarea>
+                            <div class="form-text">This comment will be saved in the file's version history.</div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmSaveExportBtn">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version History Modal -->
+    <div class="modal fade" id="historyModal" tabindex="-1" aria-labelledby="historyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyModalLabel">Version History</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="historyListContainer" class="list-group">
+                        <!-- Dynamically populated -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Help Modal -->
     <div class="modal fade" id="helpModal" tabindex="-1" aria-labelledby="helpModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-scrollable modal-lg">
@@ -507,6 +553,7 @@
                             <ul class="list-unstyled">
                                 <li class="mb-2"><strong>📂 Import JSON:</strong> Import a saved planner state from a JSON file.</li>
                                 <li class="mb-2"><strong>💾 Export JSON:</strong> Download the entire planner state as a JSON file.</li>
+                                <li class="mb-2"><strong>🕒 Version History:</strong> View the history of export messages.</li>
                                 <li class="mb-2"><strong>⚙️ Settings:</strong> Open the global application settings.</li>
                                 <li class="mb-2"><strong>📅 Plan Actions:</strong> A dropdown menu to manage your plans (New, Edit, Duplicate, Delete, Import, Export, Capacity).</li>
                                 <li class="mb-2"><strong>⬇️ Export Options:</strong> Export the current Gantt chart as a high-resolution Image or export tasks as a CSV. Ability to share HTML is exprimental.</li>
