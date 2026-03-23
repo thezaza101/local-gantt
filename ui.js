@@ -327,7 +327,12 @@ class UI {
                     }
 
                     // Keep only the current plan in the file state to avoid leaking other plans
-                    this.planner.file.plans = [JSON.parse(JSON.stringify(currentPlan))];
+                    // Filter out tasks excluded from analytics/export
+                    const clonedPlan = JSON.parse(JSON.stringify(currentPlan));
+                    if (clonedPlan.tasks) {
+                        clonedPlan.tasks = clonedPlan.tasks.filter(t => !t.excludeFromAnalytics);
+                    }
+                    this.planner.file.plans = [clonedPlan];
                     this.planner.currentPlanIndex = 0;
 
                     // Create or update embedded state tag
@@ -358,7 +363,16 @@ class UI {
             exportImageBtn.addEventListener("click", () => {
                 const currentPlan = this.planner.getCurrentPlan();
                 if (currentPlan) {
-                    // Get the Gantt container element
+
+                    // Temporarily filter out tasks excluded from analytics/export
+                    const originalTasks = currentPlan.tasks;
+                    currentPlan.tasks = currentPlan.tasks.filter(t => !t.excludeFromAnalytics);
+
+                    if (window.GanttEngine) {
+                        window.GanttEngine.render(currentPlan);
+                    }
+
+                    // Get the Gantt container element after re-render
                     const ganttContainer = document.getElementById('gantt-chart-container');
 
                     if (ganttContainer) {
@@ -510,6 +524,12 @@ class UI {
                                 document.body.appendChild(printTimestamp); // move it back to body
                             }
 
+                            // Restore original tasks
+                            currentPlan.tasks = originalTasks;
+                            if (window.GanttEngine) {
+                                window.GanttEngine.render(currentPlan);
+                            }
+
                             // Trigger download
                             const image = canvas.toDataURL("image/png");
                             const link = document.createElement('a');
@@ -552,8 +572,18 @@ class UI {
                                 printTimestamp.classList.add('d-none');
                                 document.body.appendChild(printTimestamp);
                             }
+
+                            // Restore original tasks
+                            currentPlan.tasks = originalTasks;
+                            if (window.GanttEngine) {
+                                window.GanttEngine.render(currentPlan);
+                            }
+
                             alert("Failed to export image. See console for details.");
                         });
+                    } else {
+                        // Restore if container not found
+                        currentPlan.tasks = originalTasks;
                     }
                 }
             });
@@ -1346,7 +1376,8 @@ class UI {
                 design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
                 dev: parseFloat(document.getElementById('taskEffortDev').value) || 0,
                 test: parseFloat(document.getElementById('taskEffortTest').value) || 0
-            }
+            },
+            excludeFromAnalytics: document.getElementById('taskExcludeFromAnalytics').checked
         };
 
         let success = false;
@@ -1497,6 +1528,8 @@ class UI {
                 document.getElementById('taskEffortDesign').value = task.effort ? task.effort.design || 0 : 0;
                 document.getElementById('taskEffortDev').value = task.effort ? task.effort.dev || 0 : 0;
                 document.getElementById('taskEffortTest').value = task.effort ? task.effort.test || 0 : 0;
+
+                document.getElementById('taskExcludeFromAnalytics').checked = task.excludeFromAnalytics === true;
             }
         } else {
             document.getElementById('taskId').value = '';
@@ -1504,6 +1537,7 @@ class UI {
             document.getElementById('originalTaskId').value = '';
             document.getElementById('taskStatus').value = '';
             document.getElementById('taskDependencies').value = '';
+            document.getElementById('taskExcludeFromAnalytics').checked = false;
 
             taskFillLegendSelect.value = 'default_fill';
             taskBorderLegendSelect.value = 'default_border';
@@ -2025,6 +2059,8 @@ class UI {
                 } else if (field.value === 'tags' || field.value === 'dependencies') {
                     const arr = task[field.value];
                     value = arr && arr.length > 0 ? arr.join(", ") : "";
+                } else if (field.value === 'excludeFromAnalytics') {
+                    value = task.excludeFromAnalytics ? 'Yes' : 'No';
                 } else if (field.value.startsWith('effort.')) {
                     if (field.value === 'effort.total') {
                         const design = task.effort?.design ? parseFloat(task.effort.design) : 0;
@@ -2076,7 +2112,7 @@ class UI {
         if (window.GanttEngine && window.GanttEngine.renderedTasks) {
             window.GanttEngine.renderedTasks.forEach(renderedItem => {
                 // Exclude tasks that don't match the current filter visually (e.g. highlight mode out)
-                if (renderedItem.task && renderedItem.isMatch !== false) {
+                if (renderedItem.task && renderedItem.isMatch !== false && !renderedItem.task.excludeFromAnalytics) {
                     const t = renderedItem.task;
                     if (t.tags && Array.isArray(t.tags)) {
                         t.tags.forEach(tag => activeTags.add(tag.trim()));

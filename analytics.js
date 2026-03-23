@@ -27,7 +27,8 @@ class Analytics {
     getFilteredTasks(plan) {
         if (!plan || !plan.tasks) return [];
 
-        let filtered = plan.tasks;
+        // Exclude tasks marked as excludeFromAnalytics
+        let filtered = plan.tasks.filter(task => !task.excludeFromAnalytics);
 
         // Apply Tag Filter (OR logic)
         if (this.filterState.selectedTags && this.filterState.selectedTags.length > 0) {
