@@ -1,7 +1,7 @@
 /* Application Bootstrap */
 
-const APP_VERSION = "1.0.0";
-const APP_DATE = "2023-10-27";
+const APP_VERSION = "0.68";
+const APP_DATE = "2026-03-23";
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("Application starting...");
