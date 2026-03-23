@@ -280,6 +280,17 @@
                                 <input type="number" class="form-control" id="taskEffortTest" min="0" value="0">
                             </div>
                         </div>
+                        <h6 class="border-bottom pb-2">Options</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="taskExcludeFromAnalytics">
+                                    <label class="form-check-label" for="taskExcludeFromAnalytics">
+                                        Exclude from Analytics & Export
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -858,6 +869,10 @@
                                 <div class="form-check mb-2">
                                     <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldTotalEffort" value="effort.total">
                                     <label class="form-check-label" for="csvFieldTotalEffort">Total Effort</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldExcludeFromAnalytics" value="excludeFromAnalytics">
+                                    <label class="form-check-label" for="csvFieldExcludeFromAnalytics">Excluded from Analytics</label>
                                 </div>
                             </div>
                         </div>

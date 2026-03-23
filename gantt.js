@@ -391,7 +391,7 @@ class Gantt {
     }
 
     generateTasksHtml(plan, planStartDate, planEndDate) {
-        if (!plan.tasks || plan.tasks.length === 0) return { html: '', maxRow: 0 };
+        if (!plan.tasks || plan.tasks.length === 0) return { html: '', maxRow: 0, rowMap: new Map(), renderedTasks: [] };
 
         const filterState = window.PlannerState.getFilterState();
         let tasksHtml = '';
