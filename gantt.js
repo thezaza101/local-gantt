@@ -409,7 +409,7 @@ class Gantt {
             if (taskEnd < planStartDate || taskStart > planEndDate) return;
 
             const isMatch = window.AnalyticsEngine ?
-                window.AnalyticsEngine.taskMatchesTags(task, filterState.selectedTags, filterState.matchMode) : true;
+                window.AnalyticsEngine.taskMatchesTags(task, filterState.selectedTags, filterState.matchMode, filterState.searchText) : true;
 
             // If mode is "show only" and it doesn't match, completely skip rendering this task
             if (filterState.visualMode === 'show' && !isMatch) return;
@@ -479,6 +479,8 @@ class Gantt {
             const opacityStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'opacity: 0.3;' : '';
             const pointerEventsStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'pointer-events: none;' : '';
 
+            const removedStyle = (task.status === 'Removed') ? 'text-decoration: line-through; opacity: 0.5;' : '';
+
             let effortHtml = '';
             if (plannerState && plannerState.getShowEffortPerDay()) {
                 const totalEffort = (task.effort?.design || 0) + (task.effort?.dev || 0) + (task.effort?.test || 0);
@@ -523,7 +525,7 @@ class Gantt {
                     ${pointerEventsStyle}
                 ">
                     <div class="gantt-resize-handle left" data-resize="left"></div>
-                    <div class="gantt-task-content">
+                    <div class="gantt-task-content" style="${removedStyle}">
                         <strong>${safeId}</strong><br>
                         ${safeTitle}
                     </div>

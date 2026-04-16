@@ -857,6 +857,13 @@ class UI {
                 }
             });
         }
+
+        const taskTextSearch = document.getElementById('taskTextSearch');
+        if (taskTextSearch) {
+            taskTextSearch.addEventListener('input', () => {
+                this.updateTagFiltersState();
+            });
+        }
     }
 
     openImportPlanOptionsModal(data) {
@@ -1139,6 +1146,8 @@ class UI {
             const totalEffort = effortDesign + effortDev + effortTest;
 
             const tr = document.createElement('tr');
+            const removedStyle = (task.status === 'Removed') ? 'text-decoration: line-through; opacity: 0.5;' : '';
+            tr.style.cssText = removedStyle;
             tr.innerHTML = `
                 <td>${this.escapeHtml(task.id)}</td>
                 <td>${this.escapeHtml(task.title)}</td>
@@ -1312,10 +1321,14 @@ class UI {
             if (visualModeEl) visualMode = visualModeEl.value;
         }
 
+        const taskTextSearch = document.getElementById('taskTextSearch');
+        const searchText = taskTextSearch ? taskTextSearch.value : '';
+
         this.planner.setFilterState({
             selectedTags,
             matchMode,
-            visualMode
+            visualMode,
+            searchText
         });
 
         if (window.GanttEngine) {
@@ -2219,6 +2232,7 @@ class UI {
             else if (tag.toLowerCase() === 'on hold') statusColor = '#ffc107';
             else if (tag.toLowerCase() === 'committed') statusColor = '#17a2b8';
             else if (tag.toLowerCase() === 'refined') statusColor = '#e2e3e5';
+            else if (tag.toLowerCase() === 'removed') statusColor = '#000000';
 
             if (fillLegend) {
                 return `<span style="display:inline-block; width: 14px; height: 14px; background-color: ${fillLegend.color}; border: 1px solid #ccc; margin-right: 8px; border-radius: 2px; vertical-align: middle;"></span>`;
@@ -2400,6 +2414,11 @@ class UI {
         const uniqueTags = window.AnalyticsEngine.getUniqueTags();
         const filterState = this.planner.getFilterState();
 
+        const taskTextSearch = document.getElementById('taskTextSearch');
+        if (taskTextSearch && filterState.searchText !== undefined) {
+            taskTextSearch.value = filterState.searchText;
+        }
+
         if (uniqueTags.length === 0) {
             container.innerHTML = '<span class="text-muted small">No tags</span>';
             return;
@@ -2451,6 +2470,7 @@ class UI {
             else if (tag.toLowerCase() === 'on hold') statusColor = '#ffc107';
             else if (tag.toLowerCase() === 'committed') statusColor = '#17a2b8';
             else if (tag.toLowerCase() === 'refined') statusColor = '#e2e3e5';
+            else if (tag.toLowerCase() === 'removed') statusColor = '#000000';
 
             if (fillLegend) {
                 return `<span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: ${fillLegend.color}; border: 1px solid #ccc;"></span>`;

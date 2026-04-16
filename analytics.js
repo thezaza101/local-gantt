@@ -30,6 +30,17 @@ class Analytics {
         // Exclude tasks marked as excludeFromAnalytics
         let filtered = plan.tasks.filter(task => !task.excludeFromAnalytics);
 
+        // Apply global text search filter if it exists on PlannerState
+        const globalFilterState = this.planner ? this.planner.getFilterState() : null;
+        if (globalFilterState && globalFilterState.searchText) {
+            const term = globalFilterState.searchText.toLowerCase();
+            filtered = filtered.filter(task => {
+                const idMatch = (task.id || '').toLowerCase().includes(term);
+                const titleMatch = (task.title || '').toLowerCase().includes(term);
+                return idMatch || titleMatch;
+            });
+        }
+
         // Apply Tag Filter (OR logic)
         if (this.filterState.selectedTags && this.filterState.selectedTags.length > 0) {
             filtered = filtered.filter(task => {
@@ -106,7 +117,17 @@ class Analytics {
      * @param {string} matchMode 'any' (OR) or 'all' (AND).
      * @returns {boolean} True if the task matches, false otherwise.
      */
-    taskMatchesTags(task, selectedTags, matchMode = 'any') {
+    taskMatchesTags(task, selectedTags, matchMode = 'any', searchText = '') {
+        // First check text search if provided
+        if (searchText) {
+            const term = searchText.toLowerCase();
+            const idMatch = (task.id || '').toLowerCase().includes(term);
+            const titleMatch = (task.title || '').toLowerCase().includes(term);
+            if (!idMatch && !titleMatch) {
+                return false;
+            }
+        }
+
         if (!selectedTags || selectedTags.length === 0) {
             // If no tags are selected, by default we show everything or nothing?
             // Usually, no filters = show everything.
@@ -283,14 +304,15 @@ class Analytics {
         const periodMap = new Map();
 
         capacityData.forEach(item => {
-            periodMap.set(item.period, { capacity: item.capacity, demand: 0 });
+            periodMap.set(item.period, { capacity: item.capacity, demand: 0, demandByStatus: {} });
         });
 
         demandData.forEach(item => {
             if (periodMap.has(item.period)) {
                 periodMap.get(item.period).demand = item.demand;
+                periodMap.get(item.period).demandByStatus = item.demandByStatus;
             } else {
-                periodMap.set(item.period, { capacity: 0, demand: item.demand });
+                periodMap.set(item.period, { capacity: 0, demand: item.demand, demandByStatus: item.demandByStatus });
             }
         });
 
@@ -373,6 +395,7 @@ class Analytics {
                 period: period,
                 capacity: data.capacity,
                 demand: data.demand,
+                demandByStatus: data.demandByStatus,
                 utilization: utilization
             });
         });
@@ -717,7 +740,13 @@ class Analytics {
                         <div class="card shadow-sm">
                             <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Capacity vs Demand</h6>
-                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="capacityVsDemand" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
+                                <div class="d-flex align-items-center">
+                                    <div class="form-check form-switch m-0 me-3">
+                                        <input class="form-check-input" type="checkbox" id="analyticsColorCapacityDemandByStatus" ${this.planner.getColorCapacityDemandByStatus() ? 'checked' : ''} title="Color by Status">
+                                        <label class="form-check-label small text-muted" for="analyticsColorCapacityDemandByStatus">Color by Status</label>
+                                    </div>
+                                    <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="capacityVsDemand" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
+                                </div>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -806,6 +835,17 @@ class Analytics {
                     const checkboxes = tagFiltersContainer.querySelectorAll('.analytics-tag-checkbox');
                     checkboxes.forEach(cb => cb.checked = false);
                     this.updateFilterState();
+                }
+            });
+        }
+
+        const colorCapacityDemandByStatusToggle = document.getElementById('analyticsColorCapacityDemandByStatus');
+        if (colorCapacityDemandByStatusToggle) {
+            colorCapacityDemandByStatusToggle.addEventListener('change', (e) => {
+                this.planner.setColorCapacityDemandByStatus(e.target.checked);
+                const plan = this.planner.getCurrentPlan();
+                if (plan) {
+                    this.render(plan);
                 }
             });
         }
@@ -1022,37 +1062,73 @@ class Analytics {
 
         const labels = data.map(item => item.period);
         const capacityValues = data.map(item => item.capacity);
-        const demandValues = data.map(item => item.demand);
+
+        const colorByStatus = this.planner.getColorCapacityDemandByStatus();
+        let datasets = [];
+
+        datasets.push({
+            label: 'Capacity',
+            data: capacityValues,
+            type: 'line',
+            fill: false,
+            borderColor: '#339af0',
+            backgroundColor: '#339af0',
+            tension: 0.1,
+            borderWidth: 3,
+            pointBackgroundColor: '#ffffff',
+            pointBorderWidth: 2,
+            pointRadius: 4,
+            order: 1
+        });
+
+        if (colorByStatus) {
+            // Find all unique statuses across all periods
+            const statuses = new Set();
+            data.forEach(item => {
+                if (item.demandByStatus) {
+                    Object.keys(item.demandByStatus).forEach(status => statuses.add(status));
+                }
+            });
+
+            const statusColors = this.planner.getStatusColors ? this.planner.getStatusColors() : {};
+
+            // Create a dataset for each status
+            statuses.forEach(status => {
+                const color = statusColors[status] || '#808080';
+                const statusData = data.map(item => {
+                    return item.demandByStatus && item.demandByStatus[status] ? item.demandByStatus[status] : 0;
+                });
+
+                datasets.push({
+                    label: `Demand (${status})`,
+                    data: statusData,
+                    backgroundColor: color,
+                    borderColor: color,
+                    borderWidth: 1,
+                    order: 2,
+                    stack: 'Demand'
+                });
+            });
+
+        } else {
+            const demandValues = data.map(item => item.demand);
+            datasets.push({
+                label: 'Demand',
+                data: demandValues,
+                backgroundColor: '#ff6b6b',
+                borderColor: '#fa5252',
+                borderWidth: 1,
+                borderRadius: 4,
+                order: 2,
+                stack: 'Demand'
+            });
+        }
 
         this.charts['capacityVsDemand'] = new Chart(ctx, {
             type: 'bar',
             data: {
                 labels: labels,
-                datasets: [
-                    {
-                        label: 'Demand',
-                        data: demandValues,
-                        backgroundColor: '#ff6b6b',
-                        borderColor: '#fa5252',
-                        borderWidth: 1,
-                        borderRadius: 4,
-                        order: 2
-                    },
-                    {
-                        label: 'Capacity',
-                        data: capacityValues,
-                        type: 'line',
-                        fill: false,
-                        borderColor: '#339af0',
-                        backgroundColor: '#339af0',
-                        tension: 0.1,
-                        borderWidth: 3,
-                        pointBackgroundColor: '#ffffff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        order: 1
-                    }
-                ]
+                datasets: datasets
             },
             options: {
                 responsive: true,
@@ -1068,7 +1144,11 @@ class Analytics {
                     }
                 },
                 scales: {
+                    x: {
+                        stacked: true,
+                    },
                     y: {
+                        stacked: true,
                         beginAtZero: true,
                         title: {
                             display: true,

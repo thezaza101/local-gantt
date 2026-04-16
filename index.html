@@ -78,6 +78,10 @@
 
         <div class="vr mx-1 flex-shrink-0"></div>
 
+        <div class="d-flex align-items-center flex-shrink-0">
+            <input type="text" id="taskTextSearch" class="form-control form-control-sm" placeholder="Filter tasks..." style="width: 150px;">
+        </div>
+
         <!-- Tag Filters Container -->
         <div class="d-flex gap-1 align-items-center flex-shrink-0" id="tagFiltersContainer">
             <!-- Dynamically generated tags will appear here -->
@@ -245,6 +249,7 @@
                                     <option value="On hold">On hold</option>
                                     <option value="Blocked">Blocked</option>
                                     <option value="Completed">Completed</option>
+                                    <option value="Removed">Removed</option>
                                 </select>
                             </div>
                             <div class="col-md-8">

@@ -34,7 +34,8 @@ class Planner {
         this.filterState = {
             selectedTags: [],
             matchMode: 'any', // 'any' or 'all'
-            visualMode: 'show' // 'show' or 'highlight'
+            visualMode: 'show', // 'show' or 'highlight'
+            searchText: ''
         };
 
         // UI View State (Not saved to file)
@@ -43,6 +44,7 @@ class Planner {
         this.showEffortPerDay = false;
         this.selectedTaskIds = []; // Array of selected task IDs
         this.showTagAggregateText = true; // Tag Aggregates text visibility
+        this.colorCapacityDemandByStatus = false;
 
         // Marker Visibility State
         this.showMarkerMajor = true;
@@ -57,7 +59,8 @@ class Planner {
             'In progress': '#0000FF',
             'On hold': '#FF0000',
             'Blocked': '#FF0000',
-            'Completed': '#008000'
+            'Completed': '#008000',
+            'Removed': '#000000'
         };
     }
 
@@ -120,6 +123,14 @@ class Planner {
 
     setShowTagAggregateText(show) {
         this.showTagAggregateText = show;
+    }
+
+    getColorCapacityDemandByStatus() {
+        return this.colorCapacityDemandByStatus;
+    }
+
+    setColorCapacityDemandByStatus(colorByStatus) {
+        this.colorCapacityDemandByStatus = colorByStatus;
     }
 
     getShowEffortPerDay() {

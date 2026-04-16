@@ -112,6 +112,8 @@ class Capacity {
 
             if (totalEffort <= 0) return;
 
+            const status = task.status || 'None';
+
             // Calculate number of working days (weekdays)
             let workingDays = 0;
             let current = new Date(startDate);
@@ -133,8 +135,12 @@ class Capacity {
                 const dayOfWeek = current.getDay();
                 if (dayOfWeek !== 0 && dayOfWeek !== 6) {
                     const periodKey = this.getPeriodKey(current, granularity);
-                    const existingDemand = demandMap.get(periodKey) || 0;
-                    demandMap.set(periodKey, existingDemand + effortPerDay);
+                    if (!demandMap.has(periodKey)) {
+                        demandMap.set(periodKey, { total: 0, byStatus: {} });
+                    }
+                    const periodData = demandMap.get(periodKey);
+                    periodData.total += effortPerDay;
+                    periodData.byStatus[status] = (periodData.byStatus[status] || 0) + effortPerDay;
                 }
                 current.setDate(current.getDate() + 1);
             }
@@ -142,9 +148,13 @@ class Capacity {
 
         // Apply adjustment factor and format output
         const result = [];
-        for (const [period, rawDemand] of demandMap.entries()) {
-            const adjustedDemand = rawDemand * adjustmentFactor;
-            result.push({ period, demand: adjustedDemand });
+        for (const [period, data] of demandMap.entries()) {
+            const adjustedDemand = data.total * adjustmentFactor;
+            const byStatusAdjusted = {};
+            for (const status in data.byStatus) {
+                byStatusAdjusted[status] = data.byStatus[status] * adjustmentFactor;
+            }
+            result.push({ period, demand: adjustedDemand, demandByStatus: byStatusAdjusted });
         }
 
         // Sort by period
