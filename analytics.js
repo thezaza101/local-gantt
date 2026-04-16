@@ -870,24 +870,6 @@ class Analytics {
     }
 
     /**
-     * Gets all unique tags across all tasks in the current plan.
-     * @returns {string[]} Array of unique tags.
-     */
-    getUniqueTags() {
-        const plan = this.planner.getCurrentPlan();
-        if (!plan || !plan.tasks) return [];
-
-        const tags = new Set();
-        plan.tasks.forEach(task => {
-            if (task.tags && Array.isArray(task.tags)) {
-                task.tags.forEach(tag => tags.add(tag));
-            }
-        });
-
-        return Array.from(tags).sort();
-    }
-
-    /**
      * Helper to safely escape HTML to prevent XSS.
      * @param {string} unsafe
      * @returns {string} Safe HTML string.
