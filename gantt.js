@@ -481,6 +481,10 @@ class Gantt {
 
             const removedStyle = (task.status === 'Removed') ? 'text-decoration: line-through; opacity: 0.5;' : '';
 
+            const isMarked = task.isMarked ? true : false;
+            const markIndicatorHtml = isMarked ? `<span class="task-mark-indicator" title="Marked" style="margin-right: 4px; color: #28a745; font-weight: bold;">✓</span>` : '';
+            const markCheckboxHtml = `<input type="checkbox" class="gantt-task-control-checkbox mark-task-checkbox" title="Toggle Mark" ${isMarked ? 'checked' : ''} style="margin-right: 4px; cursor: pointer;">`;
+
             let effortHtml = '';
             if (plannerState && plannerState.getShowEffortPerDay()) {
                 const totalEffort = (task.effort?.design || 0) + (task.effort?.dev || 0) + (task.effort?.test || 0);
@@ -526,11 +530,12 @@ class Gantt {
                 ">
                     <div class="gantt-resize-handle left" data-resize="left"></div>
                     <div class="gantt-task-content" style="${removedStyle}">
-                        <strong>${safeId}</strong><br>
+                        <strong>${markIndicatorHtml}${safeId}</strong><br>
                         ${safeTitle}
                     </div>
                     ${effortHtml}
                     <div class="gantt-task-controls">
+                        ${markCheckboxHtml}
                         <button class="gantt-task-control-btn sync-plan-btn" title="Sync to Plan">⇄</button>
                         <button class="gantt-task-control-btn sync-all-btn" title="Sync to All Plans">⇶</button>
                         <button class="gantt-task-control-btn duplicate-btn" title="Duplicate Task">⧉</button>
@@ -899,12 +904,33 @@ class Gantt {
             });
 
             // Handle control buttons
+            const markCheckbox = taskEl.querySelector('.mark-task-checkbox');
             const syncPlanBtn = taskEl.querySelector('.sync-plan-btn');
             const syncAllBtn = taskEl.querySelector('.sync-all-btn');
             const duplicateBtn = taskEl.querySelector('.duplicate-btn');
             const deleteBtn = taskEl.querySelector('.delete-btn');
             const linkBtn = taskEl.querySelector('.link-btn');
             const taskId = taskEl.getAttribute('data-task-id');
+
+            if (markCheckbox) {
+                markCheckbox.addEventListener('change', (e) => {
+                    // Do not stop propagation if you still want it to be selected on click,
+                    // but we generally stop propagation to prevent dragging/selection conflicts.
+                    e.stopPropagation();
+                    if (window.PlannerState.toggleTaskMark(taskId)) {
+                        if (window.UIController) {
+                            window.UIController.updateUI();
+                        } else {
+                            this.render(window.PlannerState.getCurrentPlan());
+                        }
+                    }
+                });
+
+                // Also prevent clicks on the checkbox from triggering drag/selection
+                markCheckbox.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                });
+            }
 
             if (syncPlanBtn) {
                 syncPlanBtn.addEventListener('click', (e) => {

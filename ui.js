@@ -822,6 +822,102 @@ class UI {
             });
         }
 
+        // Bulk Operations Modal
+        const bulkOperationsBtn = document.getElementById('bulkOperationsBtn');
+        if (bulkOperationsBtn) {
+            bulkOperationsBtn.addEventListener('click', () => {
+                const modal = new bootstrap.Modal(document.getElementById('bulkOperationsModal'));
+                modal.show();
+            });
+        }
+
+        const markAllActiveBtn = document.getElementById('markAllActiveBtn');
+        if (markAllActiveBtn) {
+            markAllActiveBtn.addEventListener('click', () => {
+                if (window.GanttEngine && window.GanttEngine.renderedTasks) {
+                    const activeIds = window.GanttEngine.renderedTasks
+                        .filter(item => item.isMatch !== false && !item.task.excludeFromAnalytics)
+                        .map(item => item.id);
+
+                    if (this.planner.markAllActiveTasks(activeIds)) {
+                        this.updateUI();
+                    }
+                }
+            });
+        }
+
+        const unmarkAllBtn = document.getElementById('unmarkAllBtn');
+        if (unmarkAllBtn) {
+            unmarkAllBtn.addEventListener('click', () => {
+                if (this.planner.unmarkAllTasks()) {
+                    this.updateUI();
+                }
+            });
+        }
+
+        const bulkConvertToSelectionBtn = document.getElementById('bulkConvertToSelectionBtn');
+        if (bulkConvertToSelectionBtn) {
+            bulkConvertToSelectionBtn.addEventListener('click', () => {
+                if (this.planner.convertMarksToSelection()) {
+                    const modalEl = document.getElementById('bulkOperationsModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) modal.hide();
+                    this.updateUI();
+                }
+            });
+        }
+
+        const bulkAddTagsBtn = document.getElementById('bulkAddTagsBtn');
+        const bulkRemoveTagsBtn = document.getElementById('bulkRemoveTagsBtn');
+        const bulkTagsInput = document.getElementById('bulkTagsInput');
+
+        if (bulkAddTagsBtn && bulkTagsInput) {
+            bulkAddTagsBtn.addEventListener('click', () => {
+                const tagsStr = bulkTagsInput.value;
+                if (!tagsStr) return;
+                const tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                if (tagsArr.length > 0 && this.planner.addTagsToMarkedTasks(tagsArr)) {
+                    bulkTagsInput.value = '';
+                    this.updateUI();
+                }
+            });
+        }
+
+        if (bulkRemoveTagsBtn && bulkTagsInput) {
+            bulkRemoveTagsBtn.addEventListener('click', () => {
+                const tagsStr = bulkTagsInput.value;
+                if (!tagsStr) return;
+                const tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                if (tagsArr.length > 0 && this.planner.removeTagsFromMarkedTasks(tagsArr)) {
+                    bulkTagsInput.value = '';
+                    this.updateUI();
+                }
+            });
+        }
+
+        const bulkSetStatusBtn = document.getElementById('bulkSetStatusBtn');
+        const bulkStatusSelect = document.getElementById('bulkStatusSelect');
+        if (bulkSetStatusBtn && bulkStatusSelect) {
+            bulkSetStatusBtn.addEventListener('click', () => {
+                const status = bulkStatusSelect.value;
+                if (status && this.planner.setStatusOfMarkedTasks(status)) {
+                    bulkStatusSelect.value = '';
+                    this.updateUI();
+                }
+            });
+        }
+
+        const bulkSetExcludeBtn = document.getElementById('bulkSetExcludeBtn');
+        const bulkExcludeSelect = document.getElementById('bulkExcludeSelect');
+        if (bulkSetExcludeBtn && bulkExcludeSelect) {
+            bulkSetExcludeBtn.addEventListener('click', () => {
+                const exclude = bulkExcludeSelect.value === 'true';
+                if (this.planner.setExcludeFromAnalyticsOfMarkedTasks(exclude)) {
+                    this.updateUI();
+                }
+            });
+        }
+
         // Tag Filter Events
         const tagFiltersContainer = document.getElementById('tagFiltersContainer');
         if (tagFiltersContainer) {
