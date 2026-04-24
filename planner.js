@@ -681,6 +681,54 @@ class Planner {
         return hasChanges;
     }
 
+    deleteRow(targetRowIndex) {
+        const plan = this.getCurrentPlan();
+        if (!plan) return false;
+
+        // First check if row is empty
+        const isRowEmpty = !(plan.tasks && plan.tasks.some(task => {
+            const currentRow = (task.row !== undefined && task.row > 0) ? task.row : 1;
+            return currentRow === targetRowIndex;
+        }));
+
+        if (!isRowEmpty) {
+            return false; // Can't delete non-empty row
+        }
+
+        let hasChanges = false;
+
+        // Shift tasks up
+        if (plan.tasks && plan.tasks.length > 0) {
+            plan.tasks.forEach(task => {
+                const currentRow = (task.row !== undefined && task.row > 0) ? task.row : 1;
+                if (currentRow > targetRowIndex) {
+                    task.row = currentRow - 1;
+                    hasChanges = true;
+                }
+            });
+        }
+
+        // Shift horizontal markers up and delete if on the target row
+        if (plan.markers && plan.markers.length > 0) {
+            const markersToDelete = [];
+            plan.markers.forEach((marker, index) => {
+                if (marker.type === 'horizontal') {
+                    const currentRow = (marker.row !== undefined && marker.row > 0) ? marker.row : 1;
+                    if (currentRow === targetRowIndex) {
+                        markersToDelete.push(marker.id);
+                        hasChanges = true;
+                    } else if (currentRow > targetRowIndex) {
+                        marker.row = currentRow - 1;
+                        hasChanges = true;
+                    }
+                }
+            });
+            markersToDelete.forEach(id => this.deleteMarker(id));
+        }
+
+        return hasChanges;
+    }
+
     duplicatePlan() {
         const currentPlan = this.getCurrentPlan();
         if (!currentPlan) return false;
