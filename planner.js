@@ -947,6 +947,12 @@ class Planner {
     }
 
     getState() {
+        if (!this.file.meta) {
+            this.file.meta = {};
+        }
+        if (window.APP_VERSION) {
+            this.file.meta.appVersion = window.APP_VERSION;
+        }
         return this.file;
     }
 

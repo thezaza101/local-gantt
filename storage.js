@@ -20,10 +20,14 @@ class Storage {
         if (!state || !state.plans || planIndex < 0 || planIndex >= state.plans.length) return;
 
         const singlePlanState = {
-            meta: state.meta,
+            meta: { ...state.meta },
             settings: state.settings,
             plans: [state.plans[planIndex]]
         };
+
+        if (window.APP_VERSION) {
+            singlePlanState.meta.appVersion = window.APP_VERSION;
+        }
 
         const json = JSON.stringify(singlePlanState, null, 2);
         const blob = new Blob([json], { type: "application/json" });

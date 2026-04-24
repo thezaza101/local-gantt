@@ -96,6 +96,7 @@ class UI {
                             console.error("Error importing file:", error);
                             alert("Failed to import file. See console for details.");
                         } else {
+                            window.checkFileVersionWarning(data);
                             if (this.planner.loadState(data)) {
                                 console.log("File imported successfully!");
                                 document.title = `Project Plan - ${file.name}`;
@@ -183,6 +184,7 @@ class UI {
                             alert("Failed to import file. See console for details.");
                         } else {
                             if (data && data.plans && data.plans.length > 0) {
+                                window.checkFileVersionWarning(data);
                                 this.importedFileData = data;
                                 this.openImportPlanOptionsModal(data);
                             } else {
