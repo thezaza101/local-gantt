@@ -289,11 +289,31 @@ class Gantt {
         for (let i = 0; i <= maxRow; i++) {
             const originalRowIndex = reversedRowMap.has(i) ? reversedRowMap.get(i) : i;
             const displayRowNumber = originalRowIndex + 1; // 1-based index
+
+            // Check if the row is empty in the original plan
+            let isRowEmpty = true;
+            if (plan.tasks && plan.tasks.length > 0) {
+                isRowEmpty = !plan.tasks.some(task => {
+                    const currentRow = (task.row !== undefined && task.row > 0) ? task.row : 1;
+                    return currentRow === displayRowNumber;
+                });
+            }
+
+            let deleteBtnHtml = '';
+            if (isRowEmpty) {
+                deleteBtnHtml = `<button class="gantt-delete-row-btn" data-row-index="${displayRowNumber}" title="Delete row ${displayRowNumber}">Delete row ${displayRowNumber}</button>`;
+            } else {
+                deleteBtnHtml = `<button class="gantt-delete-row-btn" disabled title="Can't delete non-empty row">Can't delete non-empty row</button>`;
+            }
+
             // Height is rowHeight. We align top border
             rowNumbersHtml += `
                 <div class="gantt-row-number" style="height: ${this.rowHeight}px; width: 40px;">
                     ${displayRowNumber}
-                    <button class="gantt-insert-row-btn" data-row-index="${displayRowNumber}" title="Insert row above">Insert row above</button>
+                    <div class="gantt-row-btn-group">
+                        <button class="gantt-insert-row-btn" data-row-index="${displayRowNumber}" title="Insert row above">Insert row above</button>
+                        ${deleteBtnHtml}
+                    </div>
                 </div>`;
         }
 
@@ -1064,6 +1084,7 @@ class Gantt {
 
     bindRowEvents() {
         if (!this.container) return;
+
         const insertBtns = this.container.querySelectorAll('.gantt-insert-row-btn');
         insertBtns.forEach(btn => {
             btn.addEventListener('click', (e) => {
@@ -1071,6 +1092,23 @@ class Gantt {
                 const rowIndex = parseInt(btn.getAttribute('data-row-index'), 10);
                 if (!isNaN(rowIndex) && window.PlannerState) {
                     if (window.PlannerState.insertRowBefore(rowIndex)) {
+                        if (window.UIController) {
+                            window.UIController.updateUI();
+                        } else {
+                            this.render(window.PlannerState.getCurrentPlan());
+                        }
+                    }
+                }
+            });
+        });
+
+        const deleteBtns = this.container.querySelectorAll('.gantt-delete-row-btn:not([disabled])');
+        deleteBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const rowIndex = parseInt(btn.getAttribute('data-row-index'), 10);
+                if (!isNaN(rowIndex) && window.PlannerState) {
+                    if (window.PlannerState.deleteRow(rowIndex)) {
                         if (window.UIController) {
                             window.UIController.updateUI();
                         } else {

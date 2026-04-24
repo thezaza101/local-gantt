@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="styles.css">
+<style>
+  .test-container { padding: 50px; background: white; }
+</style>
+</head>
+<body>
+<div class="test-container gantt-sidebar">
+  <div class="gantt-row-number" style="height: 43px; width: 40px;">
+      1
+      <div class="gantt-row-btn-group">
+          <button class="gantt-insert-row-btn" data-row-index="1" title="Insert row above">Insert row above</button>
+          <button class="gantt-delete-row-btn" data-row-index="1" title="Delete row 1">Delete row 1</button>
+      </div>
+  </div>
+  <br><br><br>
+  <div class="gantt-row-number" style="height: 43px; width: 40px;">
+      2
+      <div class="gantt-row-btn-group">
+          <button class="gantt-insert-row-btn" data-row-index="2" title="Insert row above">Insert row above</button>
+          <button class="gantt-delete-row-btn" disabled title="Can't delete non-empty row">Can't delete non-empty row</button>
+      </div>
+  </div>
+</div>
+</body>
+</html>
