@@ -355,6 +355,25 @@ body.presenter-mode #exitPresenterModeBtn {
     transform: scale(1.1);
 }
 
+.gantt-task-control-checkbox {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+    accent-color: #0d6efd;
+    margin-right: 6px;
+    transform: scale(1.2);
+    vertical-align: middle;
+}
+
+.gantt-task-control-checkbox:hover {
+    transform: scale(1.3);
+}
+
+.task-mark-indicator {
+    font-family: monospace;
+    font-size: 1.1em;
+}
+
 /* Print View Setup */
 @media print {
     @page {

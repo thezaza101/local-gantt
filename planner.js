@@ -207,6 +207,143 @@ class Planner {
         return false;
     }
 
+    markTask(taskId) {
+        const task = this.getTaskById(taskId);
+        if (task) {
+            task.isMarked = true;
+            return true;
+        }
+        return false;
+    }
+
+    unmarkTask(taskId) {
+        const task = this.getTaskById(taskId);
+        if (task) {
+            task.isMarked = false;
+            return true;
+        }
+        return false;
+    }
+
+    toggleTaskMark(taskId) {
+        const task = this.getTaskById(taskId);
+        if (task) {
+            task.isMarked = !task.isMarked;
+            return true;
+        }
+        return false;
+    }
+
+    markAllActiveTasks(activeTaskIds) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        let changed = false;
+        plan.tasks.forEach(task => {
+            if (activeTaskIds.includes(task.id) && !task.isMarked) {
+                task.isMarked = true;
+                changed = true;
+            }
+        });
+        return changed;
+    }
+
+    unmarkAllTasks() {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        let changed = false;
+        plan.tasks.forEach(task => {
+            if (task.isMarked) {
+                task.isMarked = false;
+                changed = true;
+            }
+        });
+        return changed;
+    }
+
+    addTagsToMarkedTasks(tagsArray) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks || !tagsArray || tagsArray.length === 0) return false;
+
+        let changed = false;
+        plan.tasks.forEach(task => {
+            if (task.isMarked) {
+                let currentTags = task.tags ? task.tags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
+                let added = false;
+                tagsArray.forEach(tag => {
+                    if (!currentTags.includes(tag)) {
+                        currentTags.push(tag);
+                        added = true;
+                    }
+                });
+                if (added) {
+                    task.tags = currentTags.join(', ');
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+
+    removeTagsFromMarkedTasks(tagsArray) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks || !tagsArray || tagsArray.length === 0) return false;
+
+        let changed = false;
+        plan.tasks.forEach(task => {
+            if (task.isMarked && task.tags) {
+                let currentTags = task.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+                const initialLength = currentTags.length;
+                currentTags = currentTags.filter(t => !tagsArray.includes(t));
+                if (currentTags.length !== initialLength) {
+                    task.tags = currentTags.join(', ');
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+
+    setStatusOfMarkedTasks(status) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        let changed = false;
+        plan.tasks.forEach(task => {
+            if (task.isMarked && task.status !== status) {
+                task.status = status;
+                changed = true;
+            }
+        });
+        return changed;
+    }
+
+    setExcludeFromAnalyticsOfMarkedTasks(exclude) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        let changed = false;
+        plan.tasks.forEach(task => {
+            if (task.isMarked) {
+                if (task.excludeFromAnalytics !== exclude) {
+                    task.excludeFromAnalytics = exclude;
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+
+    convertMarksToSelection() {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        const markedTaskIds = plan.tasks.filter(t => t.isMarked).map(t => t.id);
+        this.setSelectedTaskIds(markedTaskIds);
+        return true;
+    }
+
     generateId() {
         return 'plan_' + Math.random().toString(36).substring(2, 11) + '_' + Date.now();
     }
