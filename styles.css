@@ -329,6 +329,7 @@ body.presenter-mode #exitPresenterModeBtn {
     right: 2px;
     display: none;
     gap: 4px;
+    align-items: center;
     z-index: 40;
 }
 

@@ -534,7 +534,7 @@ class Gantt {
                         ${safeTitle}
                     </div>
                     ${effortHtml}
-                    <div class="gantt-task-controls" style="display: flex; align-items: center;">
+                    <div class="gantt-task-controls">
                         ${markCheckboxHtml}
                         <button class="gantt-task-control-btn sync-plan-btn" title="Sync to Plan">⇄</button>
                         <button class="gantt-task-control-btn sync-all-btn" title="Sync to All Plans">⇶</button>

@@ -269,7 +269,7 @@ class Planner {
         let changed = false;
         plan.tasks.forEach(task => {
             if (task.isMarked) {
-                let currentTags = task.tags ? task.tags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
+                let currentTags = Array.isArray(task.tags) ? [...task.tags] : [];
                 let added = false;
                 tagsArray.forEach(tag => {
                     if (!currentTags.includes(tag)) {
@@ -278,7 +278,7 @@ class Planner {
                     }
                 });
                 if (added) {
-                    task.tags = currentTags.join(', ');
+                    task.tags = currentTags;
                     changed = true;
                 }
             }
@@ -292,12 +292,12 @@ class Planner {
 
         let changed = false;
         plan.tasks.forEach(task => {
-            if (task.isMarked && task.tags) {
-                let currentTags = task.tags.split(',').map(t => t.trim()).filter(t => t.length > 0);
+            if (task.isMarked && Array.isArray(task.tags)) {
+                let currentTags = task.tags;
                 const initialLength = currentTags.length;
                 currentTags = currentTags.filter(t => !tagsArray.includes(t));
                 if (currentTags.length !== initialLength) {
-                    task.tags = currentTags.join(', ');
+                    task.tags = currentTags;
                     changed = true;
                 }
             }
