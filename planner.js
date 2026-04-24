@@ -60,7 +60,8 @@ class Planner {
             'On hold': '#FF0000',
             'Blocked': '#FF0000',
             'Completed': '#008000',
-            'Removed': '#000000'
+            'Removed': '#000000',
+            'Stretch': '#FFA500'
         };
     }
 
