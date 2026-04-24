@@ -2233,6 +2233,7 @@ class UI {
             else if (tag.toLowerCase() === 'committed') statusColor = '#17a2b8';
             else if (tag.toLowerCase() === 'refined') statusColor = '#e2e3e5';
             else if (tag.toLowerCase() === 'removed') statusColor = '#000000';
+            else if (tag.toLowerCase() === 'stretch') statusColor = '#FFA500';
 
             if (fillLegend) {
                 return `<span style="display:inline-block; width: 14px; height: 14px; background-color: ${fillLegend.color}; border: 1px solid #ccc; margin-right: 8px; border-radius: 2px; vertical-align: middle;"></span>`;
@@ -2471,6 +2472,7 @@ class UI {
             else if (tag.toLowerCase() === 'committed') statusColor = '#17a2b8';
             else if (tag.toLowerCase() === 'refined') statusColor = '#e2e3e5';
             else if (tag.toLowerCase() === 'removed') statusColor = '#000000';
+            else if (tag.toLowerCase() === 'stretch') statusColor = '#FFA500';
 
             if (fillLegend) {
                 return `<span class="d-inline-block me-2" style="width: 12px; height: 12px; background-color: ${fillLegend.color}; border: 1px solid #ccc;"></span>`;
