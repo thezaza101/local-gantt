@@ -2,6 +2,37 @@
 
 const APP_VERSION = "0.69";
 const APP_DATE = "2026-03-23";
+window.APP_VERSION = APP_VERSION;
+
+window.checkFileVersionWarning = function(data) {
+    if (data && data.meta && data.meta.appVersion) {
+        const fileVersionStr = String(data.meta.appVersion);
+        const currentVersionStr = String(window.APP_VERSION);
+
+        const parseVersion = (v) => v.split('.').map(num => parseInt(num, 10) || 0);
+
+        const fileParts = parseVersion(fileVersionStr);
+        const currentParts = parseVersion(currentVersionStr);
+
+        const maxLength = Math.max(fileParts.length, currentParts.length);
+
+        let isNewer = false;
+        for (let i = 0; i < maxLength; i++) {
+            const filePart = fileParts[i] || 0;
+            const currentPart = currentParts[i] || 0;
+            if (filePart > currentPart) {
+                isNewer = true;
+                break;
+            } else if (filePart < currentPart) {
+                break;
+            }
+        }
+
+        if (isNewer) {
+            alert(`Warning: This file was edited using a newer version of the editor (v${data.meta.appVersion}). It may not display correctly on this version (v${window.APP_VERSION}).`);
+        }
+    }
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("Application starting...");
@@ -36,6 +67,7 @@ async function initApp() {
 
     if (loadedState) {
         console.log("Successfully loaded state.");
+        window.checkFileVersionWarning(loadedState);
         window.PlannerState.loadState(loadedState);
     } else {
         console.log("Could not load latest.json. Starting with default state.");
