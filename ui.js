@@ -637,6 +637,28 @@ class UI {
             });
         }
 
+        // Tag Groups Modals actions
+        const tagGroupsBtn = document.getElementById("tagGroupsBtn");
+        if (tagGroupsBtn) {
+            tagGroupsBtn.addEventListener("click", () => {
+                this.openTagGroupsModal();
+            });
+        }
+
+        const addTagGroupBtn = document.getElementById("addTagGroupBtn");
+        if (addTagGroupBtn) {
+            addTagGroupBtn.addEventListener("click", () => {
+                this.addTagGroupCard();
+            });
+        }
+
+        const saveTagGroupsBtn = document.getElementById("saveTagGroupsBtn");
+        if (saveTagGroupsBtn) {
+            saveTagGroupsBtn.addEventListener("click", () => {
+                this.saveTagGroups();
+            });
+        }
+
         // Legends Modals actions
         const addFillLegendRowBtn = document.getElementById("addFillLegendRowBtn");
         if (addFillLegendRowBtn) {
@@ -828,6 +850,26 @@ class UI {
         const bulkOperationsBtn = document.getElementById('bulkOperationsBtn');
         if (bulkOperationsBtn) {
             bulkOperationsBtn.addEventListener('click', () => {
+                // Populate the group tags dropdown
+                const bulkGroupedTagsSelect = document.getElementById('bulkGroupedTagsSelect');
+                if (bulkGroupedTagsSelect) {
+                    bulkGroupedTagsSelect.innerHTML = '<option value="">Select Group Tag...</option>';
+                    const tagGroups = this.planner.getTagGroups();
+                    tagGroups.forEach(group => {
+                        if (group.tags && group.tags.length > 0) {
+                            const optgroup = document.createElement('optgroup');
+                            optgroup.label = group.name;
+                            group.tags.forEach(t => {
+                                const option = document.createElement('option');
+                                option.value = t.tag;
+                                option.textContent = t.label;
+                                optgroup.appendChild(option);
+                            });
+                            bulkGroupedTagsSelect.appendChild(optgroup);
+                        }
+                    });
+                }
+
                 const modal = new bootstrap.Modal(document.getElementById('bulkOperationsModal'));
                 modal.show();
             });
@@ -892,6 +934,30 @@ class UI {
                 const tagsArr = tagsStr.split(',').map(t => t.trim()).filter(t => t.length > 0);
                 if (tagsArr.length > 0 && this.planner.removeTagsFromMarkedTasks(tagsArr)) {
                     bulkTagsInput.value = '';
+                    this.updateUI();
+                }
+            });
+        }
+
+        const bulkAddGroupedTagBtn = document.getElementById('bulkAddGroupedTagBtn');
+        const bulkRemoveGroupedTagBtn = document.getElementById('bulkRemoveGroupedTagBtn');
+        const bulkGroupedTagsSelect = document.getElementById('bulkGroupedTagsSelect');
+
+        if (bulkAddGroupedTagBtn && bulkGroupedTagsSelect) {
+            bulkAddGroupedTagBtn.addEventListener('click', () => {
+                const tag = bulkGroupedTagsSelect.value;
+                if (!tag) return;
+                if (this.planner.addTagsToMarkedTasks([tag])) {
+                    this.updateUI();
+                }
+            });
+        }
+
+        if (bulkRemoveGroupedTagBtn && bulkGroupedTagsSelect) {
+            bulkRemoveGroupedTagBtn.addEventListener('click', () => {
+                const tag = bulkGroupedTagsSelect.value;
+                if (!tag) return;
+                if (this.planner.removeTagsFromMarkedTasks([tag])) {
                     this.updateUI();
                 }
             });
@@ -1473,6 +1539,24 @@ class UI {
         let existingTags = document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
         let dependencies = document.getElementById('taskDependencies').value.split(',').map(dep => dep.trim()).filter(dep => dep);
 
+        // Remove old tags belonging to the groups so we can add the newly checked ones
+        const tagGroups = this.planner.getTagGroups();
+        tagGroups.forEach(group => {
+            if (group.tags) {
+                group.tags.forEach(t => {
+                    existingTags = existingTags.filter(existingTag => existingTag !== t.tag);
+                });
+            }
+        });
+
+        // Add newly checked tags from the group dropdown
+        const groupedCheckboxes = document.querySelectorAll('.task-grouped-tag-checkbox:checked');
+        groupedCheckboxes.forEach(cb => {
+            if (!existingTags.includes(cb.value)) {
+                existingTags.push(cb.value);
+            }
+        });
+
         if (originalTaskId) {
             const originalTask = this.planner.getTaskById(originalTaskId);
             if (originalTask) {
@@ -1587,6 +1671,42 @@ class UI {
             taskBorderLegendSelect.appendChild(option);
         });
 
+        // Populate Grouped Tags dropdown
+        const taskGroupedTagsDropdown = document.getElementById('taskGroupedTagsDropdown');
+        taskGroupedTagsDropdown.innerHTML = '';
+        const tagGroups = this.planner.getTagGroups();
+
+        let hasGroupTags = false;
+        tagGroups.forEach(group => {
+            if (group.tags && group.tags.length > 0) {
+                hasGroupTags = true;
+                const headerLi = document.createElement('li');
+                headerLi.innerHTML = `<h6 class="dropdown-header border-bottom mb-1 pb-1 text-uppercase fw-bold">${this.escapeHtml(group.name)}</h6>`;
+                taskGroupedTagsDropdown.appendChild(headerLi);
+
+                group.tags.forEach(t => {
+                    const li = document.createElement('li');
+                    const safeTagAttr = t.tag.replace(/"/g, '&quot;');
+                    const safeTagLabel = this.escapeHtml(t.label);
+                    li.innerHTML = `
+                        <div class="dropdown-item d-flex align-items-center py-1">
+                            <div class="form-check m-0 w-100">
+                                <input class="form-check-input task-grouped-tag-checkbox" type="checkbox" id="modalGroupTag_${safeTagAttr}" value="${safeTagAttr}">
+                                <label class="form-check-label small w-100" for="modalGroupTag_${safeTagAttr}" style="cursor: pointer;">
+                                    ${safeTagLabel}
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                    taskGroupedTagsDropdown.appendChild(li);
+                });
+            }
+        });
+
+        if (!hasGroupTags) {
+            taskGroupedTagsDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted small">No tag groups configured</span></li>';
+        }
+
         // Populate Marker dropdowns
         const currentPlan = this.planner.getCurrentPlan();
         const startMarkerBtn = document.getElementById('startMarkerBtn');
@@ -1665,8 +1785,26 @@ class UI {
                 document.getElementById('taskRow').value = task.row !== undefined ? task.row : 1;
                 document.getElementById('taskStatus').value = task.status || '';
 
-                // Don't show the status tag in the "Tags" input field to avoid duplication
-                const tagsToDisplay = (task.tags || []).filter(t => !task.status || t.toLowerCase() !== task.status.toLowerCase());
+                // Collect all possible grouped tags to filter them out of the input text box
+                const allGroupedTags = [];
+                tagGroups.forEach(g => {
+                    if (g.tags) {
+                        g.tags.forEach(t => allGroupedTags.push(t.tag));
+                    }
+                });
+
+                // Check the grouped checkboxes if the task has them
+                const groupedCheckboxes = document.querySelectorAll('.task-grouped-tag-checkbox');
+                groupedCheckboxes.forEach(cb => {
+                    cb.checked = (task.tags || []).includes(cb.value);
+                });
+
+                // Don't show the status tag or grouped tags in the "Tags" input field to avoid duplication
+                const tagsToDisplay = (task.tags || []).filter(t => {
+                    const isStatus = task.status && t.toLowerCase() === task.status.toLowerCase();
+                    const isGroupedTag = allGroupedTags.includes(t);
+                    return !isStatus && !isGroupedTag;
+                });
                 document.getElementById('taskTags').value = tagsToDisplay.join(', ');
                 document.getElementById('taskDependencies').value = (task.dependencies || []).join(', ');
 
@@ -1969,6 +2107,127 @@ class UI {
         }
 
         tbody.appendChild(tr);
+    }
+
+    openTagGroupsModal() {
+        const tagGroupsModalEl = document.getElementById('tagGroupsModal');
+        const tagGroupsModal = bootstrap.Modal.getOrCreateInstance(tagGroupsModalEl);
+
+        const container = document.getElementById('tagGroupsContainer');
+        container.innerHTML = '';
+        const tagGroups = this.planner.getTagGroups();
+        tagGroups.forEach(group => {
+            this.addTagGroupCard(group);
+        });
+
+        tagGroupsModal.show();
+    }
+
+    addTagGroupCard(group = null) {
+        const container = document.getElementById('tagGroupsContainer');
+        const card = document.createElement('div');
+        card.className = 'card mb-3 tag-group-card';
+        card.innerHTML = `
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <input type="text" class="form-control form-control-sm group-name-input me-2" value="${group ? this.escapeHtml(group.name) : ''}" placeholder="Group Name" required>
+                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-group-btn" title="Delete Group">&times;</button>
+            </div>
+            <div class="card-body py-2">
+                <table class="table table-sm tag-group-table mb-2">
+                    <thead>
+                        <tr>
+                            <th>Label</th>
+                            <th>Associated Tag</th>
+                            <th style="width: 50px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody class="tag-group-tbody">
+                        <!-- Tags injected here -->
+                    </tbody>
+                </table>
+                <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 add-group-tag-btn">+ Add Tag</button>
+            </div>
+        `;
+
+        const deleteGroupBtn = card.querySelector('.delete-group-btn');
+        deleteGroupBtn.addEventListener('click', () => {
+            card.remove();
+        });
+
+        const addGroupTagBtn = card.querySelector('.add-group-tag-btn');
+        const tbody = card.querySelector('.tag-group-tbody');
+
+        const addTagRow = (tagObj = null) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="text" class="form-control form-control-sm group-tag-label" value="${tagObj ? this.escapeHtml(tagObj.label) : ''}" required></td>
+                <td><input type="text" class="form-control form-control-sm group-tag-value" value="${tagObj ? this.escapeHtml(tagObj.tag) : ''}" required></td>
+                <td class="align-middle text-center">
+                    <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-tag-row-btn" title="Delete Row">&times;</button>
+                </td>
+            `;
+            const deleteTagRowBtn = tr.querySelector('.delete-tag-row-btn');
+            deleteTagRowBtn.addEventListener('click', () => {
+                tr.remove();
+            });
+            tbody.appendChild(tr);
+        };
+
+        addGroupTagBtn.addEventListener('click', () => {
+            addTagRow();
+        });
+
+        if (group && group.tags) {
+            group.tags.forEach(tagObj => {
+                addTagRow(tagObj);
+            });
+        }
+
+        container.appendChild(card);
+    }
+
+    saveTagGroups() {
+        const container = document.getElementById('tagGroupsContainer');
+        const cards = container.querySelectorAll('.tag-group-card');
+        const newTagGroups = [];
+
+        cards.forEach(card => {
+            const nameInput = card.querySelector('.group-name-input');
+            const name = nameInput.value.trim();
+
+            if (name) {
+                const tags = [];
+                const rows = card.querySelectorAll('.tag-group-tbody tr');
+                rows.forEach(row => {
+                    const labelInput = row.querySelector('.group-tag-label');
+                    const tagInput = row.querySelector('.group-tag-value');
+                    const label = labelInput.value.trim();
+                    const tag = tagInput.value.trim();
+                    if (label && tag) {
+                        tags.push({ label, tag });
+                    }
+                });
+
+                // Allow groups without tags? Yes, could be empty for now and filled later
+                newTagGroups.push({
+                    id: 'group_' + Math.random().toString(36).substring(2, 9),
+                    name: name,
+                    tags: tags
+                });
+            }
+        });
+
+        if (!this.planner.file.settings) this.planner.file.settings = {};
+        this.planner.file.settings.tagGroups = newTagGroups;
+
+        const tagGroupsModalEl = document.getElementById('tagGroupsModal');
+        const tagGroupsModal = bootstrap.Modal.getInstance(tagGroupsModalEl);
+        if (tagGroupsModal) {
+            tagGroupsModal.hide();
+        }
+
+        // Refresh UI so dropdowns correctly pick up changes
+        this.updateUI();
     }
 
     saveLegends() {
@@ -2288,6 +2547,8 @@ class UI {
         const borderLegends = this.planner.getBorderLegends();
         const statusColors = this.planner.getStatusColors ? this.planner.getStatusColors() : {};
 
+        const tagGroups = this.planner.getTagGroups();
+
         const groupedTags = {
             fill: [],
             border: [],
@@ -2295,7 +2556,17 @@ class UI {
             custom: []
         };
 
+        // We will exclude grouped tags from the legend entirely
         uniqueTags.forEach(tag => {
+            let isGroupTag = false;
+            tagGroups.forEach(g => {
+                if (g.tags && g.tags.some(t => t.tag === tag)) {
+                    isGroupTag = true;
+                }
+            });
+
+            if (isGroupTag) return; // Do not render these in the legend export
+
             const fillLegend = fillLegends.find(l => l.tag === tag);
             const borderLegend = borderLegends.find(l => l.tag === tag);
             let isStatus = false;
@@ -2440,6 +2711,7 @@ class UI {
         }
 
         const hasPlans = plans.length > 0;
+        const tagGroupsBtn = document.getElementById("tagGroupsBtn");
         const addTaskBtn = document.getElementById("addTaskBtn");
         const editPlanBtn = document.getElementById("editPlanBtn");
         const duplicatePlanBtn = document.getElementById("duplicatePlanBtn");
@@ -2461,6 +2733,8 @@ class UI {
         if (exportImageBtn) exportImageBtn.disabled = !hasPlans;
         if (exportPlanBtn) exportPlanBtn.disabled = !hasPlans;
         if (exportDropdownBtn) exportDropdownBtn.disabled = !hasPlans;
+        // Keep tagGroupsBtn always enabled or enabled with plans
+        // We'll keep it enabled so user can edit tag groups globally
 
         this.renderTagFilters();
 
@@ -2582,12 +2856,20 @@ class UI {
             return '';
         };
 
+        const tagGroups = this.planner.getTagGroups();
+
         const groupedTags = {
             fill: [],
             border: [],
             status: [],
+            groups: {},
             custom: []
         };
+
+        // Initialize groups
+        tagGroups.forEach(g => {
+            groupedTags.groups[g.name] = [];
+        });
 
         const plannerState = this.planner;
         const statusColors = plannerState.getStatusColors ? plannerState.getStatusColors() : {};
@@ -2596,6 +2878,19 @@ class UI {
             const fillLegend = fillLegends.find(l => l.tag === tag);
             const borderLegend = borderLegends.find(l => l.tag === tag);
             let isStatus = false;
+            let groupLabelMatch = null;
+            let matchedGroupName = null;
+
+            tagGroups.forEach(g => {
+                if (g.tags) {
+                    const match = g.tags.find(t => t.tag === tag);
+                    if (match) {
+                        groupLabelMatch = match.label;
+                        matchedGroupName = g.name;
+                    }
+                }
+            });
+
             for (const status in statusColors) {
                 if (status.toLowerCase() === tag.toLowerCase()) {
                     isStatus = true;
@@ -2603,7 +2898,9 @@ class UI {
                 }
             }
 
-            if (fillLegend) {
+            if (matchedGroupName) {
+                groupedTags.groups[matchedGroupName].push({ tag, label: groupLabelMatch });
+            } else if (fillLegend) {
                 groupedTags.fill.push({ tag, label: fillLegend.label });
             } else if (borderLegend) {
                 groupedTags.border.push({ tag, label: borderLegend.label });
@@ -2643,6 +2940,11 @@ class UI {
         html += renderTagGroup('Fill Colors', groupedTags.fill);
         html += renderTagGroup('Border Colors', groupedTags.border);
         html += renderTagGroup('Status Indicators', groupedTags.status);
+
+        for (const [groupName, items] of Object.entries(groupedTags.groups)) {
+            html += renderTagGroup(groupName, items);
+        }
+
         html += renderTagGroup('Custom Tags', groupedTags.custom);
 
         html += `
