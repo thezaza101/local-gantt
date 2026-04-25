@@ -205,6 +205,17 @@ class UI {
             });
         }
 
+        const importPlanActionMerge = document.getElementById("importPlanActionMerge");
+        const importPlanActionNew = document.getElementById("importPlanActionNew");
+        const mergeIgnoreFieldsContainer = document.getElementById("mergeIgnoreFieldsContainer");
+        const toggleMergeIgnoreContainer = () => {
+            if (importPlanActionMerge && mergeIgnoreFieldsContainer) {
+                mergeIgnoreFieldsContainer.style.display = importPlanActionMerge.checked ? 'block' : 'none';
+            }
+        };
+        if (importPlanActionMerge) importPlanActionMerge.addEventListener("change", toggleMergeIgnoreContainer);
+        if (importPlanActionNew) importPlanActionNew.addEventListener("change", toggleMergeIgnoreContainer);
+
         // Export Single Plan
         const exportPlanBtn = document.getElementById("exportPlanBtn");
         if (exportPlanBtn) {
@@ -1091,17 +1102,19 @@ class UI {
                 alert("Failed to import plan.");
             }
         } else if (action === 'merge') {
-            const diff = this.planner.calculatePlanDiff(selectedPlan);
+            const ignoredFields = Array.from(document.querySelectorAll('.merge-ignore-check:checked')).map(cb => cb.value);
+            const diff = this.planner.calculatePlanDiff(selectedPlan, ignoredFields);
             if (diff) {
                 this.pendingImportedPlan = selectedPlan;
-                this.openMergeDiffModal(diff);
+                this.pendingImportedPlanIgnoredFields = ignoredFields;
+                this.openMergeDiffModal(diff, ignoredFields);
             } else {
                 alert("Error calculating plan differences.");
             }
         }
     }
 
-    openMergeDiffModal(diff) {
+    openMergeDiffModal(diff, ignoredFields = []) {
         if (!diff) return;
 
         const modalEl = document.getElementById('mergePlanDiffModal');
@@ -1148,6 +1161,7 @@ class UI {
 
             const allKeys = new Set([...Object.keys(current || {}), ...Object.keys(imported || {})]);
             allKeys.forEach(key => {
+                if (ignoredFields.includes(key)) return;
                 const currVal = JSON.stringify(current[key]);
                 const impVal = JSON.stringify(imported[key]);
                 if (currVal !== impVal) {
@@ -1247,7 +1261,7 @@ class UI {
             if (diffSelection.markers[type]) diffSelection.markers[type].push(id);
         });
 
-        if (this.planner.applyPlanMerge(diffSelection, this.pendingImportedPlan)) {
+        if (this.planner.applyPlanMerge(diffSelection, this.pendingImportedPlan, this.pendingImportedPlanIgnoredFields || [])) {
             const modalEl = document.getElementById('mergePlanDiffModal');
             const modal = bootstrap.Modal.getInstance(modalEl);
             if (modal) modal.hide();
