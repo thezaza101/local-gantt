@@ -36,6 +36,17 @@ window.checkFileVersionWarning = function(data) {
 
 document.addEventListener('DOMContentLoaded', async () => {
     console.log("Application starting...");
+
+    // Apply saved theme preference early
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-bs-theme', savedTheme);
+        const darkModeToggleBtn = document.getElementById("darkModeToggleBtn");
+        if (darkModeToggleBtn) {
+            darkModeToggleBtn.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+        }
+    }
+
     await initApp();
 });
 

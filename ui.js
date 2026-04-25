@@ -53,6 +53,20 @@ class UI {
             });
         }
 
+        // Dark Mode Toggle
+        const darkModeToggleBtn = document.getElementById("darkModeToggleBtn");
+        if (darkModeToggleBtn) {
+            darkModeToggleBtn.addEventListener("click", () => {
+                const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+                const newTheme = isDark ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-bs-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+
+                // Update button icon
+                darkModeToggleBtn.textContent = isDark ? '🌙' : '☀️';
+            });
+        }
+
         // Presenter Mode
         const presenterModeBtn = document.getElementById("presenterModeBtn");
         const exitPresenterModeBtn = document.getElementById("exitPresenterModeBtn");
