@@ -575,3 +575,65 @@ body.presenter-mode #exitPresenterModeBtn {
 .shareable-mode .ribbon-container > .vr:nth-of-type(4) {
     display: none !important;
 }
+
+/* Dark Mode Overrides */
+[data-bs-theme="dark"] {
+    --background-color: #212529;
+    --border-color: #495057;
+}
+
+[data-bs-theme="dark"] body {
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
+}
+
+[data-bs-theme="dark"] .bg-light {
+    background-color: var(--bs-dark) !important;
+}
+
+[data-bs-theme="dark"] .bg-white {
+    background-color: var(--bs-dark) !important;
+}
+
+[data-bs-theme="dark"] .text-dark {
+    color: var(--bs-light) !important;
+}
+
+[data-bs-theme="dark"] .gantt-chart-container,
+[data-bs-theme="dark"] .planner-area {
+    background-color: var(--bs-dark) !important;
+    border-color: var(--border-color);
+}
+
+[data-bs-theme="dark"] .gantt-month {
+    background-color: var(--bs-dark);
+}
+
+[data-bs-theme="dark"] .gantt-day {
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+}
+
+[data-bs-theme="dark"] .gantt-sidebar {
+    background-color: var(--bs-dark);
+    border-color: var(--border-color);
+}
+
+[data-bs-theme="dark"] .gantt-sidebar-header {
+    background-color: var(--bs-dark);
+    border-color: var(--border-color);
+}
+
+[data-bs-theme="dark"] .gantt-row-number {
+    background-color: var(--bs-dark);
+    color: var(--bs-light);
+    border-color: var(--border-color);
+}
+
+[data-bs-theme="dark"] .gantt-grid-line {
+    border-color: #343a40 !important;
+}
+
+[data-bs-theme="dark"] .gantt-sidebar-filler {
+    background-color: var(--bs-dark) !important;
+}
