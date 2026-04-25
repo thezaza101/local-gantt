@@ -24,7 +24,8 @@ class Planner {
                         color: '#1c6ed5',
                         tag: 'border-default'
                     }
-                ]
+                ],
+                tagGroups: []
             },
             plans: []
         };
@@ -992,6 +993,14 @@ class Planner {
             ];
         }
         return this.file.settings.borderLegends;
+    }
+
+    getTagGroups() {
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.tagGroups) {
+            this.file.settings.tagGroups = [];
+        }
+        return this.file.settings.tagGroups;
     }
 
     getState() {
