@@ -1799,12 +1799,8 @@ class UI {
                     cb.checked = (task.tags || []).includes(cb.value);
                 });
 
-                // Don't show the status tag or grouped tags in the "Tags" input field to avoid duplication
-                const tagsToDisplay = (task.tags || []).filter(t => {
-                    const isStatus = task.status && t.toLowerCase() === task.status.toLowerCase();
-                    const isGroupedTag = allGroupedTags.includes(t);
-                    return !isStatus && !isGroupedTag;
-                });
+                // Don't show the status tag in the "Tags" input field to avoid duplication
+                const tagsToDisplay = (task.tags || []).filter(t => !task.status || t.toLowerCase() !== task.status.toLowerCase());
                 document.getElementById('taskTags').value = tagsToDisplay.join(', ');
                 document.getElementById('taskDependencies').value = (task.dependencies || []).join(', ');
 
