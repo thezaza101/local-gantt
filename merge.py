@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from rcssmin import cssmin
 from rjsmin import jsmin
-import htmlmin
+#import htmlmin
 import argparse
 
 parser = argparse.ArgumentParser(description="Merge local HTML, CSS, and JS into a single file.")
@@ -27,6 +27,6 @@ for script in soup.find_all("script", src=True):
 
 with open("single.html", "w", encoding="utf-8") as f:
     html_output = str(soup)
-    if args.minify:
-        html_output = htmlmin.minify(html_output, remove_comments=True, remove_empty_space=True)
+    #if args.minify:
+        #html_output = htmlmin.minify(html_output, remove_comments=True, remove_empty_space=True)
     f.write(html_output)
