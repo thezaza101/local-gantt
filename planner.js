@@ -784,7 +784,7 @@ class Planner {
         return true;
     }
 
-    calculatePlanDiff(importedPlan) {
+    calculatePlanDiff(importedPlan, ignoredFields = []) {
         const currentPlan = this.getCurrentPlan();
         if (!currentPlan || !importedPlan) return null;
 
@@ -805,7 +805,22 @@ class Planner {
             if (!currTask) {
                 diff.tasks.new.push(impTask);
             } else {
-                if (JSON.stringify(currTask) !== JSON.stringify(impTask)) {
+                let isDifferent = false;
+                if (ignoredFields.length > 0) {
+                    const currComp = JSON.parse(JSON.stringify(currTask));
+                    const impComp = JSON.parse(JSON.stringify(impTask));
+                    ignoredFields.forEach(field => {
+                        delete currComp[field];
+                        delete impComp[field];
+                    });
+                    if (JSON.stringify(currComp) !== JSON.stringify(impComp)) {
+                        isDifferent = true;
+                    }
+                } else if (JSON.stringify(currTask) !== JSON.stringify(impTask)) {
+                    isDifferent = true;
+                }
+
+                if (isDifferent) {
                     diff.tasks.modified.push({ current: currTask, imported: impTask });
                 }
             }
@@ -859,7 +874,7 @@ class Planner {
         return diff;
     }
 
-    applyPlanMerge(diffSelection, importedPlan) {
+    applyPlanMerge(diffSelection, importedPlan, ignoredFields = []) {
         const currentPlan = this.getCurrentPlan();
         if (!currentPlan || !importedPlan) return false;
 
@@ -883,7 +898,15 @@ class Planner {
             const idx = taskMap.get(taskId);
             const taskToMerge = importedPlan.tasks.find(t => t.id === taskId);
             if (idx !== undefined && taskToMerge) {
-                currentPlan.tasks[idx] = JSON.parse(JSON.stringify(taskToMerge));
+                const mergedTask = JSON.parse(JSON.stringify(taskToMerge));
+                ignoredFields.forEach(field => {
+                    if (currentPlan.tasks[idx][field] !== undefined) {
+                        mergedTask[field] = currentPlan.tasks[idx][field];
+                    } else {
+                        delete mergedTask[field];
+                    }
+                });
+                currentPlan.tasks[idx] = mergedTask;
             }
         });
 
