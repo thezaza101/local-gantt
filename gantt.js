@@ -570,12 +570,50 @@ class Gantt {
         return { html: tasksHtml, maxRow, rowMap, renderedTasks };
     }
 
+
+    getMixedColor(sourceColor) {
+        const shadeAmount = 0.35;
+        const grayAmount = 1.0 - shadeAmount;
+        let r = 128, g = 128, b = 128;
+        if (sourceColor) {
+            if (sourceColor.startsWith('#')) {
+                let hex = sourceColor.slice(1);
+                if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+                if (hex.length >= 6) {
+                    const sr = parseInt(hex.slice(0, 2), 16);
+                    const sg = parseInt(hex.slice(2, 4), 16);
+                    const sb = parseInt(hex.slice(4, 6), 16);
+                    if (!isNaN(sr) && !isNaN(sg) && !isNaN(sb)) {
+                        r = Math.round(shadeAmount * sr + grayAmount * 128);
+                        g = Math.round(shadeAmount * sg + grayAmount * 128);
+                        b = Math.round(shadeAmount * sb + grayAmount * 128);
+                    }
+                }
+            } else if (sourceColor.startsWith('rgb')) {
+                const match = sourceColor.match(/\d+/g);
+                if (match && match.length >= 3) {
+                    const sr = parseInt(match[0], 10);
+                    const sg = parseInt(match[1], 10);
+                    const sb = parseInt(match[2], 10);
+                    if (!isNaN(sr) && !isNaN(sg) && !isNaN(sb)) {
+                        r = Math.round(shadeAmount * sr + grayAmount * 128);
+                        g = Math.round(shadeAmount * sg + grayAmount * 128);
+                        b = Math.round(shadeAmount * sb + grayAmount * 128);
+                    }
+                }
+            }
+        }
+        return `rgba(${r}, ${g}, ${b}, 0.5)`;
+    }
+
     generateDependencyArrows(renderedTasks, containerHeight, containerWidth) {
         if (!renderedTasks || renderedTasks.length === 0) return '';
 
         let svgContent = '';
         const taskMap = new Map();
         renderedTasks.forEach(rt => taskMap.set(rt.id, rt));
+
+        const uniqueMarkers = new Map();
 
         renderedTasks.forEach(rt => {
             if (rt.dependencies && rt.dependencies.length > 0) {
@@ -587,6 +625,14 @@ class Gantt {
                         const startY = depTask.top + (depTask.height / 2);
                         const endX = rt.left;
                         const endY = rt.top + (rt.height / 2);
+
+                        const strokeColor = this.getMixedColor(depTask.task.fillColor || '#4da3ff');
+
+                        // We use a simple hash of the color to create a unique marker ID
+                        const markerId = 'arrowhead-' + strokeColor.replace(/[^a-zA-Z0-9]/g, '');
+                        if (!uniqueMarkers.has(markerId)) {
+                            uniqueMarkers.set(markerId, strokeColor);
+                        }
 
                         let pathD = '';
                         const r = 5; // corner radius
@@ -631,10 +677,10 @@ class Gantt {
                         svgContent += `
                             <path d="${pathD}"
                                   fill="none"
-                                  stroke="rgba(128, 128, 128, 0.5)"
+                                  stroke="${strokeColor}"
                                   stroke-width="3"
                                   stroke-linejoin="round"
-                                  marker-end="url(#arrowhead)" />
+                                  marker-end="url(#${markerId})" />
                         `;
                     }
                 });
@@ -643,13 +689,19 @@ class Gantt {
 
         if (!svgContent) return '';
 
+        let defsHtml = '<defs>';
+        uniqueMarkers.forEach((color, id) => {
+            defsHtml += `
+                <marker id="${id}" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
+                    <polygon points="0 0, 6 2, 0 4" fill="${color}" />
+                </marker>
+            `;
+        });
+        defsHtml += '</defs>';
+
         return `
             <svg class="gantt-dependencies-svg" style="position: absolute; top: 0; left: 0; width: ${containerWidth}px; height: ${containerHeight}px; pointer-events: none; z-index: 25;">
-                <defs>
-                    <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="5" refY="2" orient="auto">
-                        <polygon points="0 0, 6 2, 0 4" fill="rgba(128, 128, 128, 0.5)" />
-                    </marker>
-                </defs>
+                ${defsHtml}
                 ${svgContent}
             </svg>
         `;
