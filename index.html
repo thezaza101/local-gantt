@@ -1086,5 +1086,26 @@
 
     <!-- Local Bootstrap JS -->
     <script src="vendor/bootstrap.bundle.min.js"></script>
+
+    <!-- Update Dependencies Modal -->
+    <div class="modal fade" id="updateDependenciesModal" tabindex="-1" aria-labelledby="updateDependenciesModalLabel" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="updateDependenciesModalLabel">Update Dependencies?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="updateDependenciesModalBody">
+                    <!-- Dynamic content -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelUpdateDependenciesBtn">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="saveWithoutUpdatingBtn">Save without Updating</button>
+                    <button type="button" class="btn btn-primary" id="updateDependenciesAndSaveBtn">Update and Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
