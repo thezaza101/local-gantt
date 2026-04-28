@@ -572,7 +572,7 @@ class Gantt {
 
 
     getMixedColor(sourceColor) {
-        const shadeAmount = 0.10;
+        const shadeAmount = 0.35;
         const grayAmount = 1.0 - shadeAmount;
         let r = 128, g = 128, b = 128;
         if (sourceColor) {
