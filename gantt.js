@@ -572,6 +572,8 @@ class Gantt {
 
 
     getMixedColor(sourceColor) {
+        const shadeAmount = 0.10;
+        const grayAmount = 1.0 - shadeAmount;
         let r = 128, g = 128, b = 128;
         if (sourceColor) {
             if (sourceColor.startsWith('#')) {
@@ -582,9 +584,9 @@ class Gantt {
                     const sg = parseInt(hex.slice(2, 4), 16);
                     const sb = parseInt(hex.slice(4, 6), 16);
                     if (!isNaN(sr) && !isNaN(sg) && !isNaN(sb)) {
-                        r = Math.round(0.1 * sr + 0.9 * 128);
-                        g = Math.round(0.1 * sg + 0.9 * 128);
-                        b = Math.round(0.1 * sb + 0.9 * 128);
+                        r = Math.round(shadeAmount * sr + grayAmount * 128);
+                        g = Math.round(shadeAmount * sg + grayAmount * 128);
+                        b = Math.round(shadeAmount * sb + grayAmount * 128);
                     }
                 }
             } else if (sourceColor.startsWith('rgb')) {
@@ -594,9 +596,9 @@ class Gantt {
                     const sg = parseInt(match[1], 10);
                     const sb = parseInt(match[2], 10);
                     if (!isNaN(sr) && !isNaN(sg) && !isNaN(sb)) {
-                        r = Math.round(0.1 * sr + 0.9 * 128);
-                        g = Math.round(0.1 * sg + 0.9 * 128);
-                        b = Math.round(0.1 * sb + 0.9 * 128);
+                        r = Math.round(shadeAmount * sr + grayAmount * 128);
+                        g = Math.round(shadeAmount * sg + grayAmount * 128);
+                        b = Math.round(shadeAmount * sb + grayAmount * 128);
                     }
                 }
             }
