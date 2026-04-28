@@ -1649,23 +1649,101 @@ class UI {
             excludeFromAnalytics: document.getElementById('taskExcludeFromAnalytics').checked
         };
 
-        let success = false;
-
-        if (originalTaskId) {
-            success = this.planner.updateTask(originalTaskId, taskData);
-            if (!success) alert("Failed to update task. Task ID might be a duplicate.");
-        } else {
-            success = this.planner.addTask(taskData);
-            if (!success) alert("Failed to add task. Task ID must be unique within the plan.");
+        // Handle logic for updating dependent tasks if ID changed
+        let dependentTasks = [];
+        if (originalTaskId && originalTaskId !== id) {
+            const currentPlan = this.planner.getCurrentPlan();
+            if (currentPlan && currentPlan.tasks) {
+                dependentTasks = currentPlan.tasks.filter(t => t.dependencies && t.dependencies.includes(originalTaskId));
+            }
         }
 
-        if (success) {
-            const taskModalEl = document.getElementById('taskModal');
-            const taskModal = bootstrap.Modal.getInstance(taskModalEl);
-            if (taskModal) {
-                taskModal.hide();
+        const performSave = (updateDeps) => {
+            let success = false;
+
+            if (originalTaskId) {
+                success = this.planner.updateTask(originalTaskId, taskData);
+                if (!success) {
+                    alert("Failed to update task. Task ID might be a duplicate.");
+                    return;
+                }
+
+                // If ID changed and we need to update deps
+                if (updateDeps && originalTaskId !== id && dependentTasks.length > 0) {
+                    dependentTasks.forEach(depTask => {
+                        // Replace the old ID with the new ID in the dependencies array
+                        const newDeps = depTask.dependencies.map(d => d === originalTaskId ? id : d);
+                        // Make sure we only have unique values just in case
+                        depTask.dependencies = [...new Set(newDeps)];
+                        this.planner.updateTask(depTask.id, depTask);
+                    });
+                }
+            } else {
+                success = this.planner.addTask(taskData);
+                if (!success) {
+                    alert("Failed to add task. Task ID must be unique within the plan.");
+                    return;
+                }
             }
-            this.updateUI();
+
+            if (success) {
+                const taskModalEl = document.getElementById('taskModal');
+                const taskModal = bootstrap.Modal.getInstance(taskModalEl);
+                if (taskModal) {
+                    taskModal.hide();
+                }
+                this.updateUI();
+            }
+        };
+
+        if (dependentTasks.length > 0) {
+            const depModalEl = document.getElementById('updateDependenciesModal');
+            const depModal = bootstrap.Modal.getOrCreateInstance(depModalEl);
+
+            const modalBody = document.getElementById('updateDependenciesModalBody');
+            const depTaskIds = dependentTasks.map(t => t.id).join(', ');
+            modalBody.innerHTML = `
+                <p>The task ID has changed from <strong>${this.escapeHtml(originalTaskId)}</strong> to <strong>${this.escapeHtml(id)}</strong>.</p>
+                <p>The following tasks depend on <strong>${this.escapeHtml(originalTaskId)}</strong>:</p>
+                <ul>
+                    <li>${this.escapeHtml(depTaskIds)}</li>
+                </ul>
+                <p>Would you like to update these tasks to depend on the new ID?</p>
+            `;
+
+            // Temporary bound functions so we can remove them later to avoid duplicate triggers
+            const btnUpdate = document.getElementById('updateDependenciesAndSaveBtn');
+            const btnSaveOnly = document.getElementById('saveWithoutUpdatingBtn');
+            const btnCancel = document.getElementById('cancelUpdateDependenciesBtn');
+
+            // Clone to remove existing event listeners
+            const newBtnUpdate = btnUpdate.cloneNode(true);
+            const newBtnSaveOnly = btnSaveOnly.cloneNode(true);
+            const newBtnCancel = btnCancel.cloneNode(true);
+
+            btnUpdate.parentNode.replaceChild(newBtnUpdate, btnUpdate);
+            btnSaveOnly.parentNode.replaceChild(newBtnSaveOnly, btnSaveOnly);
+            btnCancel.parentNode.replaceChild(newBtnCancel, btnCancel);
+
+            newBtnUpdate.addEventListener('click', () => {
+                depModal.hide();
+                performSave(true);
+            });
+
+            newBtnSaveOnly.addEventListener('click', () => {
+                depModal.hide();
+                performSave(false);
+            });
+
+            // Cancel just closes this modal, leaves task modal open
+            newBtnCancel.addEventListener('click', () => {
+                depModal.hide();
+            });
+
+            depModal.show();
+        } else {
+            // Normal save
+            performSave(false);
         }
     }
 
