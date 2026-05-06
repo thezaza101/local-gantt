@@ -827,9 +827,53 @@
                         </div>
                         <div class="mt-2 ms-4" id="mergeIgnoreFieldsContainer" style="display: none;">
                             <label class="form-label text-muted small mb-1">Ignore changes in these fields:</label>
-                            <div class="form-check">
-                                <input class="form-check-input merge-ignore-check" type="checkbox" value="row" id="ignoreRowCheck" checked>
-                                <label class="form-check-label small" for="ignoreRowCheck">Row Number</label>
+                            <div class="row g-2">
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="row" id="ignoreRowCheck" checked>
+                                        <label class="form-check-label small" for="ignoreRowCheck">Row Number</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="title" id="ignoreTitleCheck">
+                                        <label class="form-check-label small" for="ignoreTitleCheck">Title</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="description" id="ignoreDescriptionCheck">
+                                        <label class="form-check-label small" for="ignoreDescriptionCheck">Description</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="status" id="ignoreStatusCheck">
+                                        <label class="form-check-label small" for="ignoreStatusCheck">Status</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="startDate,endDate,date" id="ignoreDatesCheck">
+                                        <label class="form-check-label small" for="ignoreDatesCheck">Dates</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="dependencies" id="ignoreDependenciesCheck">
+                                        <label class="form-check-label small" for="ignoreDependenciesCheck">Dependencies</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="tags" id="ignoreTagsCheck">
+                                        <label class="form-check-label small" for="ignoreTagsCheck">Tags</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="effort" id="ignoreEffortCheck">
+                                        <label class="form-check-label small" for="ignoreEffortCheck">Effort</label>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="fillLegendId,borderLegendId,fillColor,borderColor,markerColor,color" id="ignoreColorsCheck">
+                                        <label class="form-check-label small" for="ignoreColorsCheck">Colors/Legends</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="excludeFromAnalytics" id="ignoreExcludeCheck">
+                                        <label class="form-check-label small" for="ignoreExcludeCheck">Exclude from Analytics</label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
