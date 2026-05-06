@@ -773,6 +773,24 @@ class UI {
             });
         }
 
+        // Update Last Checked Button
+        const updateLastCheckedBtn = document.getElementById("updateLastCheckedBtn");
+        if (updateLastCheckedBtn) {
+            updateLastCheckedBtn.addEventListener("click", () => {
+                const taskId = document.getElementById('originalTaskId').value;
+                if (taskId) {
+                    if (this.planner.updateTaskLastChecked(taskId)) {
+                        // Refresh the display without closing the modal
+                        const task = this.planner.getTaskById(taskId);
+                        if (task && task.lastChecked) {
+                            document.getElementById('taskLastCheckedDisplay').textContent = 'Last Checked: ' + task.lastChecked;
+                        }
+                        this.updateUI();
+                    }
+                }
+            });
+        }
+
         // Capacity Add Row Button
         const addCapacityRowBtn = document.getElementById("addCapacityRowBtn");
         if (addCapacityRowBtn) {
@@ -1050,6 +1068,13 @@ class UI {
         const taskTextSearch = document.getElementById('taskTextSearch');
         if (taskTextSearch) {
             taskTextSearch.addEventListener('input', () => {
+                this.updateTagFiltersState();
+            });
+        }
+
+        const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
+        if (notCheckedDaysFilter) {
+            notCheckedDaysFilter.addEventListener('input', () => {
                 this.updateTagFiltersState();
             });
         }
@@ -1519,11 +1544,15 @@ class UI {
         const taskTextSearch = document.getElementById('taskTextSearch');
         const searchText = taskTextSearch ? taskTextSearch.value : '';
 
+        const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
+        const notCheckedDays = notCheckedDaysFilter && notCheckedDaysFilter.value !== '' ? parseInt(notCheckedDaysFilter.value, 10) : null;
+
         this.planner.setFilterState({
             selectedTags,
             matchMode,
             visualMode,
-            searchText
+            searchText,
+            notCheckedDays
         });
 
         if (window.GanttEngine) {
@@ -1930,6 +1959,9 @@ class UI {
                 document.getElementById('taskEffortTest').value = task.effort ? task.effort.test || 0 : 0;
 
                 document.getElementById('taskExcludeFromAnalytics').checked = task.excludeFromAnalytics === true;
+
+                document.getElementById('taskLastUpdatedDisplay').textContent = task.lastUpdated ? 'Last Updated: ' + task.lastUpdated : 'Last Updated: -';
+                document.getElementById('taskLastCheckedDisplay').textContent = task.lastChecked ? 'Last Checked: ' + task.lastChecked : 'Last Checked: -';
             }
         } else {
             document.getElementById('taskId').value = '';
@@ -1941,6 +1973,9 @@ class UI {
 
             taskFillLegendSelect.value = 'default_fill';
             taskBorderLegendSelect.value = 'default_border';
+
+            document.getElementById('taskLastUpdatedDisplay').textContent = 'Last Updated: -';
+            document.getElementById('taskLastCheckedDisplay').textContent = 'Last Checked: -';
         }
 
         taskModal.show();
@@ -2895,6 +2930,11 @@ class UI {
         const taskTextSearch = document.getElementById('taskTextSearch');
         if (taskTextSearch && filterState.searchText !== undefined) {
             taskTextSearch.value = filterState.searchText;
+        }
+
+        const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
+        if (notCheckedDaysFilter && filterState.notCheckedDays !== undefined) {
+            notCheckedDaysFilter.value = filterState.notCheckedDays !== null ? filterState.notCheckedDays : '';
         }
 
         if (uniqueTags.length === 0) {

@@ -36,7 +36,8 @@ class Planner {
             selectedTags: [],
             matchMode: 'any', // 'any' or 'all'
             visualMode: 'show', // 'show' or 'highlight'
-            searchText: ''
+            searchText: '',
+            notCheckedDays: null
         };
 
         // UI View State (Not saved to file)
@@ -513,6 +514,10 @@ class Planner {
             return false;
         }
 
+        const nowStr = this.getNowTimestamp();
+        task.lastUpdated = nowStr;
+        task.lastChecked = nowStr;
+
         plan.tasks.push(task);
         return true;
     }
@@ -548,10 +553,38 @@ class Planner {
             if (taskId !== updatedTask.id && plan.tasks.some(t => t.id === updatedTask.id)) {
                 return false;
             }
+
+            const nowStr = this.getNowTimestamp();
+
+            // Retain original lastChecked if it exists, otherwise use now.
+            // But we don't necessarily update lastUpdated unless asked.
+            // Since requirements state: "Last updated is updated when any task details (apart from last checked) is updated."
+            // "last checked is also updated when the last updated is changed"
+            // We'll update both here, since this method replaces the task.
+            updatedTask.lastUpdated = nowStr;
+            updatedTask.lastChecked = nowStr;
+
             plan.tasks[taskIndex] = updatedTask;
             return true;
         }
         return false;
+    }
+
+    updateTaskLastChecked(taskId) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+        const task = plan.tasks.find(t => t.id === taskId);
+        if (task) {
+            task.lastChecked = this.getNowTimestamp();
+            return true;
+        }
+        return false;
+    }
+
+    getNowTimestamp() {
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     }
 
     getTaskById(taskId) {

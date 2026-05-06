@@ -429,7 +429,7 @@ class Gantt {
             if (taskEnd < planStartDate || taskStart > planEndDate) return;
 
             const isMatch = window.AnalyticsEngine ?
-                window.AnalyticsEngine.taskMatchesTags(task, filterState.selectedTags, filterState.matchMode, filterState.searchText) : true;
+                window.AnalyticsEngine.taskMatchesTags(task, filterState.selectedTags, filterState.matchMode, filterState.searchText, filterState.notCheckedDays) : true;
 
             // If mode is "show only" and it doesn't match, completely skip rendering this task
             if (filterState.visualMode === 'show' && !isMatch) return;
