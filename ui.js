@@ -1116,7 +1116,10 @@ class UI {
                 alert("Failed to import plan.");
             }
         } else if (action === 'merge') {
-            const ignoredFields = Array.from(document.querySelectorAll('.merge-ignore-check:checked')).map(cb => cb.value);
+            const ignoredFields = Array.from(document.querySelectorAll('.merge-ignore-check:checked'))
+                .flatMap(cb => cb.value.split(','))
+                .map(val => val.trim())
+                .filter(val => val.length > 0);
             const diff = this.planner.calculatePlanDiff(selectedPlan, ignoredFields);
             if (diff) {
                 this.pendingImportedPlan = selectedPlan;
