@@ -25,7 +25,8 @@ class Planner {
                         tag: 'border-default'
                     }
                 ],
-                tagGroups: []
+                tagGroups: [],
+                teams: []
             },
             plans: []
         };
@@ -37,7 +38,8 @@ class Planner {
             matchMode: 'any', // 'any' or 'all'
             visualMode: 'show', // 'show' or 'highlight'
             searchText: '',
-            notCheckedDays: null
+            notCheckedDays: null,
+            team: ''
         };
 
         // UI View State (Not saved to file)
@@ -321,6 +323,20 @@ class Planner {
         return changed;
     }
 
+    setTeamOfMarkedTasks(team) {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        let changed = false;
+        plan.tasks.forEach(task => {
+            if (task.isMarked && task.team !== team) {
+                task.team = team;
+                changed = true;
+            }
+        });
+        return changed;
+    }
+
     setExcludeFromAnalyticsOfMarkedTasks(exclude) {
         const plan = this.getCurrentPlan();
         if (!plan || !plan.tasks) return false;
@@ -528,6 +544,9 @@ class Planner {
         }
         if (newSettings.baseLink !== undefined) {
             this.file.settings.baseLink = newSettings.baseLink;
+        }
+        if (newSettings.teams !== undefined) {
+            this.file.settings.teams = newSettings.teams;
         }
         return true;
     }
@@ -1057,6 +1076,14 @@ class Planner {
             this.file.settings.tagGroups = [];
         }
         return this.file.settings.tagGroups;
+    }
+
+    getTeams() {
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.teams) {
+            this.file.settings.teams = [];
+        }
+        return this.file.settings.teams;
     }
 
     getState() {

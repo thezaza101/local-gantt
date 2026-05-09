@@ -20,7 +20,9 @@ class UI {
                 analyticsContainer.classList.remove("d-none");
 
                 if (window.AnalyticsEngine) {
-                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
+                    const plan = this.planner.getCurrentPlan();
+                    // test
+                    window.AnalyticsEngine.render(this.planner.getCurrentPlan());
                 }
             });
         }
@@ -47,7 +49,7 @@ class UI {
                 if (window.AnalyticsEngine) {
                     const container = document.getElementById("analyticsContainer");
                     if (container && !container.classList.contains("d-none")) {
-                        window.AnalyticsEngine.render(this.planner.getCurrentPlan());
+                        if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); }
                     }
                 }
             });
@@ -77,7 +79,7 @@ class UI {
                 // Trigger re-render
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
                 if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("d-none")) {
-                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
+                    window.AnalyticsEngine.render(this.planner.getCurrentPlan());
                 }
             });
         }
@@ -88,7 +90,7 @@ class UI {
                 // Trigger re-render
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
                 if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("d-none")) {
-                    setTimeout(() => window.AnalyticsEngine.render(this.planner.getCurrentPlan()), 50);
+                    window.AnalyticsEngine.render(this.planner.getCurrentPlan());
                 }
             });
         }
@@ -1018,6 +1020,17 @@ class UI {
             });
         }
 
+        const bulkSetTeamBtn = document.getElementById('bulkSetTeamBtn');
+        const bulkTeamSelect = document.getElementById('bulkTeamSelect');
+        if (bulkSetTeamBtn && bulkTeamSelect) {
+            bulkSetTeamBtn.addEventListener('click', () => {
+                const team = bulkTeamSelect.value;
+                if (this.planner.setTeamOfMarkedTasks(team)) {
+                    this.updateUI();
+                }
+            });
+        }
+
         const bulkSetExcludeBtn = document.getElementById('bulkSetExcludeBtn');
         const bulkExcludeSelect = document.getElementById('bulkExcludeSelect');
         if (bulkSetExcludeBtn && bulkExcludeSelect) {
@@ -1071,6 +1084,9 @@ class UI {
                 this.updateTagFiltersState();
             });
         }
+
+        const teamFilterSelect = document.getElementById('teamFilterSelect');
+        const team = teamFilterSelect ? teamFilterSelect.value : '';
 
         const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
         if (notCheckedDaysFilter) {
@@ -1502,8 +1518,13 @@ class UI {
         const settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
         const baseLinkInput = document.getElementById('settingsBaseLink');
 
+        const settingsTeamsInput = document.getElementById('settingsTeams');
+
         const settings = this.planner.getState().settings || {};
         baseLinkInput.value = settings.baseLink || '';
+        if (settingsTeamsInput) {
+            settingsTeamsInput.value = (settings.teams || []).join(', ');
+        }
 
         settingsModal.show();
     }
@@ -1511,7 +1532,14 @@ class UI {
     saveSettings() {
         const baseLink = document.getElementById('settingsBaseLink').value.trim();
 
-        this.planner.updateSettings({ baseLink });
+        const settingsTeamsInput = document.getElementById('settingsTeams');
+        let teams = [];
+        if (settingsTeamsInput) {
+            teams = settingsTeamsInput.value.split(',').map(t => t.trim()).filter(t => t);
+        }
+
+        this.planner.updateSettings({ baseLink, teams });
+        this.populateTeamSelects();
 
         const settingsModalEl = document.getElementById('settingsModal');
         const settingsModal = bootstrap.Modal.getInstance(settingsModalEl);
@@ -1544,6 +1572,9 @@ class UI {
         const taskTextSearch = document.getElementById('taskTextSearch');
         const searchText = taskTextSearch ? taskTextSearch.value : '';
 
+        const teamFilterSelect = document.getElementById('teamFilterSelect');
+        const team = teamFilterSelect ? teamFilterSelect.value : '';
+
         const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
         const notCheckedDays = notCheckedDaysFilter && notCheckedDaysFilter.value !== '' ? parseInt(notCheckedDaysFilter.value, 10) : null;
 
@@ -1552,7 +1583,8 @@ class UI {
             matchMode,
             visualMode,
             searchText,
-            notCheckedDays
+            notCheckedDays,
+            team
         });
 
         if (window.GanttEngine) {
@@ -1563,7 +1595,7 @@ class UI {
         if (window.AnalyticsEngine) {
             const container = document.getElementById("analyticsContainer");
             if (container && !container.classList.contains("d-none")) {
-                window.AnalyticsEngine.render(this.planner.getCurrentPlan());
+                if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); }
             }
         }
     }
@@ -2814,6 +2846,7 @@ class UI {
     }
 
     updateUI() {
+        this.populateTeamSelects();
         const planSelectorBtn = document.getElementById("planSelectorBtn");
         const planSelectorMenu = document.getElementById("planSelectorMenu");
         const plans = this.planner.getState().plans || [];
@@ -2887,8 +2920,40 @@ class UI {
         if (window.AnalyticsEngine) {
             const container = document.getElementById("analyticsContainer");
             if (container && !container.classList.contains("d-none")) {
-                window.AnalyticsEngine.render(this.planner.getCurrentPlan());
+                if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); }
             }
+        }
+    }
+
+    populateTeamSelects() {
+        const teams = this.planner.getTeams ? this.planner.getTeams() : [];
+
+        const teamFilterSelect = document.getElementById('teamFilterSelect');
+        if (teamFilterSelect) {
+            const currentFilter = this.planner.getFilterState().team || '';
+            teamFilterSelect.innerHTML = '<option value="">All Teams</option>';
+            teams.forEach(t => {
+                const selected = t === currentFilter ? 'selected' : '';
+                teamFilterSelect.innerHTML += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+            });
+        }
+
+        const taskTeamSelect = document.getElementById('taskTeam');
+        if (taskTeamSelect) {
+            const currentVal = taskTeamSelect.value;
+            taskTeamSelect.innerHTML = '<option value="">Unassigned</option>';
+            teams.forEach(t => {
+                const selected = t === currentVal ? 'selected' : '';
+                taskTeamSelect.innerHTML += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+            });
+        }
+
+        const bulkTeamSelect = document.getElementById('bulkTeamSelect');
+        if (bulkTeamSelect) {
+            bulkTeamSelect.innerHTML = '<option value="">Unassigned</option>';
+            teams.forEach(t => {
+                bulkTeamSelect.innerHTML += `<option value="${this.escapeHtml(t)}">${this.escapeHtml(t)}</option>`;
+            });
         }
     }
 
@@ -2930,6 +2995,16 @@ class UI {
         const taskTextSearch = document.getElementById('taskTextSearch');
         if (taskTextSearch && filterState.searchText !== undefined) {
             taskTextSearch.value = filterState.searchText;
+        }
+
+        const teamFilterSelect = document.getElementById('teamFilterSelect');
+        if (teamFilterSelect && filterState.team !== undefined) {
+            teamFilterSelect.value = filterState.team;
+        }
+        if (teamFilterSelect) {
+            teamFilterSelect.addEventListener('change', () => {
+                this.updateTagFiltersState();
+            });
         }
 
         const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');

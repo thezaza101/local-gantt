@@ -8,9 +8,10 @@ class Capacity {
      * Calculates the expanded capacity by expanding the date ranges in capacity.entries
      * based on the selected granularity (month, week, quarter).
      * @param {Object} plan - The plan data model
+     * @param {string} filterTeam - Optional team name to filter capacity entries by.
      * @returns {Array} Array of expanded capacity objects e.g., [{ period: '2026-Jan', capacity: 40 }]
      */
-    calculateExpandedCapacity(plan) {
+    calculateExpandedCapacity(plan, filterTeam = '') {
         if (!plan || !plan.capacity || !plan.capacity.entries || plan.capacity.entries.length === 0) {
             return [];
         }
@@ -24,6 +25,9 @@ class Capacity {
         const expandedMap = new Map();
 
         entries.forEach(entry => {
+            if (filterTeam && entry.team && entry.team !== filterTeam) {
+                return;
+            }
             const startParts = entry.startDate.split('-');
             const endParts = entry.endDate.split('-');
 
