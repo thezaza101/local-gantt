@@ -91,6 +91,7 @@ async function initApp() {
     window.CapacityEngine = new Capacity();
 
     // Initialize Analytics
+    console.log('Initializing AnalyticsEngine');
     window.AnalyticsEngine = new Analytics(window.PlannerState);
 
     // Initialize Graph Engine is removed, rendering logic moved to Analytics

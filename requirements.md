@@ -763,3 +763,10 @@ Implement:
 
 ---
 
+
+
+## Team Assignment
+- Add a 'team' attribute to tasks.
+- Editable list of teams globally configured in Settings.
+- Capacity ranges assignable to specific teams.
+- Global team filter in the Analytics dashboard.

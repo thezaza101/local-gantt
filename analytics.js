@@ -15,7 +15,8 @@ class Analytics {
         this.filterState = {
             selectedTags: [],
             startDate: '',
-            endDate: ''
+            endDate: '',
+            team: ''
         };
     }
 
@@ -51,6 +52,12 @@ class Analytics {
                     return diffDays > globalFilterState.notCheckedDays;
                 });
             }
+        }
+
+        // Apply Team Filter
+        const activeTeam = this.filterState.team;
+        if (activeTeam) {
+            filtered = filtered.filter(task => task.team === activeTeam);
         }
 
         // Apply Tag Filter (OR logic)
@@ -318,7 +325,8 @@ class Analytics {
     calculateDemandCapacity(plan, filteredTasks) {
         if (!plan || !window.CapacityEngine) return [];
 
-        const capacityData = window.CapacityEngine.calculateExpandedCapacity(plan);
+        const activeTeam = this.filterState.team;
+        const capacityData = window.CapacityEngine.calculateExpandedCapacity(plan, activeTeam);
 
         // We need to calculate demand using ONLY the filtered tasks.
         // We create a temporary plan object just for the demand calculation.
@@ -653,15 +661,29 @@ class Analytics {
         }
         tagFilterHtml += `</div>`;
 
+        // Team filter dropdown
+        const allTeams = this.planner.getTeams ? this.planner.getTeams() : [];
+        let teamOptions = `<option value="">All Teams</option>`;
+        allTeams.forEach(t => {
+            const selected = this.filterState.team === t ? 'selected' : '';
+            teamOptions += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+        });
+
         const filterBarHtml = `
-            <div class="analytics-filters d-flex justify-content-between align-items-center flex-wrap p-3 mb-3 bg-white border-bottom shadow-sm rounded">
-                <div class="d-flex align-items-center flex-wrap" id="analyticsTagFiltersContainer">
+            <div class="analytics-filters d-flex justify-content-between align-items-center flex-wrap p-3 mb-3 bg-white border-bottom shadow-sm rounded gap-3">
+                <div class="d-flex align-items-center">
+                    <span class="fw-bold text-muted small me-2">Team:</span>
+                    <select class="form-select form-select-sm" id="analyticsTeamFilter" style="width: 150px;">
+                        ${teamOptions}
+                    </select>
+                </div>
+                <div class="d-flex align-items-center flex-wrap flex-grow-1" id="analyticsTagFiltersContainer">
                     <span class="fw-bold text-muted small me-2">Tags:</span>
                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" id="analyticsSelectAllTagsBtn" style="font-size: 0.75rem;">All</button>
                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-3" id="analyticsUnselectAllTagsBtn" style="font-size: 0.75rem;">None</button>
                     ${tagFilterHtml}
                 </div>
-                <div class="d-flex align-items-center gap-2 border-start ps-3 ms-auto" id="analyticsDateFiltersContainer">
+                <div class="d-flex align-items-center gap-2 border-start ps-3" id="analyticsDateFiltersContainer">
                     <span class="fw-bold text-muted small">Date Range:</span>
                     <input type="date" class="form-control form-control-sm" id="analyticsStartDate" value="${this.filterState.startDate}" title="Start Date">
                     <span class="text-muted small">to</span>
@@ -908,6 +930,13 @@ class Analytics {
                 }
             });
         }
+
+        const teamFilterSelect = document.getElementById('analyticsTeamFilter');
+        if (teamFilterSelect) {
+            teamFilterSelect.addEventListener('change', (e) => {
+                this.updateFilterState();
+            });
+        }
     }
 
     /**
@@ -922,12 +951,16 @@ class Analytics {
 
         const startDateInput = document.getElementById('analyticsStartDate');
         const endDateInput = document.getElementById('analyticsEndDate');
+        const teamFilterSelect = document.getElementById('analyticsTeamFilter');
 
         if (startDateInput) {
             this.filterState.startDate = startDateInput.value;
         }
         if (endDateInput) {
             this.filterState.endDate = endDateInput.value;
+        }
+        if (teamFilterSelect) {
+            this.filterState.team = teamFilterSelect.value;
         }
 
         // Re-render

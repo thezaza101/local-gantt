@@ -2,8 +2,8 @@ const fs = require('fs');
 
 global.window = {};
 
-const plannerCode = fs.readFileSync('planner.js', 'utf8');
-const analyticsCode = fs.readFileSync('analytics.js', 'utf8');
+const plannerCode = fs.readFileSync('planner.js', 'utf8') + '\n window.Planner = Planner;';
+const analyticsCode = fs.readFileSync('analytics.js', 'utf8') + '\n window.Analytics = Analytics;';
 
 const ctx = require('vm').createContext({
   window: global.window,
@@ -12,23 +12,41 @@ const ctx = require('vm').createContext({
 
 require('vm').runInContext(plannerCode + '\n' + analyticsCode, ctx);
 
-const planner = new ctx.Planner();
+const planner = new ctx.window.Planner();
 planner.addPlan("Test Plan");
-const now = planner.getNowTimestamp();
+const createTimestamp = (date) => {
+    const pad = (n) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+};
 
-// Set lastChecked to 10 days ago
+const now = new Date();
+const nowStr = createTimestamp(now);
+
 const oldDate = new Date();
 oldDate.setDate(oldDate.getDate() - 10);
-const pad = (n) => String(n).padStart(2, '0');
-const oldStr = `${oldDate.getFullYear()}-${pad(oldDate.getMonth() + 1)}-${pad(oldDate.getDate())} ${pad(oldDate.getHours())}:${pad(oldDate.getMinutes())}:${pad(oldDate.getSeconds())}`;
+const oldStr = createTimestamp(oldDate);
 
-planner.addTask({ id: "T-1", title: "Recent Task", lastUpdated: now, lastChecked: now });
-planner.addTask({ id: "T-2", title: "Old Task", lastUpdated: oldStr, lastChecked: oldStr });
+planner.addTask({ id: "T-1", title: "Recent Task" });
+planner.addTask({ id: "T-2", title: "Old Task" });
 
-const analytics = new ctx.Analytics();
+// planner.js updates timestamps automatically. Force overwrite via direct data manipulation for testing.
+const plan = planner.getCurrentPlan();
+const t1 = plan.tasks.find(t => t.id === 'T-1');
+t1.lastChecked = nowStr;
+t1.lastUpdated = nowStr;
+
+const t2 = plan.tasks.find(t => t.id === 'T-2');
+t2.lastChecked = oldStr;
+t2.lastUpdated = oldStr;
+
+const analytics = new ctx.window.Analytics();
 analytics.planner = planner;
 
 planner.setFilterState({ notCheckedDays: 5 });
+analytics.filterState.team = '';
+analytics.filterState.selectedTags = [];
+analytics.filterState.startDate = '';
+analytics.filterState.endDate = '';
 
 const filtered = analytics.getFilteredTasks(planner.getCurrentPlan());
 console.log("Filtered Tasks length:", filtered.length);

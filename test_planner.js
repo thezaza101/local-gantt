@@ -1,10 +1,9 @@
 const assert = require('assert');
 const fs = require('fs');
 
-// Simple mock environment
 global.window = {};
 
-const code = fs.readFileSync('planner.js', 'utf8');
+const code = fs.readFileSync('planner.js', 'utf8') + '\n window.Planner = Planner;';
 
 const ctx = require('vm').createContext({
   window: global.window,
@@ -13,7 +12,7 @@ const ctx = require('vm').createContext({
 
 require('vm').runInContext(code, ctx);
 
-const planner = new ctx.Planner();
+const planner = new ctx.window.Planner();
 planner.addPlan("Test");
 planner.addTask({ id: "T-1", title: "Test 1" });
 
