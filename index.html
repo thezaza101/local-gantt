@@ -889,6 +889,10 @@
                                         <label class="form-check-label small" for="ignoreTeamCheck">Team</label>
                                     </div>
                                     <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="personnel" id="ignorePersonnelCheck">
+                                        <label class="form-check-label small" for="ignorePersonnelCheck">Personnel</label>
+                                    </div>
+                                    <div class="form-check">
                                         <input class="form-check-input merge-ignore-check" type="checkbox" value="effort" id="ignoreEffortCheck">
                                         <label class="form-check-label small" for="ignoreEffortCheck">Effort</label>
                                     </div>
@@ -999,6 +1003,25 @@
                     <div class="mb-4">
                         <button type="button" class="btn btn-outline-primary w-100 mb-2" id="bulkConvertToSelectionBtn">Convert Marks to Selection</button>
                         <small class="text-muted d-block text-center">Clears current selection and selects all marked tasks.</small>
+                    </div>
+
+                    <hr>
+
+                    <h6 class="mt-3">Personnel</h6>
+                    <div class="row g-2 mb-3">
+                        <div class="col-8">
+                            <div class="dropdown">
+                                <button class="form-select text-start" type="button" id="bulkPersonnelBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Select Personnel...
+                                </button>
+                                <ul class="dropdown-menu w-100 p-2" aria-labelledby="bulkPersonnelBtn" id="bulkPersonnelDropdown" style="max-height: 200px; overflow-y: auto;">
+                                    <!-- Checkboxes populated dynamically -->
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-4">
+                            <button type="button" class="btn btn-outline-primary w-100" id="bulkSetPersonnelBtn">Set</button>
+                        </div>
                     </div>
 
                     <hr>
@@ -1134,6 +1157,10 @@
                                 <div class="form-check mb-2">
                                     <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldTeam" value="team" checked>
                                     <label class="form-check-label" for="csvFieldTeam">Team</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldPersonnel" value="personnel" checked>
+                                    <label class="form-check-label" for="csvFieldPersonnel">Personnel</label>
                                 </div>
                                 <div class="form-check mb-2">
                                     <input class="form-check-input csv-field-checkbox" type="checkbox" id="csvFieldTags" value="tags" checked>

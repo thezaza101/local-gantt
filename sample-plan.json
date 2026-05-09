@@ -5,16 +5,70 @@
     "settings": {
         "baseLink": "https://jira.company.com/browse/",
         "teams": [
-            "Frontend",
-            "Backend",
-            "Design",
-            "DevOps"
+            {
+                "id": "t-1",
+                "name": "Frontend",
+                "description": "UI/UX Engineering"
+            },
+            {
+                "id": "t-2",
+                "name": "Backend",
+                "description": "API and Database"
+            },
+            {
+                "id": "t-3",
+                "name": "Design",
+                "description": "Product Design"
+            },
+            {
+                "id": "t-4",
+                "name": "DevOps",
+                "description": "Infrastructure"
+            }
+        ],
+        "personnel": [
+            {
+                "id": "p-1",
+                "name": "Alice Developer",
+                "role": "Frontend Lead",
+                "notes": "",
+                "teams": [
+                    "t-1"
+                ]
+            },
+            {
+                "id": "p-2",
+                "name": "Bob Coder",
+                "role": "Backend Engineer",
+                "notes": "",
+                "teams": [
+                    "t-2"
+                ]
+            },
+            {
+                "id": "p-3",
+                "name": "Charlie Designer",
+                "role": "UX Lead",
+                "notes": "Part-time",
+                "teams": [
+                    "t-3"
+                ]
+            },
+            {
+                "id": "p-4",
+                "name": "Dave Ops",
+                "role": "SRE",
+                "notes": "",
+                "teams": [
+                    "t-4"
+                ]
+            }
         ]
     },
     "plans": [
         {
             "id": "planA",
-            "name": "Baseline Plan",
+            "name": "Updated Plan",
             "timeline": {
                 "startDate": "2026-01-01",
                 "endDate": "2026-06-30"
@@ -23,18 +77,18 @@
                 {
                     "id": "marker_alpha",
                     "type": "vertical",
-                    "date": "2026-02-15",
-                    "label": "Alpha Release",
+                    "date": "2026-02-20",
+                    "label": "Alpha Release (Delayed)",
                     "color": "#ffaa00",
-                    "importance": "minor",
+                    "importance": "major",
                     "repeats": false
                 },
                 {
-                    "id": "marker_beta",
+                    "id": "marker_gamma",
                     "type": "vertical",
-                    "date": "2026-04-15",
-                    "label": "Beta Release",
-                    "color": "#ff4d4d",
+                    "date": "2026-05-15",
+                    "label": "Gamma Release",
+                    "color": "#4da3ff",
                     "importance": "major",
                     "repeats": true
                 },
@@ -53,28 +107,28 @@
                     {
                         "startDate": "2026-01-01",
                         "endDate": "2026-02-28",
-                        "capacity": 120
+                        "capacity": 150
                     },
                     {
                         "startDate": "2026-03-01",
                         "endDate": "2026-04-30",
-                        "capacity": 100
+                        "capacity": 120
                     },
                     {
                         "startDate": "2026-05-01",
                         "endDate": "2026-06-30",
-                        "capacity": 80
+                        "capacity": 100
                     }
                 ]
             },
-            "demandAdjustmentPercent": 15,
+            "demandAdjustmentPercent": 20,
             "tasks": [
                 {
                     "id": "TASK-101",
-                    "title": "Authentication Backend",
-                    "description": "Login system API",
+                    "title": "Authentication Backend (Revised)",
+                    "description": "Login system API with OAuth",
                     "startDate": "2026-01-05",
-                    "endDate": "2026-01-20",
+                    "endDate": "2026-01-25",
                     "row": 1,
                     "fillColor": "#4da3ff",
                     "borderColor": "#1c6ed5",
@@ -83,11 +137,14 @@
                         "security"
                     ],
                     "effort": {
-                        "design": 2,
-                        "dev": 6,
-                        "test": 2
+                        "design": 4,
+                        "dev": 8,
+                        "test": 4
                     },
-                    "team": "Frontend"
+                    "team": "t-1",
+                    "personnel": [
+                        "p-1"
+                    ]
                 },
                 {
                     "id": "TASK-102",
@@ -108,7 +165,10 @@
                         "dev": 3,
                         "test": 1
                     },
-                    "team": "Backend"
+                    "team": "t-2",
+                    "personnel": [
+                        "p-2"
+                    ]
                 },
                 {
                     "id": "TASK-103",
@@ -132,31 +192,36 @@
                         "dev": 5,
                         "test": 2
                     },
-                    "team": "Design"
+                    "team": "t-3",
+                    "personnel": [
+                        "p-3"
+                    ]
                 },
                 {
-                    "id": "TASK-104",
-                    "title": "Integration Testing",
-                    "description": "E2E tests for auth flow",
-                    "startDate": "2026-01-25",
-                    "endDate": "2026-02-05",
-                    "row": 4,
-                    "fillColor": "#b84dff",
-                    "borderColor": "#8e1cd5",
+                    "id": "TASK-115",
+                    "title": "OAuth Provider Integration",
+                    "description": "Connect Google & GitHub logins",
+                    "startDate": "2026-01-26",
+                    "endDate": "2026-02-10",
+                    "row": 1,
+                    "fillColor": "#4da3ff",
+                    "borderColor": "#1c6ed5",
                     "tags": [
                         "backend",
-                        "frontend",
-                        "testing"
+                        "security"
                     ],
                     "dependencies": [
-                        "TASK-103"
+                        "TASK-101"
                     ],
                     "effort": {
-                        "design": 1,
-                        "dev": 4,
-                        "test": 6
+                        "design": 2,
+                        "dev": 6,
+                        "test": 3
                     },
-                    "team": "DevOps"
+                    "team": "t-4",
+                    "personnel": [
+                        "p-4"
+                    ]
                 },
                 {
                     "id": "TASK-105",
@@ -180,7 +245,10 @@
                         "dev": 8,
                         "test": 3
                     },
-                    "team": "Frontend"
+                    "team": "t-1",
+                    "personnel": [
+                        "p-1"
+                    ]
                 },
                 {
                     "id": "TASK-106",
@@ -188,7 +256,7 @@
                     "description": "Data endpoints for dashboard",
                     "startDate": "2026-02-05",
                     "endDate": "2026-02-25",
-                    "row": 1,
+                    "row": 2,
                     "fillColor": "#4da3ff",
                     "borderColor": "#1c6ed5",
                     "tags": [
@@ -203,7 +271,10 @@
                         "dev": 7,
                         "test": 3
                     },
-                    "team": "Backend"
+                    "team": "t-2",
+                    "personnel": [
+                        "p-2"
+                    ]
                 },
                 {
                     "id": "TASK-107",
@@ -224,7 +295,10 @@
                         "dev": 5,
                         "test": 2
                     },
-                    "team": "Design"
+                    "team": "t-3",
+                    "personnel": [
+                        "p-3"
+                    ]
                 },
                 {
                     "id": "TASK-108",
@@ -248,7 +322,10 @@
                         "dev": 0,
                         "test": 10
                     },
-                    "team": "DevOps"
+                    "team": "t-4",
+                    "personnel": [
+                        "p-4"
+                    ]
                 },
                 {
                     "id": "TASK-109",
@@ -271,7 +348,10 @@
                         "dev": 8,
                         "test": 4
                     },
-                    "team": "Frontend"
+                    "team": "t-1",
+                    "personnel": [
+                        "p-1"
+                    ]
                 },
                 {
                     "id": "TASK-110",
@@ -294,54 +374,10 @@
                         "dev": 2,
                         "test": 15
                     },
-                    "team": "Backend"
-                },
-                {
-                    "id": "TASK-111",
-                    "title": "Mobile App UI",
-                    "description": "Create screens for iOS",
-                    "startDate": "2026-04-01",
-                    "endDate": "2026-05-15",
-                    "row": 8,
-                    "fillColor": "#4dff88",
-                    "borderColor": "#1cd54c",
-                    "tags": [
-                        "frontend",
-                        "mobile"
-                    ],
-                    "dependencies": [
-                        "TASK-106"
-                    ],
-                    "effort": {
-                        "design": 8,
-                        "dev": 20,
-                        "test": 5
-                    },
-                    "team": "Design"
-                },
-                {
-                    "id": "TASK-112",
-                    "title": "Mobile App Integration",
-                    "description": "Connect mobile app to API",
-                    "startDate": "2026-05-10",
-                    "endDate": "2026-06-20",
-                    "row": 9,
-                    "fillColor": "#4da3ff",
-                    "borderColor": "#1c6ed5",
-                    "tags": [
-                        "mobile",
-                        "integration"
-                    ],
-                    "dependencies": [
-                        "TASK-111",
-                        "TASK-106"
-                    ],
-                    "effort": {
-                        "design": 3,
-                        "dev": 15,
-                        "test": 10
-                    },
-                    "team": "DevOps"
+                    "team": "t-2",
+                    "personnel": [
+                        "p-2"
+                    ]
                 },
                 {
                     "id": "TASK-113",
@@ -362,7 +398,10 @@
                         "dev": 0,
                         "test": 0
                     },
-                    "team": "Frontend"
+                    "team": "t-3",
+                    "personnel": [
+                        "p-3"
+                    ]
                 },
                 {
                     "id": "TASK-114",
@@ -387,7 +426,10 @@
                         "dev": 0,
                         "test": 20
                     },
-                    "team": "Backend"
+                    "team": "t-4",
+                    "personnel": [
+                        "p-4"
+                    ]
                 }
             ]
         }
