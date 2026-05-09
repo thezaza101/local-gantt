@@ -396,7 +396,13 @@ Outputs structured data used by graphs.
 {
   "meta": {"fileVersion": 1},
   "settings": {
-    "baseLink": "https://jira.company.com/browse/"
+    "baseLink": "https://jira.company.com/browse/",
+    "teams": [
+      {"id": "T00001", "name": "Frontend Team", "description": "UI/UX and frontend engineering"}
+    ],
+    "personnel": [
+      {"id": "P00001", "name": "Alice Smith", "role": "Lead Dev", "notes": "", "teams": ["T00001"]}
+    ]
   },
   "plans": [
     {
@@ -409,8 +415,8 @@ Outputs structured data used by graphs.
       "capacity": {
         "granularity": "month",
         "entries": [
-          {"startDate": "2026-01-01", "endDate": "2026-03-31", "capacity": 40},
-          {"startDate": "2026-04-01", "endDate": "2026-06-30", "capacity": 32}
+          {"startDate": "2026-01-01", "endDate": "2026-03-31", "capacity": 40, "team": "T00001"},
+          {"startDate": "2026-04-01", "endDate": "2026-06-30", "capacity": 32, "team": "T00001"}
         ]
       },
       "demandAdjustmentPercent": 20,
@@ -425,6 +431,8 @@ Outputs structured data used by graphs.
           "fillColor": "#4da3ff",
           "borderColor": "#1c6ed5",
           "tags": ["backend", "security"],
+          "team": "T00001",
+          "personnel": ["P00001"],
           "effort": {"design": 3, "dev": 8, "test": 4}
         }
       ]

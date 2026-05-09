@@ -21,10 +21,11 @@ This tool provides a complete project management and capacity tracking solution 
 ### Work Management
 * **Task Controls:** Quickly duplicate or delete tasks directly from the timeline.
 * **Tagging System:** Assign tags (e.g., frontend, backend, security) to tasks and use filters to highlight or show specific work streams.
+* **Team & Personnel Management:** Assign tasks to specific teams and multiple key personnel, and filter the Gantt chart by team.
 * **External Integrations:** Double-click a task to automatically open its corresponding ticket in external systems (e.g., Jira, Azure DevOps) based on configurable base links.
 
 ### Capacity Planning & Analytics
-* **Capacity Definition:** Define available capacity over specific date ranges and granularities (monthly, weekly, quarterly).
+* **Capacity Definition:** Define available capacity over specific date ranges and granularities (monthly, weekly, quarterly). Capacity can optionally be assigned to specific teams.
 * **Demand Calculation:** Automatically calculate project demand based on task effort (e.g., design, dev, test) and distribute it across the task duration.
 * **Scenario Modelling:** Create, duplicate, and compare multiple project plans (scenarios) within a single file to see how different timelines affect capacity.
 * **Visual Analytics:** View a dynamic "Capacity vs. Demand" graph that highlights over-capacity periods in red, helping you balance your team's workload.

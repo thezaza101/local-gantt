@@ -34,6 +34,7 @@ The application runs entirely in the browser and stores plans in **JSON files**.
 * task duplication
 * task deletion
 * tag filtering
+* team & personnel assignment
 * external ticket linking
 
 ## Capacity Planning
@@ -106,7 +107,9 @@ All application data lives in a **single JSON file**.
     "fileVersion": 1
   },
   "settings": {
-    "baseLink": "https://jira.company.com/browse/"
+    "baseLink": "https://jira.company.com/browse/",
+    "teams": [],
+    "personnel": []
   },
   "plans": []
 }
@@ -151,6 +154,8 @@ Each plan represents a **scenario**.
   "fillColor": "#4da3ff",
   "borderColor": "#1c6ed5",
   "tags": ["backend", "security"],
+  "team": "T00001",
+  "personnel": ["P00001", "P00002"],
   "effort": {
     "design": 3,
     "dev": 8,
@@ -191,7 +196,8 @@ Capacity ranges define available effort.
 {
   "startDate": "2026-01-01",
   "endDate": "2026-03-31",
-  "capacity": 40
+  "capacity": 40,
+  "team": "T00001"
 }
 ```
 
@@ -765,8 +771,8 @@ Implement:
 
 
 
-## Team Assignment
-- Add a 'team' attribute to tasks.
-- Editable list of teams globally configured in Settings.
+## Teams & Personnel
+- Add a 'team' and 'personnel' attribute to tasks.
+- Editable list of teams and personnel globally configured in Settings.
 - Capacity ranges assignable to specific teams.
-- Global team filter in the Analytics dashboard.
+- Global team filter in the Analytics dashboard and Gantt chart.

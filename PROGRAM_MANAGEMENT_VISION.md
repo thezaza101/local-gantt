@@ -1,6 +1,6 @@
 # Program Management Vision & Capabilities
 
-As a Delivery Lead overseeing multiple teams across different branches, the planning tool needs to scale from single-project task tracking to multi-project, multi-team portfolio management. Given that the tool operates purely locally (client-side) and you are successfully using "custom grouped tags" to segment teams, branches, and projects, the following proposed improvements focus on maximizing high-level visibility, tracking complex interdependencies, and surfacing actionable insights at the program level.
+As a Delivery Lead overseeing multiple teams across different branches, the planning tool needs to scale from single-project task tracking to multi-project, multi-team portfolio management. Given that the tool operates purely locally (client-side) and you are successfully using the native Teams feature along with "custom grouped tags" to segment branches and projects, the following proposed improvements focus on maximizing high-level visibility, tracking complex interdependencies, and surfacing actionable insights at the program level.
 
 ## 1. Cross-Team & Cross-Project Interdependency Tracking
 * **Feature Description:** A dedicated "Dependency Graph" or "Network View" that filters out isolated tasks and strictly highlights dependencies that cross tag boundaries (e.g., a task tagged `Team A` blocking a task tagged `Team B`). This could include visual alerts when a dependency spans across different branches.
