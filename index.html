@@ -293,10 +293,15 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <label for="taskPersonnel" class="form-label">Personnel</label>
-                                <select class="form-select" id="taskPersonnel" multiple>
-                                    <!-- Populated dynamically -->
-                                </select>
+                                <label class="form-label">Personnel</label>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" id="taskPersonnelBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Select Personnel
+                                    </button>
+                                    <ul class="dropdown-menu w-100 p-0 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="taskPersonnelDropdown" onclick="event.stopPropagation()">
+                                        <!-- Populated dynamically -->
+                                    </ul>
+                                </div>
                             </div>
                             <div class="col-md-3">
                                 <label for="taskFillLegend" class="form-label">Fill Legend</label>
@@ -832,21 +837,12 @@
                             </div>
                         </div>
                         <h6 class="border-bottom pb-2 mt-4">Capacity Ranges</h6>
-                        <table class="table table-sm mt-3" id="capacityTable">
-                            <thead>
-                                <tr>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Team</th>
-                                    <th>Capacity</th>
-                                    <th style="width: 50px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="capacityTableBody">
-                                <!-- Capacity rows injected here -->
-                            </tbody>
-                        </table>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="addCapacityRowBtn">+ Add Range</button>
+                        <ul class="nav nav-tabs mt-3" id="capacityTabs" role="tablist">
+                            <!-- Tabs injected here -->
+                        </ul>
+                        <div class="tab-content border border-top-0 p-3 mb-3" id="capacityTabsContent">
+                            <!-- Tab panels injected here -->
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
