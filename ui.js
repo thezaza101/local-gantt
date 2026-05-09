@@ -793,13 +793,7 @@ class UI {
             });
         }
 
-        // Capacity Add Row Button
-        const addCapacityRowBtn = document.getElementById("addCapacityRowBtn");
-        if (addCapacityRowBtn) {
-            addCapacityRowBtn.addEventListener("click", () => {
-                this.addCapacityRow();
-            });
-        }
+
 
         // Sync Plan Button
         const confirmSyncPlanBtn = document.getElementById("confirmSyncPlanBtn");
@@ -1518,27 +1512,173 @@ class UI {
         const settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
         const baseLinkInput = document.getElementById('settingsBaseLink');
 
-        const settingsTeamsInput = document.getElementById('settingsTeams');
-
         const settings = this.planner.getState().settings || {};
         baseLinkInput.value = settings.baseLink || '';
-        if (settingsTeamsInput) {
-            settingsTeamsInput.value = (settings.teams || []).join(', ');
+
+        const teamsContainer = document.getElementById('teamsContainer');
+        teamsContainer.innerHTML = '';
+        const teams = this.planner.getTeams();
+        teams.forEach(team => {
+            if (typeof team === 'string') {
+                // Backward compatibility just in case
+                this.addTeamRow({ id: 'T' + Math.floor(10000 + Math.random() * 90000), name: team, description: '' });
+            } else {
+                this.addTeamRow(team);
+            }
+        });
+
+        const personnelContainer = document.getElementById('personnelContainer');
+        personnelContainer.innerHTML = '';
+        const personnel = this.planner.getPersonnel();
+        personnel.forEach(person => {
+            this.addPersonnelRow(person);
+        });
+
+        // Initialize adding buttons if not already initialized
+        if (!this.settingsInitDone) {
+            document.getElementById('addTeamBtn').addEventListener('click', () => {
+                this.addTeamRow({ id: 'T' + Math.floor(10000 + Math.random() * 90000), name: '', description: '' });
+            });
+            document.getElementById('addPersonnelBtn').addEventListener('click', () => {
+                this.addPersonnelRow({ id: 'P' + Math.floor(10000 + Math.random() * 90000), name: '', role: '', notes: '', teams: [] });
+            });
+            this.settingsInitDone = true;
         }
 
         settingsModal.show();
     }
 
+    addTeamRow(team) {
+        const container = document.getElementById('teamsContainer');
+        const row = document.createElement('div');
+        row.className = 'card mb-2 team-row';
+        row.dataset.id = team.id;
+        row.innerHTML = `
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
+                <div class="flex-grow-1 row g-2">
+                    <div class="col-3">
+                        <input type="text" class="form-control form-control-sm team-name" placeholder="Team Name" value="${this.escapeHtml(team.name)}" required>
+                    </div>
+                    <div class="col-6">
+                        <input type="text" class="form-control form-control-sm team-desc" placeholder="Description" value="${this.escapeHtml(team.description || '')}">
+                    </div>
+                    <div class="col-3 d-flex align-items-center">
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input team-gantt-show" type="checkbox" role="switch" id="ganttShow_${team.id}" ${team.showInGantt ? 'checked' : ''}>
+                            <label class="form-check-label small" for="ganttShow_${team.id}">Show in Gantt</label>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger delete-team-btn" title="Remove">&times;</button>
+            </div>
+        `;
+        row.querySelector('.delete-team-btn').addEventListener('click', () => {
+            row.remove();
+        });
+        container.appendChild(row);
+    }
+
+    addPersonnelRow(person) {
+        const container = document.getElementById('personnelContainer');
+        const row = document.createElement('div');
+        row.className = 'card mb-2 personnel-row';
+        row.dataset.id = person.id;
+
+        // Dynamically build the team selection dropdown based on currently visible team rows
+        // If not saved yet, we just read from the DOM what teams are currently defined
+        const teamRows = document.querySelectorAll('.team-row');
+        let optionsHtml = '';
+        teamRows.forEach(tr => {
+            const teamId = tr.dataset.id;
+            const teamName = tr.querySelector('.team-name').value.trim();
+            if (teamName) {
+                const selected = person.teams && person.teams.includes(teamId) ? 'selected' : '';
+                optionsHtml += `<option value="${this.escapeHtml(teamId)}" ${selected}>${this.escapeHtml(teamName)}</option>`;
+            }
+        });
+        // Also add options from saved state if they aren't in DOM yet (e.g. if loaded before teams)
+        // A better approach is to use this.planner.getTeams() as the source of truth, but we need to account for unsaved changes in the modal.
+        // For simplicity, we can just map over planner.getTeams() and allow re-render on save.
+
+        let teamOptionsHtml = '';
+        const savedTeams = this.planner.getTeams();
+        savedTeams.forEach(t => {
+            const tObj = typeof t === 'string' ? { id: t, name: t } : t;
+            const selected = person.teams && person.teams.includes(tObj.id) ? 'selected' : '';
+            teamOptionsHtml += `<option value="${this.escapeHtml(tObj.id)}" ${selected}>${this.escapeHtml(tObj.name)}</option>`;
+        });
+
+        row.innerHTML = `
+            <div class="card-body py-2 px-3 d-flex align-items-start gap-2">
+                <div class="flex-grow-1 row g-2">
+                    <div class="col-3">
+                        <input type="text" class="form-control form-control-sm person-name" placeholder="Name" value="${this.escapeHtml(person.name)}" required>
+                    </div>
+                    <div class="col-3">
+                        <input type="text" class="form-control form-control-sm person-role" placeholder="Role" value="${this.escapeHtml(person.role || '')}">
+                    </div>
+                    <div class="col-3">
+                        <select class="form-select form-select-sm person-teams" multiple title="Select Teams (Hold Ctrl/Cmd)">
+                            ${teamOptionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <input type="text" class="form-control form-control-sm person-notes" placeholder="Notes" value="${this.escapeHtml(person.notes || '')}">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger delete-person-btn mt-1" title="Remove">&times;</button>
+            </div>
+        `;
+        row.querySelector('.delete-person-btn').addEventListener('click', () => {
+            row.remove();
+        });
+
+        // Setup simple multiple select update mechanism for unsaved new teams (optional enhancement)
+        // Here we just use the options from saved teams for simplicity, user must save teams first before assigning personnel to new teams
+
+        container.appendChild(row);
+    }
+
     saveSettings() {
         const baseLink = document.getElementById('settingsBaseLink').value.trim();
 
-        const settingsTeamsInput = document.getElementById('settingsTeams');
         let teams = [];
-        if (settingsTeamsInput) {
-            teams = settingsTeamsInput.value.split(',').map(t => t.trim()).filter(t => t);
-        }
+        const teamRows = document.querySelectorAll('.team-row');
+        teamRows.forEach(row => {
+            const name = row.querySelector('.team-name').value.trim();
+            const description = row.querySelector('.team-desc').value.trim();
+            const showInGantt = row.querySelector('.team-gantt-show').checked;
+            if (name) {
+                teams.push({
+                    id: row.dataset.id,
+                    name: name,
+                    description: description,
+                    showInGantt: showInGantt
+                });
+            }
+        });
 
-        this.planner.updateSettings({ baseLink, teams });
+        let personnel = [];
+        const personnelRows = document.querySelectorAll('.personnel-row');
+        personnelRows.forEach(row => {
+            const name = row.querySelector('.person-name').value.trim();
+            const role = row.querySelector('.person-role').value.trim();
+            const notes = row.querySelector('.person-notes').value.trim();
+            const teamSelect = row.querySelector('.person-teams');
+            const selectedTeams = Array.from(teamSelect.selectedOptions).map(opt => opt.value);
+
+            if (name) {
+                personnel.push({
+                    id: row.dataset.id,
+                    name: name,
+                    role: role,
+                    notes: notes,
+                    teams: selectedTeams
+                });
+            }
+        });
+
+        this.planner.updateSettings({ baseLink, teams, personnel });
         this.populateTeamSelects();
 
         const settingsModalEl = document.getElementById('settingsModal');
@@ -1705,6 +1845,8 @@ class UI {
             status: taskStatus || null,
             tags: uniqueTags,
             dependencies: dependencies,
+            team: document.getElementById('taskTeam').value,
+            personnel: Array.from(document.querySelectorAll('.task-personnel-checkbox:checked')).map(cb => cb.value),
             effort: {
                 design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
                 dev: parseFloat(document.getElementById('taskEffortDev').value) || 0,
@@ -1974,6 +2116,13 @@ class UI {
                 document.getElementById('taskTags').value = tagsToDisplay.join(', ');
                 document.getElementById('taskDependencies').value = (task.dependencies || []).join(', ');
 
+                document.getElementById('taskTeam').value = task.team || '';
+
+                const personnelCheckboxes = document.querySelectorAll('.task-personnel-checkbox');
+                personnelCheckboxes.forEach(cb => {
+                    cb.checked = task.personnel ? task.personnel.includes(cb.value) : false;
+                });
+
                 if (task.fillLegendId && fillLegends.some(l => l.id === task.fillLegendId)) {
                     taskFillLegendSelect.value = task.fillLegendId;
                 } else {
@@ -2001,6 +2150,9 @@ class UI {
             document.getElementById('originalTaskId').value = '';
             document.getElementById('taskStatus').value = '';
             document.getElementById('taskDependencies').value = '';
+            document.getElementById('taskTeam').value = '';
+            const personnelCheckboxes = document.querySelectorAll('.task-personnel-checkbox');
+            personnelCheckboxes.forEach(cb => cb.checked = false);
             document.getElementById('taskExcludeFromAnalytics').checked = false;
 
             taskFillLegendSelect.value = 'default_fill';
@@ -2477,38 +2629,101 @@ class UI {
         const capacityModalEl = document.getElementById('capacityModal');
         const capacityModal = bootstrap.Modal.getOrCreateInstance(capacityModalEl);
 
-        // Initialize fields
         const granularitySelect = document.getElementById('capacityGranularity');
         const demandAdjustmentInput = document.getElementById('demandAdjustmentPercent');
         const capacityAdjustmentInput = document.getElementById('capacityAdjustmentPercent');
-        const capacityTableBody = document.getElementById('capacityTableBody');
 
-        // Set values from current plan or defaults
-        granularitySelect.value = (currentPlan.capacity && currentPlan.capacity.granularity) ? currentPlan.capacity.granularity : 'month';
-        demandAdjustmentInput.value = (currentPlan.demandAdjustmentPercent !== undefined) ? currentPlan.demandAdjustmentPercent : 20;
-        capacityAdjustmentInput.value = (currentPlan.capacityAdjustmentPercent !== undefined) ? currentPlan.capacityAdjustmentPercent : 100;
-
-        // Clear existing rows
-        capacityTableBody.innerHTML = '';
-
-        // Add rows for existing capacity entries
-        const entries = (currentPlan.capacity && currentPlan.capacity.entries) ? currentPlan.capacity.entries : [];
-        entries.forEach(entry => {
-            this.addCapacityRow(entry.startDate, entry.endDate, entry.capacity);
-        });
-
-        // Add one empty row if no entries exist
-        if (entries.length === 0) {
-            this.addCapacityRow();
+        if (currentPlan.capacity) {
+            granularitySelect.value = currentPlan.capacity.granularity || 'month';
+        } else {
+            granularitySelect.value = 'month';
         }
+
+        demandAdjustmentInput.value = currentPlan.demandAdjustmentPercent !== undefined ? currentPlan.demandAdjustmentPercent : 20;
+        capacityAdjustmentInput.value = currentPlan.capacityAdjustmentPercent !== undefined ? currentPlan.capacityAdjustmentPercent : 100;
+
+        const capacityTabs = document.getElementById('capacityTabs');
+        const capacityTabsContent = document.getElementById('capacityTabsContent');
+
+        if (!capacityTabs || !capacityTabsContent) {
+            console.error("Capacity tabs containers not found");
+            return;
+        }
+
+        capacityTabs.innerHTML = '';
+        capacityTabsContent.innerHTML = '';
+
+        const teams = this.planner.getTeams ? this.planner.getTeams() : [];
+        const entries = currentPlan.capacity ? currentPlan.capacity.entries || [] : [];
+
+        // Setup "Unassigned / All" tab
+        this.addCapacityTeamTab('unassigned', 'Unassigned / All', entries.filter(e => !e.team), true);
+
+        // Setup a tab for each team
+        teams.forEach((t) => {
+            const tId = typeof t === 'string' ? t : t.id;
+            const tName = typeof t === 'string' ? t : t.name;
+            const teamEntries = entries.filter(e => e.team === tId);
+            this.addCapacityTeamTab(tId, tName, teamEntries, false);
+        });
 
         capacityModal.show();
     }
 
-    addCapacityRow(startDate = '', endDate = '', capacity = 0) {
-        const tbody = document.getElementById('capacityTableBody');
-        const tr = document.createElement('tr');
+    addCapacityTeamTab(teamId, teamName, entries, isActive) {
+        const capacityTabs = document.getElementById('capacityTabs');
+        const capacityTabsContent = document.getElementById('capacityTabsContent');
+        const tabId = `cap-tab-${teamId}`;
+        const contentId = `cap-content-${teamId}`;
 
+        // Tab
+        const li = document.createElement('li');
+        li.className = 'nav-item';
+        li.role = 'presentation';
+        li.innerHTML = `<button class="nav-link ${isActive ? 'active' : ''}" id="${tabId}" data-bs-toggle="tab" data-bs-target="#${contentId}" type="button" role="tab" aria-controls="${contentId}" aria-selected="${isActive}">${this.escapeHtml(teamName)}</button>`;
+        capacityTabs.appendChild(li);
+
+        // Content
+        const div = document.createElement('div');
+        div.className = `tab-pane fade ${isActive ? 'show active' : ''}`;
+        div.id = contentId;
+        div.role = 'tabpanel';
+        div.setAttribute('aria-labelledby', tabId);
+
+        div.innerHTML = `
+            <table class="table table-sm mb-2 cap-team-table" data-team="${this.escapeHtml(teamId === 'unassigned' ? '' : teamId)}">
+                <thead>
+                    <tr>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Capacity</th>
+                        <th style="width: 50px;"></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            <button type="button" class="btn btn-sm btn-outline-primary add-cap-row-btn">+ Add Range</button>
+        `;
+        capacityTabsContent.appendChild(div);
+
+        const tbody = div.querySelector('tbody');
+        const addBtn = div.querySelector('.add-cap-row-btn');
+
+        entries.forEach(entry => {
+            this.addCapacityRowToTbody(tbody, entry.startDate, entry.endDate, entry.capacity);
+        });
+
+        if (entries.length === 0) {
+            this.addCapacityRowToTbody(tbody);
+        }
+
+        addBtn.addEventListener('click', () => {
+            this.addCapacityRowToTbody(tbody);
+        });
+    }
+
+    addCapacityRowToTbody(tbody, startDate = '', endDate = '', capacity = 0) {
+        const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><input type="date" class="form-control form-control-sm cap-start" value="${startDate}" required></td>
             <td><input type="date" class="form-control form-control-sm cap-end" value="${endDate}" required></td>
@@ -2518,7 +2733,6 @@ class UI {
             </td>
         `;
 
-        // Bind delete event
         const deleteBtn = tr.querySelector('.delete-cap-row-btn');
         deleteBtn.addEventListener('click', () => {
             tr.remove();
@@ -2534,34 +2748,28 @@ class UI {
         const granularitySelect = document.getElementById('capacityGranularity');
         const demandAdjustmentInput = document.getElementById('demandAdjustmentPercent');
         const capacityAdjustmentInput = document.getElementById('capacityAdjustmentPercent');
-        const tbody = document.getElementById('capacityTableBody');
 
         const entries = [];
-        let hasErrors = false;
+        const tables = document.querySelectorAll('.cap-team-table');
 
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach(row => {
-            const startInput = row.querySelector('.cap-start');
-            const endInput = row.querySelector('.cap-end');
-            const valInput = row.querySelector('.cap-val');
-
-            const startDate = startInput.value;
-            const endDate = endInput.value;
-            const capacity = parseFloat(valInput.value);
-
-            if (startDate && endDate) {
-                if (new Date(startDate) > new Date(endDate)) {
-                    hasErrors = true;
-                    alert("Start date cannot be after end date in capacity ranges.");
-                } else {
-                    entries.push({ startDate, endDate, capacity: isNaN(capacity) ? 0 : capacity });
+        tables.forEach(table => {
+            const team = table.dataset.team;
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(tr => {
+                const start = tr.querySelector('.cap-start').value;
+                const end = tr.querySelector('.cap-end').value;
+                const val = parseFloat(tr.querySelector('.cap-val').value);
+                if (start && end && !isNaN(val)) {
+                    entries.push({
+                        startDate: start,
+                        endDate: end,
+                        team: team,
+                        capacity: val
+                    });
                 }
-            }
+            });
         });
 
-        if (hasErrors) return;
-
-        // Update planner state
         if (!currentPlan.capacity) currentPlan.capacity = {};
         currentPlan.capacity.granularity = granularitySelect.value;
         currentPlan.capacity.entries = entries;
@@ -2573,12 +2781,6 @@ class UI {
 
         // Save back to Planner State to update
         this.planner.updatePlanSettings(currentPlan);
-
-        // Calculate and log expanded capacity
-        if (window.CapacityEngine) {
-            const expanded = window.CapacityEngine.calculateExpandedCapacity(currentPlan);
-            console.log("Calculated Expanded Capacity:", expanded);
-        }
 
         // Close modal
         const capacityModalEl = document.getElementById('capacityModal');
@@ -2927,14 +3129,17 @@ class UI {
 
     populateTeamSelects() {
         const teams = this.planner.getTeams ? this.planner.getTeams() : [];
+        const personnel = this.planner.getPersonnel ? this.planner.getPersonnel() : [];
 
         const teamFilterSelect = document.getElementById('teamFilterSelect');
         if (teamFilterSelect) {
             const currentFilter = this.planner.getFilterState().team || '';
             teamFilterSelect.innerHTML = '<option value="">All Teams</option>';
             teams.forEach(t => {
-                const selected = t === currentFilter ? 'selected' : '';
-                teamFilterSelect.innerHTML += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+                const tId = typeof t === 'string' ? t : t.id;
+                const tName = typeof t === 'string' ? t : t.name;
+                const selected = tId === currentFilter ? 'selected' : '';
+                teamFilterSelect.innerHTML += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
             });
         }
 
@@ -2943,16 +3148,51 @@ class UI {
             const currentVal = taskTeamSelect.value;
             taskTeamSelect.innerHTML = '<option value="">Unassigned</option>';
             teams.forEach(t => {
-                const selected = t === currentVal ? 'selected' : '';
-                taskTeamSelect.innerHTML += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+                const tId = typeof t === 'string' ? t : t.id;
+                const tName = typeof t === 'string' ? t : t.name;
+                const selected = tId === currentVal ? 'selected' : '';
+                taskTeamSelect.innerHTML += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
             });
+        }
+
+        const taskPersonnelDropdown = document.getElementById('taskPersonnelDropdown');
+        if (taskPersonnelDropdown) {
+            // Rebuild the personnel options. Remember selections if necessary.
+            const currentCheckboxes = document.querySelectorAll('.task-personnel-checkbox:checked');
+            const selectedVals = Array.from(currentCheckboxes).map(cb => cb.value);
+
+            taskPersonnelDropdown.innerHTML = '';
+            if (personnel.length === 0) {
+                taskPersonnelDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted small">No personnel configured</span></li>';
+            } else {
+                personnel.forEach(p => {
+                    const checked = selectedVals.includes(p.id) ? 'checked' : '';
+                    const safeId = this.escapeHtml(p.id);
+                    const safeName = this.escapeHtml(p.name);
+
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <div class="dropdown-item d-flex align-items-center py-1">
+                            <div class="form-check m-0 w-100">
+                                <input class="form-check-input task-personnel-checkbox" type="checkbox" id="modalPersonnel_${safeId}" value="${safeId}" ${checked}>
+                                <label class="form-check-label small w-100" for="modalPersonnel_${safeId}" style="cursor: pointer;">
+                                    ${safeName}
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                    taskPersonnelDropdown.appendChild(li);
+                });
+            }
         }
 
         const bulkTeamSelect = document.getElementById('bulkTeamSelect');
         if (bulkTeamSelect) {
             bulkTeamSelect.innerHTML = '<option value="">Unassigned</option>';
             teams.forEach(t => {
-                bulkTeamSelect.innerHTML += `<option value="${this.escapeHtml(t)}">${this.escapeHtml(t)}</option>`;
+                const tId = typeof t === 'string' ? t : t.id;
+                const tName = typeof t === 'string' ? t : t.name;
+                bulkTeamSelect.innerHTML += `<option value="${this.escapeHtml(tId)}">${this.escapeHtml(tName)}</option>`;
             });
         }
     }

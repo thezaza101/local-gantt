@@ -493,7 +493,16 @@ class Gantt {
             const selectedClass = isSelected ? 'selected' : '';
 
             const safeTitle = this.escapeHtml(task.title || 'Untitled');
-            const safeId = this.escapeHtml(task.id || '');
+            let safeId = this.escapeHtml(task.id || '');
+
+            // Append team name if settings indicate it should be shown
+            if (task.team && plannerState && typeof plannerState.getTeams === 'function') {
+                const teams = plannerState.getTeams();
+                const teamObj = teams.find(t => typeof t === 'object' && t.id === task.team);
+                if (teamObj && teamObj.showInGantt) {
+                    safeId += ` : ${this.escapeHtml(teamObj.name)}`;
+                }
+            }
 
             // Apply visual mode styles if it's highlight mode and it doesn't match
             const opacityStyle = (filterState.visualMode === 'highlight' && !isMatch) ? 'opacity: 0.3;' : '';
@@ -537,7 +546,7 @@ class Gantt {
             });
 
             tasksHtml += `
-                <div class="gantt-task ${selectedClass}" data-task-id="${safeId}" style="
+                <div class="gantt-task ${selectedClass}" data-task-id="${this.escapeHtml(task.id || '')}" style="
                     left: ${leftPos}px;
                     width: ${width}px;
                     top: ${topPos}px;

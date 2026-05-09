@@ -286,19 +286,30 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="taskTeam" class="form-label">Team</label>
                                 <select class="form-select" id="taskTeam">
                                     <option value="">Unassigned</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <label class="form-label">Personnel</label>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" id="taskPersonnelBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                        Select Personnel
+                                    </button>
+                                    <ul class="dropdown-menu w-100 p-0 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="taskPersonnelDropdown" onclick="event.stopPropagation()">
+                                        <!-- Populated dynamically -->
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
                                 <label for="taskFillLegend" class="form-label">Fill Legend</label>
                                 <select class="form-select" id="taskFillLegend">
                                     <!-- Populated dynamically -->
                                 </select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <label for="taskBorderLegend" class="form-label">Border Legend</label>
                                 <select class="form-select" id="taskBorderLegend">
                                     <!-- Populated dynamically -->
@@ -740,24 +751,54 @@
 
     <!-- Settings Modal -->
     <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="settingsModalLabel">Global Settings</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <form id="settingsForm">
-                        <div class="mb-3">
-                            <label for="settingsBaseLink" class="form-label">Base Link (e.g., Jira URL)</label>
-                            <input type="url" class="form-control" id="settingsBaseLink">
+                <div class="modal-body pt-0 px-0">
+                    <ul class="nav nav-tabs px-3 pt-3 mb-3" id="settingsTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#settings-general" type="button" role="tab" aria-controls="settings-general" aria-selected="true">General</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#settings-teams" type="button" role="tab" aria-controls="settings-teams" aria-selected="false">Teams</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="personnel-tab" data-bs-toggle="tab" data-bs-target="#settings-personnel" type="button" role="tab" aria-controls="settings-personnel" aria-selected="false">Personnel</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content px-3" id="settingsTabsContent">
+                        <div class="tab-pane fade show active" id="settings-general" role="tabpanel" aria-labelledby="general-tab">
+                            <form id="settingsGeneralForm">
+                                <div class="mb-3">
+                                    <label for="settingsBaseLink" class="form-label">Base Link (e.g., Jira URL)</label>
+                                    <input type="url" class="form-control" id="settingsBaseLink">
+                                </div>
+                            </form>
                         </div>
-                        <div class="mb-3">
-                            <label for="settingsTeams" class="form-label">Teams (comma-separated)</label>
-                            <input type="text" class="form-control" id="settingsTeams" placeholder="Frontend, Backend, Design">
+                        <div class="tab-pane fade" id="settings-teams" role="tabpanel" aria-labelledby="teams-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6>Teams</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="addTeamBtn">+ Add Team</button>
+                            </div>
+                            <div id="teamsContainer">
+                                <!-- Teams rows will be dynamically injected here -->
+                            </div>
                             <div class="form-text">Define teams available for assignment and capacity planning.</div>
                         </div>
-                    </form>
+                        <div class="tab-pane fade" id="settings-personnel" role="tabpanel" aria-labelledby="personnel-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <h6>Personnel</h6>
+                                <button type="button" class="btn btn-sm btn-outline-primary" id="addPersonnelBtn">+ Add Personnel</button>
+                            </div>
+                            <div id="personnelContainer">
+                                <!-- Personnel rows will be dynamically injected here -->
+                            </div>
+                            <div class="form-text">Define key personnel and associate them with teams.</div>
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -796,21 +837,12 @@
                             </div>
                         </div>
                         <h6 class="border-bottom pb-2 mt-4">Capacity Ranges</h6>
-                        <table class="table table-sm mt-3" id="capacityTable">
-                            <thead>
-                                <tr>
-                                    <th>Start Date</th>
-                                    <th>End Date</th>
-                                    <th>Team</th>
-                                    <th>Capacity</th>
-                                    <th style="width: 50px;"></th>
-                                </tr>
-                            </thead>
-                            <tbody id="capacityTableBody">
-                                <!-- Capacity rows injected here -->
-                            </tbody>
-                        </table>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="addCapacityRowBtn">+ Add Range</button>
+                        <ul class="nav nav-tabs mt-3" id="capacityTabs" role="tablist">
+                            <!-- Tabs injected here -->
+                        </ul>
+                        <div class="tab-content border border-top-0 p-3 mb-3" id="capacityTabsContent">
+                            <!-- Tab panels injected here -->
+                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
