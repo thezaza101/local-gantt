@@ -29,7 +29,12 @@ class Planner {
                 teams: [],
                 personnel: []
             },
-            plans: []
+            plans: [],
+            risks: [],
+            issues: [],
+            dependencies: [],
+            assumptions: [],
+            decisions: []
         };
         this.currentPlanIndex = -1;
 
@@ -604,6 +609,50 @@ class Planner {
         return false;
     }
 
+
+    // --- Tracker Entities ---
+
+    generateEntityId(prefix) {
+        return prefix + Math.floor(10000 + Math.random() * 90000);
+    }
+
+    getRisks() { return this.file.risks || []; }
+    getIssues() { return this.file.issues || []; }
+    getDependencies() { return this.file.dependencies || []; }
+    getAssumptions() { return this.file.assumptions || []; }
+    getDecisions() { return this.file.decisions || []; }
+
+    addEntity(type, entity) {
+        if (!this.file[type]) this.file[type] = [];
+        this.file[type].push(entity);
+        return true;
+    }
+
+    updateEntity(type, id, updatedEntity) {
+        if (!this.file[type]) return false;
+        const index = this.file[type].findIndex(e => e.id === id);
+        if (index !== -1) {
+            this.file[type][index] = updatedEntity;
+            return true;
+        }
+        return false;
+    }
+
+    deleteEntity(type, id) {
+        if (!this.file[type]) return false;
+        const index = this.file[type].findIndex(e => e.id === id);
+        if (index !== -1) {
+            this.file[type].splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+
+    getEntityById(type, id) {
+        if (!this.file[type]) return null;
+        return this.file[type].find(e => e.id === id) || null;
+    }
+
     getNowTimestamp() {
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
@@ -997,6 +1046,13 @@ class Planner {
     loadState(newState) {
         if (newState && newState.meta && newState.plans) {
             this.file = newState;
+
+            // Ensure tracker arrays exist
+            if (!this.file.risks) this.file.risks = [];
+            if (!this.file.issues) this.file.issues = [];
+            if (!this.file.dependencies) this.file.dependencies = [];
+            if (!this.file.assumptions) this.file.assumptions = [];
+            if (!this.file.decisions) this.file.decisions = [];
 
             // Ensure Today marker exists on all plans
             const today = new Date();
