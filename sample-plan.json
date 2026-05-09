@@ -5,10 +5,47 @@
     "settings": {
         "baseLink": "https://jira.company.com/browse/",
         "teams": [
-            "Frontend",
-            "Backend",
-            "Design",
-            "DevOps"
+            {
+                "id": "T00001",
+                "name": "Frontend",
+                "description": "Handles UI/UX"
+            },
+            {
+                "id": "T00002",
+                "name": "Backend",
+                "description": "Handles APIs and databases"
+            },
+            {
+                "id": "T00003",
+                "name": "Design",
+                "description": "Handles product design"
+            },
+            {
+                "id": "T00004",
+                "name": "DevOps",
+                "description": "Handles infrastructure"
+            }
+        ],
+        "personnel": [
+            {
+                "id": "P00001",
+                "name": "Alice Smith",
+                "role": "Lead Developer",
+                "notes": "",
+                "teams": [
+                    "T00001",
+                    "T00002"
+                ]
+            },
+            {
+                "id": "P00002",
+                "name": "Bob Jones",
+                "role": "Designer",
+                "notes": "",
+                "teams": [
+                    "T00003"
+                ]
+            }
         ]
     },
     "plans": [
@@ -87,7 +124,8 @@
                         "dev": 6,
                         "test": 2
                     },
-                    "team": "Frontend"
+                    "team": "T00001",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-102",
@@ -108,7 +146,8 @@
                         "dev": 3,
                         "test": 1
                     },
-                    "team": "Backend"
+                    "team": "T00002",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-103",
@@ -132,7 +171,8 @@
                         "dev": 5,
                         "test": 2
                     },
-                    "team": "Design"
+                    "team": "T00003",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-104",
@@ -156,7 +196,8 @@
                         "dev": 4,
                         "test": 6
                     },
-                    "team": "DevOps"
+                    "team": "T00004",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-105",
@@ -180,7 +221,8 @@
                         "dev": 8,
                         "test": 3
                     },
-                    "team": "Frontend"
+                    "team": "T00001",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-106",
@@ -203,7 +245,8 @@
                         "dev": 7,
                         "test": 3
                     },
-                    "team": "Backend"
+                    "team": "T00002",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-107",
@@ -224,7 +267,8 @@
                         "dev": 5,
                         "test": 2
                     },
-                    "team": "Design"
+                    "team": "T00003",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-108",
@@ -248,7 +292,8 @@
                         "dev": 0,
                         "test": 10
                     },
-                    "team": "DevOps"
+                    "team": "T00004",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-109",
@@ -271,7 +316,8 @@
                         "dev": 8,
                         "test": 4
                     },
-                    "team": "Frontend"
+                    "team": "T00001",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-110",
@@ -294,7 +340,8 @@
                         "dev": 2,
                         "test": 15
                     },
-                    "team": "Backend"
+                    "team": "T00002",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-111",
@@ -317,7 +364,8 @@
                         "dev": 20,
                         "test": 5
                     },
-                    "team": "Design"
+                    "team": "T00003",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-112",
@@ -341,7 +389,8 @@
                         "dev": 15,
                         "test": 10
                     },
-                    "team": "DevOps"
+                    "team": "T00004",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-113",
@@ -362,7 +411,8 @@
                         "dev": 0,
                         "test": 0
                     },
-                    "team": "Frontend"
+                    "team": "T00001",
+                    "personnel": []
                 },
                 {
                     "id": "TASK-114",
@@ -387,7 +437,8 @@
                         "dev": 0,
                         "test": 20
                     },
-                    "team": "Backend"
+                    "team": "T00002",
+                    "personnel": []
                 }
             ]
         }

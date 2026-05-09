@@ -1518,27 +1518,165 @@ class UI {
         const settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
         const baseLinkInput = document.getElementById('settingsBaseLink');
 
-        const settingsTeamsInput = document.getElementById('settingsTeams');
-
         const settings = this.planner.getState().settings || {};
         baseLinkInput.value = settings.baseLink || '';
-        if (settingsTeamsInput) {
-            settingsTeamsInput.value = (settings.teams || []).join(', ');
+
+        const teamsContainer = document.getElementById('teamsContainer');
+        teamsContainer.innerHTML = '';
+        const teams = this.planner.getTeams();
+        teams.forEach(team => {
+            if (typeof team === 'string') {
+                // Backward compatibility just in case
+                this.addTeamRow({ id: 'T' + Math.floor(10000 + Math.random() * 90000), name: team, description: '' });
+            } else {
+                this.addTeamRow(team);
+            }
+        });
+
+        const personnelContainer = document.getElementById('personnelContainer');
+        personnelContainer.innerHTML = '';
+        const personnel = this.planner.getPersonnel();
+        personnel.forEach(person => {
+            this.addPersonnelRow(person);
+        });
+
+        // Initialize adding buttons if not already initialized
+        if (!this.settingsInitDone) {
+            document.getElementById('addTeamBtn').addEventListener('click', () => {
+                this.addTeamRow({ id: 'T' + Math.floor(10000 + Math.random() * 90000), name: '', description: '' });
+            });
+            document.getElementById('addPersonnelBtn').addEventListener('click', () => {
+                this.addPersonnelRow({ id: 'P' + Math.floor(10000 + Math.random() * 90000), name: '', role: '', notes: '', teams: [] });
+            });
+            this.settingsInitDone = true;
         }
 
         settingsModal.show();
     }
 
+    addTeamRow(team) {
+        const container = document.getElementById('teamsContainer');
+        const row = document.createElement('div');
+        row.className = 'card mb-2 team-row';
+        row.dataset.id = team.id;
+        row.innerHTML = `
+            <div class="card-body py-2 px-3 d-flex align-items-center gap-2">
+                <div class="flex-grow-1 row g-2">
+                    <div class="col-4">
+                        <input type="text" class="form-control form-control-sm team-name" placeholder="Team Name" value="${this.escapeHtml(team.name)}" required>
+                    </div>
+                    <div class="col-8">
+                        <input type="text" class="form-control form-control-sm team-desc" placeholder="Description" value="${this.escapeHtml(team.description || '')}">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger delete-team-btn" title="Remove">&times;</button>
+            </div>
+        `;
+        row.querySelector('.delete-team-btn').addEventListener('click', () => {
+            row.remove();
+        });
+        container.appendChild(row);
+    }
+
+    addPersonnelRow(person) {
+        const container = document.getElementById('personnelContainer');
+        const row = document.createElement('div');
+        row.className = 'card mb-2 personnel-row';
+        row.dataset.id = person.id;
+
+        // Dynamically build the team selection dropdown based on currently visible team rows
+        // If not saved yet, we just read from the DOM what teams are currently defined
+        const teamRows = document.querySelectorAll('.team-row');
+        let optionsHtml = '';
+        teamRows.forEach(tr => {
+            const teamId = tr.dataset.id;
+            const teamName = tr.querySelector('.team-name').value.trim();
+            if (teamName) {
+                const selected = person.teams && person.teams.includes(teamId) ? 'selected' : '';
+                optionsHtml += `<option value="${this.escapeHtml(teamId)}" ${selected}>${this.escapeHtml(teamName)}</option>`;
+            }
+        });
+        // Also add options from saved state if they aren't in DOM yet (e.g. if loaded before teams)
+        // A better approach is to use this.planner.getTeams() as the source of truth, but we need to account for unsaved changes in the modal.
+        // For simplicity, we can just map over planner.getTeams() and allow re-render on save.
+
+        let teamOptionsHtml = '';
+        const savedTeams = this.planner.getTeams();
+        savedTeams.forEach(t => {
+            const tObj = typeof t === 'string' ? { id: t, name: t } : t;
+            const selected = person.teams && person.teams.includes(tObj.id) ? 'selected' : '';
+            teamOptionsHtml += `<option value="${this.escapeHtml(tObj.id)}" ${selected}>${this.escapeHtml(tObj.name)}</option>`;
+        });
+
+        row.innerHTML = `
+            <div class="card-body py-2 px-3 d-flex align-items-start gap-2">
+                <div class="flex-grow-1 row g-2">
+                    <div class="col-3">
+                        <input type="text" class="form-control form-control-sm person-name" placeholder="Name" value="${this.escapeHtml(person.name)}" required>
+                    </div>
+                    <div class="col-3">
+                        <input type="text" class="form-control form-control-sm person-role" placeholder="Role" value="${this.escapeHtml(person.role || '')}">
+                    </div>
+                    <div class="col-3">
+                        <select class="form-select form-select-sm person-teams" multiple title="Select Teams (Hold Ctrl/Cmd)">
+                            ${teamOptionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-3">
+                        <input type="text" class="form-control form-control-sm person-notes" placeholder="Notes" value="${this.escapeHtml(person.notes || '')}">
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger delete-person-btn mt-1" title="Remove">&times;</button>
+            </div>
+        `;
+        row.querySelector('.delete-person-btn').addEventListener('click', () => {
+            row.remove();
+        });
+
+        // Setup simple multiple select update mechanism for unsaved new teams (optional enhancement)
+        // Here we just use the options from saved teams for simplicity, user must save teams first before assigning personnel to new teams
+
+        container.appendChild(row);
+    }
+
     saveSettings() {
         const baseLink = document.getElementById('settingsBaseLink').value.trim();
 
-        const settingsTeamsInput = document.getElementById('settingsTeams');
         let teams = [];
-        if (settingsTeamsInput) {
-            teams = settingsTeamsInput.value.split(',').map(t => t.trim()).filter(t => t);
-        }
+        const teamRows = document.querySelectorAll('.team-row');
+        teamRows.forEach(row => {
+            const name = row.querySelector('.team-name').value.trim();
+            const description = row.querySelector('.team-desc').value.trim();
+            if (name) {
+                teams.push({
+                    id: row.dataset.id,
+                    name: name,
+                    description: description
+                });
+            }
+        });
 
-        this.planner.updateSettings({ baseLink, teams });
+        let personnel = [];
+        const personnelRows = document.querySelectorAll('.personnel-row');
+        personnelRows.forEach(row => {
+            const name = row.querySelector('.person-name').value.trim();
+            const role = row.querySelector('.person-role').value.trim();
+            const notes = row.querySelector('.person-notes').value.trim();
+            const teamSelect = row.querySelector('.person-teams');
+            const selectedTeams = Array.from(teamSelect.selectedOptions).map(opt => opt.value);
+
+            if (name) {
+                personnel.push({
+                    id: row.dataset.id,
+                    name: name,
+                    role: role,
+                    notes: notes,
+                    teams: selectedTeams
+                });
+            }
+        });
+
+        this.planner.updateSettings({ baseLink, teams, personnel });
         this.populateTeamSelects();
 
         const settingsModalEl = document.getElementById('settingsModal');
@@ -1705,6 +1843,8 @@ class UI {
             status: taskStatus || null,
             tags: uniqueTags,
             dependencies: dependencies,
+            team: document.getElementById('taskTeam').value,
+            personnel: Array.from(document.getElementById('taskPersonnel').selectedOptions).map(opt => opt.value),
             effort: {
                 design: parseFloat(document.getElementById('taskEffortDesign').value) || 0,
                 dev: parseFloat(document.getElementById('taskEffortDev').value) || 0,
@@ -1974,6 +2114,17 @@ class UI {
                 document.getElementById('taskTags').value = tagsToDisplay.join(', ');
                 document.getElementById('taskDependencies').value = (task.dependencies || []).join(', ');
 
+                document.getElementById('taskTeam').value = task.team || '';
+
+                const taskPersonnelSelect = document.getElementById('taskPersonnel');
+                if (taskPersonnelSelect && task.personnel) {
+                    Array.from(taskPersonnelSelect.options).forEach(opt => {
+                        opt.selected = task.personnel.includes(opt.value);
+                    });
+                } else if (taskPersonnelSelect) {
+                    taskPersonnelSelect.selectedIndex = -1;
+                }
+
                 if (task.fillLegendId && fillLegends.some(l => l.id === task.fillLegendId)) {
                     taskFillLegendSelect.value = task.fillLegendId;
                 } else {
@@ -2001,6 +2152,9 @@ class UI {
             document.getElementById('originalTaskId').value = '';
             document.getElementById('taskStatus').value = '';
             document.getElementById('taskDependencies').value = '';
+            document.getElementById('taskTeam').value = '';
+            const taskPersonnelSelect = document.getElementById('taskPersonnel');
+            if (taskPersonnelSelect) taskPersonnelSelect.selectedIndex = -1;
             document.getElementById('taskExcludeFromAnalytics').checked = false;
 
             taskFillLegendSelect.value = 'default_fill';
@@ -2505,13 +2659,23 @@ class UI {
         capacityModal.show();
     }
 
-    addCapacityRow(startDate = '', endDate = '', capacity = 0) {
+    addCapacityRow(startDate = '', endDate = '', capacity = 0, team = '') {
         const tbody = document.getElementById('capacityTableBody');
         const tr = document.createElement('tr');
+
+        let teamOptionsHtml = '<option value="">All Teams</option>';
+        const savedTeams = this.planner.getTeams ? this.planner.getTeams() : [];
+        savedTeams.forEach(t => {
+            const tId = typeof t === 'string' ? t : t.id;
+            const tName = typeof t === 'string' ? t : t.name;
+            const selected = tId === team ? 'selected' : '';
+            teamOptionsHtml += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
+        });
 
         tr.innerHTML = `
             <td><input type="date" class="form-control form-control-sm cap-start" value="${startDate}" required></td>
             <td><input type="date" class="form-control form-control-sm cap-end" value="${endDate}" required></td>
+            <td><select class="form-select form-select-sm cap-team">${teamOptionsHtml}</select></td>
             <td><input type="number" class="form-control form-control-sm cap-val" value="${capacity}" min="0" required></td>
             <td class="align-middle text-center">
                 <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 delete-cap-row-btn" title="Delete Row">&times;</button>
@@ -2927,14 +3091,17 @@ class UI {
 
     populateTeamSelects() {
         const teams = this.planner.getTeams ? this.planner.getTeams() : [];
+        const personnel = this.planner.getPersonnel ? this.planner.getPersonnel() : [];
 
         const teamFilterSelect = document.getElementById('teamFilterSelect');
         if (teamFilterSelect) {
             const currentFilter = this.planner.getFilterState().team || '';
             teamFilterSelect.innerHTML = '<option value="">All Teams</option>';
             teams.forEach(t => {
-                const selected = t === currentFilter ? 'selected' : '';
-                teamFilterSelect.innerHTML += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+                const tId = typeof t === 'string' ? t : t.id;
+                const tName = typeof t === 'string' ? t : t.name;
+                const selected = tId === currentFilter ? 'selected' : '';
+                teamFilterSelect.innerHTML += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
             });
         }
 
@@ -2943,8 +3110,21 @@ class UI {
             const currentVal = taskTeamSelect.value;
             taskTeamSelect.innerHTML = '<option value="">Unassigned</option>';
             teams.forEach(t => {
-                const selected = t === currentVal ? 'selected' : '';
-                taskTeamSelect.innerHTML += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+                const tId = typeof t === 'string' ? t : t.id;
+                const tName = typeof t === 'string' ? t : t.name;
+                const selected = tId === currentVal ? 'selected' : '';
+                taskTeamSelect.innerHTML += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
+            });
+        }
+
+        const taskPersonnelSelect = document.getElementById('taskPersonnel');
+        if (taskPersonnelSelect) {
+            // Rebuild the personnel options. Remember selections if necessary.
+            const selectedVals = Array.from(taskPersonnelSelect.selectedOptions).map(o => o.value);
+            taskPersonnelSelect.innerHTML = '';
+            personnel.forEach(p => {
+                const selected = selectedVals.includes(p.id) ? 'selected' : '';
+                taskPersonnelSelect.innerHTML += `<option value="${this.escapeHtml(p.id)}" ${selected}>${this.escapeHtml(p.name)}</option>`;
             });
         }
 
@@ -2952,7 +3132,9 @@ class UI {
         if (bulkTeamSelect) {
             bulkTeamSelect.innerHTML = '<option value="">Unassigned</option>';
             teams.forEach(t => {
-                bulkTeamSelect.innerHTML += `<option value="${this.escapeHtml(t)}">${this.escapeHtml(t)}</option>`;
+                const tId = typeof t === 'string' ? t : t.id;
+                const tName = typeof t === 'string' ? t : t.name;
+                bulkTeamSelect.innerHTML += `<option value="${this.escapeHtml(tId)}">${this.escapeHtml(tName)}</option>`;
             });
         }
     }

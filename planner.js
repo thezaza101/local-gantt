@@ -26,7 +26,8 @@ class Planner {
                     }
                 ],
                 tagGroups: [],
-                teams: []
+                teams: [],
+                personnel: []
             },
             plans: []
         };
@@ -547,6 +548,9 @@ class Planner {
         }
         if (newSettings.teams !== undefined) {
             this.file.settings.teams = newSettings.teams;
+        }
+        if (newSettings.personnel !== undefined) {
+            this.file.settings.personnel = newSettings.personnel;
         }
         return true;
     }
@@ -1084,6 +1088,14 @@ class Planner {
             this.file.settings.teams = [];
         }
         return this.file.settings.teams;
+    }
+
+    getPersonnel() {
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.personnel) {
+            this.file.settings.personnel = [];
+        }
+        return this.file.settings.personnel;
     }
 
     getState() {

@@ -665,8 +665,10 @@ class Analytics {
         const allTeams = this.planner.getTeams ? this.planner.getTeams() : [];
         let teamOptions = `<option value="">All Teams</option>`;
         allTeams.forEach(t => {
-            const selected = this.filterState.team === t ? 'selected' : '';
-            teamOptions += `<option value="${this.escapeHtml(t)}" ${selected}>${this.escapeHtml(t)}</option>`;
+            const tId = typeof t === 'string' ? t : t.id;
+            const tName = typeof t === 'string' ? t : t.name;
+            const selected = this.filterState.team === tId ? 'selected' : '';
+            teamOptions += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
         });
 
         const filterBarHtml = `
