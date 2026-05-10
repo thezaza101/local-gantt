@@ -316,6 +316,24 @@ class Tracker {
                 <div class="col-md-4 mb-2"><label class="form-label">Status</label><select class="form-select" id="trackerStatus"><option value="">None</option><option value="Active">Active</option><option value="At Risk">At Risk</option><option value="Blocked">Blocked</option><option value="Completed">Completed</option><option value="Removed">Removed</option></select></div>
                 <div class="col-md-4 mb-2"><label class="form-label">Required-by Date</label><input type="date" class="form-control" id="depRequiredDate"></div>
                 <div class="col-md-4 mb-2 d-flex align-items-end"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="depCriticalPath"><label class="form-check-label">Critical Path</label></div></div>
+                <div class="col-md-4 mb-2 d-flex align-items-end"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="depShowOnGantt"><label class="form-check-label">Visible on Gantt</label></div></div>
+                <div class="col-md-4 mb-2">
+                    <label class="form-label">Arrow Color</label>
+                    <select class="form-select" id="depArrowColor">
+                        <option value="">Default (Task Color)</option>
+                        <option value="#ff4d4d">Red</option>
+                        <option value="#4da3ff">Blue</option>
+                        <option value="#00cc66">Green</option>
+                        <option value="#ffb84d">Orange</option>
+                        <option value="#b366ff">Purple</option>
+                        <option value="#ff66b3">Pink</option>
+                        <option value="#66e0ff">Cyan</option>
+                        <option value="#d9d9d9">Gray</option>
+                        <option value="#ffcc00">Yellow</option>
+                        <option value="#000000">Black</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-2"><label class="form-label">Arrow Text</label><input type="text" class="form-control" id="depArrowText"></div>
 
                 <div class="col-md-6 mb-2">
                     <label class="form-label">Owning Team</label>
@@ -406,6 +424,9 @@ class Tracker {
             document.getElementById('trackerStatus').value = item.status || '';
             document.getElementById('depRequiredDate').value = item.requiredDate || '';
             document.getElementById('depCriticalPath').checked = item.criticalPath || false;
+            document.getElementById('depShowOnGantt').checked = item.showOnGantt || false;
+            document.getElementById('depArrowColor').value = item.arrowColor || '';
+            document.getElementById('depArrowText').value = item.arrowText || '';
             document.getElementById('depOwningTeam').value = item.owningTeam || '';
 
             // Set text for single selects
@@ -718,6 +739,9 @@ class Tracker {
         } else if (type === 'dependencies') {
             itemData.requiredDate = document.getElementById('depRequiredDate').value;
             itemData.criticalPath = document.getElementById('depCriticalPath').checked;
+            itemData.showOnGantt = document.getElementById('depShowOnGantt').checked;
+            itemData.arrowColor = document.getElementById('depArrowColor').value;
+            itemData.arrowText = document.getElementById('depArrowText').value.trim();
             itemData.owningTeam = document.getElementById('depOwningTeam').value;
             itemData.affectedTeams = Array.from(document.querySelectorAll('.dep-affected-team-checkbox:checked')).map(cb => cb.value).join(', ');
             itemData.fromTasks = Array.from(document.querySelectorAll('.dep-from-task-checkbox:checked')).map(cb => cb.value);

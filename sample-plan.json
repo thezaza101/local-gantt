@@ -530,7 +530,10 @@
             "status": "Completed",
             "criticalPath": true,
             "impactIfDelayed": "Delays entire backend integration phase.",
-            "planId": "global"
+            "planId": "global",
+            "showOnGantt": true,
+            "arrowColor": "#ff4d4d",
+            "arrowText": "Blocks Auth"
         }
     ],
     "assumptions": [
