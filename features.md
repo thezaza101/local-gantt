@@ -23,6 +23,39 @@ Each task can be assigned to a single team and multiple key personnel via the Ta
 - `task.personnel`: Array of strings representing the personnel `id`s assigned to a task.
 - `capacity.team`: String representing the team `id` assigned to a capacity entry.
 
+## Toolbar Help & Glossary
+The application provides a comprehensive toolbar with various functionalities grouped as follows:
+
+### File & Data Management
+- **📂 Import JSON:** Import a saved planner state from a JSON file.
+- **💾 Export JSON:** Download the entire planner state as a JSON file.
+- **🕒 Version History:** View the history of export messages.
+- **⚙️ Settings:** Open the global application settings.
+- **📅 Plan Actions:** A dropdown menu to manage your plans (New, Edit, Duplicate, Delete, Import, Export, Capacity).
+- **⬇️ Export Options:** Export the current Gantt chart as a high-resolution Image or export tasks as a CSV. Ability to share HTML is experimental.
+
+### Tasks & Elements
+- **➕ Add Task:** Create a new task in the current plan.
+- **🗃️ Bulk Operations:** Select multiple tasks via checkboxes to apply tags, set statuses, or exclude them in bulk.
+- **➕/🗑️ Manage Rows:** Hover over a row number in the chart to insert empty rows above or delete empty rows.
+- **📍 Manage Markers:** Add, edit, or delete timeline markers.
+- **📋 Task List:** View all tasks in a searchable list format.
+- **🎨 Legends:** Customize task fill and border colors and map them to tags.
+- **🏷️ Tag Groups:** Create and manage groups of tags to quickly apply multiple tags to tasks, or use them in Bulk Operations.
+
+### View & Filters
+- **👥 Filter Team:** Select a specific team to filter tasks on the chart.
+- **🏷️ Filter Tags:** Select specific tags to show or highlight in the chart.
+- **∪ / ∩ (Match Any/All):** Determine if a task needs to match Any or All of the selected tags to be shown.
+- **👁️ / 🔦 (Show/Highlight):** Choose whether non-matching tasks should be completely hidden (Show) or just faded out (Highlight).
+- **🔗 Dependencies:** Toggle the display of dependency lines between tasks.
+
+### Timeline Controls
+- **D, W, F, M (Zoom):** Adjust the timeline scale to Daily, Weekly, Fortnightly, or Monthly views.
+- **⏱️ Effort/Day:** Toggle the display of calculated daily effort values within the timeline grid.
+- **🚩 ⛳ 📝 (Markers):** Toggle the visibility of Major, Minor, and Note markers respectively.
+- **📊 Analytics:** Open the full-screen Analytics dashboard.
+- **📺 Presenter Mode:** Hide the toolbar for a cleaner, presentation-ready view.
 ## Tracker (Risks, Issues, Dependencies, Assumptions, Decisions)
 The Tracker provides a centralized view for managing program-level and plan-level Risks, Issues, Dependencies, Assumptions, and Decisions (RIDAD).
 
