@@ -176,14 +176,17 @@ class Tracker {
                 `;
             }
 
-            cellsHTML += `
-                <td>
-                    <button class="btn btn-sm btn-outline-primary edit-tracker-btn" data-type="${type}" data-id="${item.id}">Edit</button>
-                    <button class="btn btn-sm btn-outline-danger delete-tracker-btn" data-type="${type}" data-id="${item.id}">Delete</button>
-                </td>
-            `;
-
             tr.innerHTML = cellsHTML;
+            tr.classList.add('cursor-pointer');
+            tr.style.cursor = 'pointer';
+
+            // Allow clicking row to edit, except when clicking the checkbox
+            tr.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('tracker-item-checkbox')) {
+                    this.openEditModal(type, item.id);
+                }
+            });
+
             tableBody.appendChild(tr);
         });
 
@@ -199,27 +202,6 @@ class Tracker {
                     const allCbs = document.querySelectorAll('.tracker-item-checkbox');
                     const allChecked = Array.from(allCbs).every(c => c.checked);
                     selectAllCheckbox.checked = allChecked && allCbs.length > 0;
-                }
-            });
-        });
-
-        // Add event listeners for edit and delete buttons
-        tableBody.querySelectorAll('.edit-tracker-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const type = e.target.getAttribute('data-type');
-                const id = e.target.getAttribute('data-id');
-                this.openEditModal(type, id);
-            });
-        });
-
-        tableBody.querySelectorAll('.delete-tracker-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const type = e.target.getAttribute('data-type');
-                const id = e.target.getAttribute('data-id');
-                if (confirm(`Are you sure you want to delete ${id}?`)) {
-                    this.planner.deleteEntity(type, id);
-                    this.render();
-                    if (window.UIController) { window.UIController.updateUI(); }
                 }
             });
         });
@@ -255,7 +237,10 @@ class Tracker {
         this.populateAssociationDropdowns();
         this.populateGroupedTagsDropdown();
 
+        const deleteBtn = document.getElementById('deleteTrackerItemBtn');
+
         if (id) {
+            if (deleteBtn) deleteBtn.classList.remove('d-none');
             const item = this.planner.getEntityById(type, id);
             if (item) {
                 document.getElementById('trackerItemId').value = item.id;
@@ -276,6 +261,7 @@ class Tracker {
                 document.getElementById('trackerLastCheckedDisplay').textContent = item.lastChecked ? 'Last Checked: ' + item.lastChecked : 'Last Checked: -';
             }
         } else {
+            if (deleteBtn) deleteBtn.classList.add('d-none');
             // Generate a new ID based on type
             const prefixes = { risks: 'R', issues: 'I', dependencies: 'D', assumptions: 'A', decisions: 'C' };
             const newId = this.planner.generateEntityId(prefixes[type] || 'E');
@@ -287,6 +273,21 @@ class Tracker {
         }
 
         modal.show();
+    }
+
+    deleteItem() {
+        const type = document.getElementById('trackerItemType').value;
+        const originalId = document.getElementById('trackerOriginalId').value;
+        if (!type || !originalId) return;
+
+        if (confirm(`Are you sure you want to delete ${originalId}?`)) {
+            this.planner.deleteEntity(type, originalId);
+            this.render();
+            if (window.UIController) { window.UIController.updateUI(); }
+            const modalEl = document.getElementById('trackerEditModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) modal.hide();
+        }
     }
 
     getDynamicFieldsHTML(type) {
@@ -315,10 +316,53 @@ class Tracker {
                 <div class="col-md-4 mb-2"><label class="form-label">Status</label><select class="form-select" id="trackerStatus"><option value="">None</option><option value="Active">Active</option><option value="At Risk">At Risk</option><option value="Blocked">Blocked</option><option value="Completed">Completed</option><option value="Removed">Removed</option></select></div>
                 <div class="col-md-4 mb-2"><label class="form-label">Required-by Date</label><input type="date" class="form-control" id="depRequiredDate"></div>
                 <div class="col-md-4 mb-2 d-flex align-items-end"><div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="depCriticalPath"><label class="form-check-label">Critical Path</label></div></div>
-                <div class="col-md-6 mb-2"><label class="form-label">Owning Team</label><input type="text" class="form-control" id="depOwningTeam"></div>
-                <div class="col-md-6 mb-2"><label class="form-label">Affected Teams</label><input type="text" class="form-control" id="depAffectedTeams"></div>
-                <div class="col-md-6 mb-2"><label class="form-label">From Task(s) (comma-separated)</label><input type="text" class="form-control" id="depFromTasks"></div>
-                <div class="col-md-6 mb-2"><label class="form-label">To Task</label><input type="text" class="form-control" id="depToTask"></div>
+
+                <div class="col-md-6 mb-2">
+                    <label class="form-label">Owning Team</label>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" id="depOwningTeamBtn">Select Team</button>
+                        <ul class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="depOwningTeamDropdown">
+                            <li><input type="text" class="form-control form-control-sm mb-2" id="depOwningTeamSearch" placeholder="Search teams..."></li>
+                            <div id="depOwningTeamList"></div>
+                        </ul>
+                    </div>
+                    <input type="hidden" id="depOwningTeam">
+                </div>
+
+                <div class="col-md-6 mb-2">
+                    <label class="form-label">Affected Teams</label>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" id="depAffectedTeamsBtn">Select Teams</button>
+                        <ul class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="depAffectedTeamsDropdown">
+                            <li><input type="text" class="form-control form-control-sm mb-2" id="depAffectedTeamsSearch" placeholder="Search teams..."></li>
+                            <div id="depAffectedTeamsList"></div>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-2">
+                    <label class="form-label">From Task(s)</label>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" id="depFromTasksBtn">Select Tasks</button>
+                        <ul class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="depFromTasksDropdown">
+                            <li><input type="text" class="form-control form-control-sm mb-2" id="depFromTasksSearch" placeholder="Search tasks..."></li>
+                            <div id="depFromTasksList"></div>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-2">
+                    <label class="form-label">To Task</label>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" id="depToTaskBtn">Select Task</button>
+                        <ul class="dropdown-menu w-100 p-2 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="depToTaskDropdown">
+                            <li><input type="text" class="form-control form-control-sm mb-2" id="depToTaskSearch" placeholder="Search task..."></li>
+                            <div id="depToTaskList"></div>
+                        </ul>
+                    </div>
+                    <input type="hidden" id="depToTask">
+                </div>
+
                 <div class="col-md-12 mb-2"><label class="form-label">Impact if Delayed</label><textarea class="form-control" id="depImpact" rows="2"></textarea></div>
             `;
         } else if (type === 'assumptions') {
@@ -363,9 +407,34 @@ class Tracker {
             document.getElementById('depRequiredDate').value = item.requiredDate || '';
             document.getElementById('depCriticalPath').checked = item.criticalPath || false;
             document.getElementById('depOwningTeam').value = item.owningTeam || '';
-            document.getElementById('depAffectedTeams').value = item.affectedTeams || '';
-            document.getElementById('depFromTasks').value = (item.fromTasks || []).join(', ');
+
+            // Set text for single selects
+            const owningTeamObj = (this.planner.getTeams ? this.planner.getTeams() : []).find(t => t.id === item.owningTeam);
+            document.getElementById('depOwningTeamBtn').textContent = owningTeamObj ? owningTeamObj.name : (item.owningTeam || 'Select Team');
+
             document.getElementById('depToTask').value = item.toTask || '';
+            const toTaskObj = (this.planner.getCurrentPlan()?.tasks || []).find(t => t.id === item.toTask);
+            document.getElementById('depToTaskBtn').textContent = toTaskObj ? `[${toTaskObj.id}] ${toTaskObj.title}` : (item.toTask || 'Select Task');
+
+            // Set checkboxes for multi selects
+            const affectedTeams = (item.affectedTeams || '').split(',').map(s => s.trim()).filter(s => s);
+            document.querySelectorAll('.dep-affected-team-checkbox').forEach(cb => {
+                cb.checked = affectedTeams.includes(cb.value);
+            });
+            const updateMultiBtnText = (selector, btnId, defText) => {
+                const btn = document.getElementById(btnId);
+                const checked = document.querySelectorAll(`${selector}:checked`);
+                if (checked.length === 0) btn.textContent = defText;
+                else if (checked.length === 1) btn.textContent = checked[0].parentElement.textContent.trim();
+                else btn.textContent = `${checked.length} Selected`;
+            };
+            updateMultiBtnText('.dep-affected-team-checkbox', 'depAffectedTeamsBtn', 'Select Teams');
+
+            document.querySelectorAll('.dep-from-task-checkbox').forEach(cb => {
+                cb.checked = (item.fromTasks || []).includes(cb.value);
+            });
+            updateMultiBtnText('.dep-from-task-checkbox', 'depFromTasksBtn', 'Select Tasks');
+
             document.getElementById('depImpact').value = item.impact || '';
         } else if (type === 'assumptions') {
             document.getElementById('trackerStatus').value = item.status || '';
@@ -424,6 +493,135 @@ class Tracker {
         } else {
             tasksDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted small">No tasks in current plan</span></li>';
         }
+
+        // Populate dependency specific dropdowns if they exist in the DOM
+        const depOwningTeamList = document.getElementById('depOwningTeamList');
+        const depAffectedTeamsList = document.getElementById('depAffectedTeamsList');
+        const depFromTasksList = document.getElementById('depFromTasksList');
+        const depToTaskList = document.getElementById('depToTaskList');
+
+        if (depOwningTeamList) {
+            depOwningTeamList.innerHTML = '';
+            if (teams.length > 0) {
+                teams.forEach(t => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<button class="dropdown-item dep-owning-team-item" type="button" data-id="${this.escapeHtml(t.id)}">${this.escapeHtml(t.name)}</button>`;
+                    depOwningTeamList.appendChild(li);
+                });
+            } else {
+                depOwningTeamList.innerHTML = '<li><span class="dropdown-item-text text-muted small">No teams configured</span></li>';
+            }
+        }
+
+        if (depAffectedTeamsList) {
+            depAffectedTeamsList.innerHTML = '';
+            if (teams.length > 0) {
+                teams.forEach(t => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<label class="dropdown-item"><input class="form-check-input me-2 dep-affected-team-checkbox" type="checkbox" value="${this.escapeHtml(t.id)}">${this.escapeHtml(t.name)}</label>`;
+                    depAffectedTeamsList.appendChild(li);
+                });
+            } else {
+                depAffectedTeamsList.innerHTML = '<li><span class="dropdown-item-text text-muted small">No teams configured</span></li>';
+            }
+        }
+
+        if (depFromTasksList) {
+            depFromTasksList.innerHTML = '';
+            if (plan && plan.tasks && plan.tasks.length > 0) {
+                plan.tasks.forEach(t => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<label class="dropdown-item"><input class="form-check-input me-2 dep-from-task-checkbox" type="checkbox" value="${this.escapeHtml(t.id)}">[${this.escapeHtml(t.id)}] ${this.escapeHtml(t.title)}</label>`;
+                    depFromTasksList.appendChild(li);
+                });
+            } else {
+                depFromTasksList.innerHTML = '<li><span class="dropdown-item-text text-muted small">No tasks in plan</span></li>';
+            }
+        }
+
+        if (depToTaskList) {
+            depToTaskList.innerHTML = '';
+            if (plan && plan.tasks && plan.tasks.length > 0) {
+                plan.tasks.forEach(t => {
+                    const li = document.createElement('li');
+                    li.innerHTML = `<button class="dropdown-item dep-to-task-item" type="button" data-id="${this.escapeHtml(t.id)}">[${this.escapeHtml(t.id)}] ${this.escapeHtml(t.title)}</button>`;
+                    depToTaskList.appendChild(li);
+                });
+            } else {
+                depToTaskList.innerHTML = '<li><span class="dropdown-item-text text-muted small">No tasks in plan</span></li>';
+            }
+        }
+
+        this.bindDependencyDropdownSearchEvents();
+    }
+
+    bindDependencyDropdownSearchEvents() {
+        const bindSearch = (searchInputId, listId, isCheckbox) => {
+            const searchInput = document.getElementById(searchInputId);
+            const listContainer = document.getElementById(listId);
+            if (!searchInput || !listContainer) return;
+
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase();
+                const items = listContainer.querySelectorAll('li');
+                items.forEach(li => {
+                    const text = li.textContent.toLowerCase();
+                    li.style.display = text.includes(term) ? '' : 'none';
+                });
+            });
+        };
+
+        bindSearch('depOwningTeamSearch', 'depOwningTeamList', false);
+        bindSearch('depAffectedTeamsSearch', 'depAffectedTeamsList', true);
+        bindSearch('depFromTasksSearch', 'depFromTasksList', true);
+        bindSearch('depToTaskSearch', 'depToTaskList', false);
+
+        // Bind single select item clicks
+        document.querySelectorAll('.dep-owning-team-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.getAttribute('data-id');
+                const name = e.target.textContent;
+                document.getElementById('depOwningTeam').value = id;
+                document.getElementById('depOwningTeamBtn').textContent = name;
+                // Close dropdown
+                const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('depOwningTeamBtn'));
+                if (dropdown) dropdown.hide();
+            });
+        });
+
+        document.querySelectorAll('.dep-to-task-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.getAttribute('data-id');
+                const name = e.target.textContent;
+                document.getElementById('depToTask').value = id;
+                document.getElementById('depToTaskBtn').textContent = name;
+                // Close dropdown
+                const dropdown = bootstrap.Dropdown.getInstance(document.getElementById('depToTaskBtn'));
+                if (dropdown) dropdown.hide();
+            });
+        });
+
+        // Update multi-select button texts
+        const updateMultiSelectText = (checkboxSelector, btnId, defaultText) => {
+            const btn = document.getElementById(btnId);
+            if (!btn) return;
+            const checked = document.querySelectorAll(`${checkboxSelector}:checked`);
+            if (checked.length === 0) {
+                btn.textContent = defaultText;
+            } else if (checked.length === 1) {
+                btn.textContent = checked[0].parentElement.textContent.trim();
+            } else {
+                btn.textContent = `${checked.length} Selected`;
+            }
+        };
+
+        document.querySelectorAll('.dep-affected-team-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => updateMultiSelectText('.dep-affected-team-checkbox', 'depAffectedTeamsBtn', 'Select Teams'));
+        });
+
+        document.querySelectorAll('.dep-from-task-checkbox').forEach(cb => {
+            cb.addEventListener('change', () => updateMultiSelectText('.dep-from-task-checkbox', 'depFromTasksBtn', 'Select Tasks'));
+        });
     }
 
     populateGroupedTagsDropdown() {
@@ -521,8 +719,8 @@ class Tracker {
             itemData.requiredDate = document.getElementById('depRequiredDate').value;
             itemData.criticalPath = document.getElementById('depCriticalPath').checked;
             itemData.owningTeam = document.getElementById('depOwningTeam').value;
-            itemData.affectedTeams = document.getElementById('depAffectedTeams').value;
-            itemData.fromTasks = document.getElementById('depFromTasks').value.split(',').map(t => t.trim()).filter(t => t);
+            itemData.affectedTeams = Array.from(document.querySelectorAll('.dep-affected-team-checkbox:checked')).map(cb => cb.value).join(', ');
+            itemData.fromTasks = Array.from(document.querySelectorAll('.dep-from-task-checkbox:checked')).map(cb => cb.value);
             itemData.toTask = document.getElementById('depToTask').value.trim();
             itemData.impact = document.getElementById('depImpact').value;
         } else if (type === 'assumptions') {

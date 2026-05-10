@@ -34,6 +34,30 @@ class UI {
         }
 
         // Tracker modal events
+        const addButtons = [
+            { id: 'addRiskBtn', type: 'risks' },
+            { id: 'addIssueBtn', type: 'issues' },
+            { id: 'addDependencyBtn', type: 'dependencies' },
+            { id: 'addAssumptionBtn', type: 'assumptions' },
+            { id: 'addDecisionBtn', type: 'decisions' }
+        ];
+
+        addButtons.forEach(btnInfo => {
+            const btn = document.getElementById(btnInfo.id);
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    if (window.TrackerEngine) window.TrackerEngine.openEditModal(btnInfo.type);
+                });
+            }
+        });
+
+        const deleteTrackerItemBtn = document.getElementById("deleteTrackerItemBtn");
+        if (deleteTrackerItemBtn) {
+            deleteTrackerItemBtn.addEventListener("click", () => {
+                if (window.TrackerEngine) window.TrackerEngine.deleteItem();
+            });
+        }
+
         const saveTrackerItemBtn = document.getElementById("saveTrackerItemBtn");
         if (saveTrackerItemBtn) {
             saveTrackerItemBtn.addEventListener("click", () => {
