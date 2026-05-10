@@ -565,6 +565,12 @@ class Planner {
         if (newSettings.raidaStaleDays !== undefined) {
             this.file.settings.raidaStaleDays = newSettings.raidaStaleDays;
         }
+        if (newSettings.trackerTruncateLength !== undefined) {
+            this.file.settings.trackerTruncateLength = newSettings.trackerTruncateLength;
+        }
+        if (newSettings.trackerColumns !== undefined) {
+            this.file.settings.trackerColumns = newSettings.trackerColumns;
+        }
         return true;
     }
 
@@ -1160,6 +1166,94 @@ class Planner {
             this.file.settings.personnel = [];
         }
         return this.file.settings.personnel;
+    }
+
+    getTrackerSettings() {
+        if (!this.file.settings) this.file.settings = {};
+
+        let defaults = {
+            truncateLength: 50,
+            columns: {
+                risks: [
+                    { id: 'id', label: 'ID', visible: true },
+                    { id: 'title', label: 'Title', visible: true },
+                    { id: 'scope', label: 'Scope', visible: true },
+                    { id: 'description', label: 'Description', visible: true },
+                    { id: 'probability', label: 'Probability', visible: true },
+                    { id: 'severity', label: 'Severity', visible: true },
+                    { id: 'status', label: 'Status', visible: true },
+                    { id: 'owner', label: 'Owner', visible: true },
+                    { id: 'triggerIndicators', label: 'Trigger Indicators', visible: true },
+                    { id: 'dueDate', label: 'Due Date', visible: true }
+                ],
+                issues: [
+                    { id: 'id', label: 'ID', visible: true },
+                    { id: 'title', label: 'Title', visible: true },
+                    { id: 'scope', label: 'Scope', visible: true },
+                    { id: 'description', label: 'Description', visible: true },
+                    { id: 'severity', label: 'Severity', visible: true },
+                    { id: 'status', label: 'Status', visible: true },
+                    { id: 'escalationOwner', label: 'Escalation Owner', visible: true },
+                    { id: 'workaround', label: 'Workaround', visible: true },
+                    { id: 'businessImpact', label: 'Business Impact', visible: true },
+                    { id: 'targetDate', label: 'Target Date', visible: true },
+                    { id: 'triggerIndicators', label: 'Trigger Indicators', visible: true }
+                ],
+                dependencies: [
+                    { id: 'id', label: 'ID', visible: true },
+                    { id: 'title', label: 'Title', visible: true },
+                    { id: 'scope', label: 'Scope', visible: true },
+                    { id: 'description', label: 'Description', visible: true },
+                    { id: 'status', label: 'Status', visible: true },
+                    { id: 'requiredDate', label: 'Required-by Date', visible: true },
+                    { id: 'owningTeamFromTask', label: 'Owning Team / From Task(s)', visible: true },
+                    { id: 'affectedTeamsToTask', label: 'Affected Teams / To Task', visible: true }
+                ],
+                assumptions: [
+                    { id: 'id', label: 'ID', visible: true },
+                    { id: 'title', label: 'Title', visible: true },
+                    { id: 'scope', label: 'Scope', visible: true },
+                    { id: 'description', label: 'Description', visible: true },
+                    { id: 'status', label: 'Status', visible: true },
+                    { id: 'impact', label: 'Impact', visible: true },
+                    { id: 'expiryDate', label: 'Expiry Date', visible: true }
+                ],
+                decisions: [
+                    { id: 'id', label: 'ID', visible: true },
+                    { id: 'title', label: 'Title', visible: true },
+                    { id: 'scope', label: 'Scope', visible: true },
+                    { id: 'description', label: 'Description', visible: true },
+                    { id: 'status', label: 'Status', visible: true },
+                    { id: 'owner', label: 'Owner', visible: true },
+                    { id: 'deadline', label: 'Deadline', visible: true },
+                    { id: 'options', label: 'Options', visible: true },
+                    { id: 'recommendation', label: 'Recommendation', visible: true },
+                    { id: 'outcome', label: 'Outcome', visible: true },
+                    { id: 'impact', label: 'Impact', visible: true }
+                ]
+            }
+        };
+
+        let current = {
+            truncateLength: this.file.settings.trackerTruncateLength !== undefined ? this.file.settings.trackerTruncateLength : defaults.truncateLength,
+            columns: this.file.settings.trackerColumns || {}
+        };
+
+        // Merge defaults for columns if some are missing or new columns were added
+        ['risks', 'issues', 'dependencies', 'assumptions', 'decisions'].forEach(type => {
+            if (!current.columns[type] || current.columns[type].length === 0) {
+                current.columns[type] = JSON.parse(JSON.stringify(defaults.columns[type]));
+            } else {
+                // Ensure all default columns exist in current config
+                defaults.columns[type].forEach(defCol => {
+                    if (!current.columns[type].find(c => c.id === defCol.id)) {
+                        current.columns[type].push(JSON.parse(JSON.stringify(defCol)));
+                    }
+                });
+            }
+        });
+
+        return current;
     }
 
     getState() {
