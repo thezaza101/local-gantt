@@ -229,6 +229,9 @@
                                  <!-- Options injected via JS based on tab -->
                              </ul>
                          </div>
+                         <div class="vr mx-1"></div>
+                         <button class="btn btn-sm btn-outline-secondary" id="trackerImportCsvBtn" title="Import CSV">Import CSV</button>
+                         <input type="file" id="trackerImportCsvFileInput" accept=".csv" style="display: none;">
                      </div>
                      <span class="text-muted small" id="trackerSelectionCount">0 selected</span>
                  </div>
@@ -1575,6 +1578,36 @@
         </div>
     </div>
 
+
+    <!-- Import Tracker CSV Modal -->
+    <div class="modal fade" id="trackerImportCsvModal" tabindex="-1" aria-labelledby="trackerImportCsvModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="trackerImportCsvModalLabel">Import Tracker Items from CSV</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info py-2 small mb-3">
+                        <strong>Expected CSV Format:</strong> Must include a header row. Recognized column headers: <code>id</code>, <code>title</code>, <code>description</code>, <code>type</code>. Valid types: <code>risk</code>, <code>issue</code>, <code>dependency</code>, <code>assumption</code>, <code>decision</code>.
+                    </div>
+                    <p>Selected File: <strong id="trackerImportCsvFileName">None</strong></p>
+                    <form id="trackerImportCsvForm">
+                        <div class="mb-3">
+                            <label for="trackerImportCsvScope" class="form-label">Scope</label>
+                            <select class="form-select" id="trackerImportCsvScope">
+                                <option value="">Global (All Plans)</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirmTrackerImportCsvBtn">Import</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Graph View Modal -->
     <div class="modal fade" id="graphViewModal" tabindex="-1" aria-labelledby="graphViewModalLabel" aria-hidden="true" style="z-index: 1060;">
