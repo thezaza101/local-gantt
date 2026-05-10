@@ -54,7 +54,7 @@ body {
     background-color: #fafafa;
 }
 
-.analytics-panel, .tracker-panel {
+.analytics-panel, .tracker-panel, .raida-panel {
     position: absolute;
     top: 0;
     left: 0;
@@ -63,13 +63,14 @@ body {
     z-index: 1040;
     background-color: var(--background-color);
 }
-.tracker-panel {
+.tracker-panel, .raida-panel {
     z-index: 1050;
 }
 
 /* Full Screen Modes */
 body.analytics-fullscreen .planner-area,
-body.tracker-fullscreen .planner-area {
+body.tracker-fullscreen .planner-area,
+body.raida-fullscreen .planner-area {
     display: none !important;
 }
 
@@ -86,6 +87,14 @@ body.tracker-fullscreen .tracker-panel {
 }
 
 .tracker-panel.d-none {
+    display: none !important;
+}
+
+body.raida-fullscreen .raida-panel {
+    display: flex !important;
+}
+
+.raida-panel.d-none {
     display: none !important;
 }
 
