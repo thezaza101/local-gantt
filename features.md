@@ -34,3 +34,5 @@ To maintain a single source of truth and prevent bi-directional synchronization 
 
 ### Bulk Operations & Dependencies
 The Tracker view includes bulk operation controls for deleting or modifying the status of multiple entities simultaneously. A specialized "Auto-Create Proper Dependencies" tool scans all tasks within the current plan and automatically provisions fully structured Dependency entities from simple task-level dependency links, marking them as removed if the task link is subsequently deleted.
+
+Additionally, Tracker Dependency entities can be visualized directly on the Gantt chart by enabling the "Visible on Gantt" checkbox. When enabled, custom arrows will be drawn connecting the "From Task(s)" to the "To Task". You can further customize these arrows by selecting a specific color and adding text to annotate the relationship.

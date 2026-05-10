@@ -624,77 +624,118 @@ class Gantt {
 
         const uniqueMarkers = new Map();
 
+        const drawArrow = (depTask, rt, arrowColor, arrowText) => {
+            const startX = depTask.left + depTask.width;
+            const startY = depTask.top + (depTask.height / 2);
+            const endX = rt.left;
+            const endY = rt.top + (rt.height / 2);
+
+            const strokeColor = arrowColor || this.getMixedColor(depTask.task.fillColor || '#4da3ff');
+
+            // We use a simple hash of the color to create a unique marker ID
+            const markerId = 'arrowhead-' + strokeColor.replace(/[^a-zA-Z0-9]/g, '');
+            if (!uniqueMarkers.has(markerId)) {
+                uniqueMarkers.set(markerId, strokeColor);
+            }
+
+            let pathD = '';
+            const r = 5; // corner radius
+
+            let labelX, labelY;
+
+            // Right-angled path
+            if (Math.abs(startY - endY) < 5) {
+                // Same row, straight line
+                pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
+                labelX = (startX + endX) / 2;
+                labelY = startY - 5;
+            } else {
+                // Different rows, need right angles
+                const midX = startX + 10;
+                const midX2 = endX - 20;
+
+                // To make corners rounded, we use arcs
+                const yDir = endY > startY ? 1 : -1;
+
+                if (endX > startX + 30) {
+                    // Normal case: dependent task is to the right
+                    pathD = `M ${startX} ${startY} ` +
+                            `L ${midX2 - r} ${startY} ` +
+                            `Q ${midX2} ${startY} ${midX2} ${startY + r * yDir} ` +
+                            `L ${midX2} ${endY - r * yDir} ` +
+                            `Q ${midX2} ${endY} ${midX2 + r} ${endY} ` +
+                            `L ${endX} ${endY}`;
+
+                    labelX = midX2;
+                    labelY = (startY + endY) / 2;
+                } else {
+                    // Dependent task is to the left or directly below/above
+                    const dropY = startY + (depTask.height / 2) + 5 * yDir;
+
+                    pathD = `M ${startX} ${startY} ` +
+                            `L ${startX + 10 - r} ${startY} ` +
+                            `Q ${startX + 10} ${startY} ${startX + 10} ${startY + r * yDir} ` +
+                            `L ${startX + 10} ${dropY - r * yDir} ` +
+                            `Q ${startX + 10} ${dropY} ${startX + 10 - r} ${dropY} ` +
+                            `L ${endX - 20 + r} ${dropY} ` +
+                            `Q ${endX - 20} ${dropY} ${endX - 20} ${dropY + r * yDir} ` +
+                            `L ${endX - 20} ${endY - r * yDir} ` +
+                            `Q ${endX - 20} ${endY} ${endX - 20 + r} ${endY} ` +
+                            `L ${endX} ${endY}`;
+
+                    labelX = (startX + 10 + endX - 20) / 2;
+                    labelY = dropY - 5;
+                }
+            }
+
+            svgContent += `
+                <path d="${pathD}"
+                      fill="none"
+                      stroke="${strokeColor}"
+                      stroke-width="3"
+                      stroke-linejoin="round"
+                      marker-end="url(#${markerId})" />
+            `;
+
+            if (arrowText) {
+                const safeText = this.escapeHtml(arrowText);
+                svgContent += `
+                    <text x="${labelX}" y="${labelY}" fill="${strokeColor}" font-size="10" font-family="Arial, sans-serif" text-anchor="middle" background-color="white" style="text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff;">
+                        ${safeText}
+                    </text>
+                `;
+            }
+        };
+
         renderedTasks.forEach(rt => {
+            // Task predecessor arrows
             if (rt.dependencies && rt.dependencies.length > 0) {
                 rt.dependencies.forEach(depId => {
                     const depTask = taskMap.get(depId);
                     if (depTask) {
-                        // Arrow from depTask to rt (dependent task)
-                        const startX = depTask.left + depTask.width;
-                        const startY = depTask.top + (depTask.height / 2);
-                        const endX = rt.left;
-                        const endY = rt.top + (rt.height / 2);
-
-                        const strokeColor = this.getMixedColor(depTask.task.fillColor || '#4da3ff');
-
-                        // We use a simple hash of the color to create a unique marker ID
-                        const markerId = 'arrowhead-' + strokeColor.replace(/[^a-zA-Z0-9]/g, '');
-                        if (!uniqueMarkers.has(markerId)) {
-                            uniqueMarkers.set(markerId, strokeColor);
-                        }
-
-                        let pathD = '';
-                        const r = 5; // corner radius
-
-                        // Right-angled path
-                        if (Math.abs(startY - endY) < 5) {
-                            // Same row, straight line
-                            pathD = `M ${startX} ${startY} L ${endX} ${endY}`;
-                        } else {
-                            // Different rows, need right angles
-                            const midX = startX + 10;
-                            const midX2 = endX - 20;
-
-                            // To make corners rounded, we use arcs
-                            const yDir = endY > startY ? 1 : -1;
-
-                            if (endX > startX + 30) {
-                                // Normal case: dependent task is to the right
-                                pathD = `M ${startX} ${startY} ` +
-                                        `L ${midX2 - r} ${startY} ` +
-                                        `Q ${midX2} ${startY} ${midX2} ${startY + r * yDir} ` +
-                                        `L ${midX2} ${endY - r * yDir} ` +
-                                        `Q ${midX2} ${endY} ${midX2 + r} ${endY} ` +
-                                        `L ${endX} ${endY}`;
-                            } else {
-                                // Dependent task is to the left or directly below/above
-                                const dropY = startY + (depTask.height / 2) + 5 * yDir;
-
-                                pathD = `M ${startX} ${startY} ` +
-                                        `L ${startX + 10 - r} ${startY} ` +
-                                        `Q ${startX + 10} ${startY} ${startX + 10} ${startY + r * yDir} ` +
-                                        `L ${startX + 10} ${dropY - r * yDir} ` +
-                                        `Q ${startX + 10} ${dropY} ${startX + 10 - r} ${dropY} ` +
-                                        `L ${endX - 20 + r} ${dropY} ` +
-                                        `Q ${endX - 20} ${dropY} ${endX - 20} ${dropY + r * yDir} ` +
-                                        `L ${endX - 20} ${endY - r * yDir} ` +
-                                        `Q ${endX - 20} ${endY} ${endX - 20 + r} ${endY} ` +
-                                        `L ${endX} ${endY}`;
-                            }
-                        }
-
-                        svgContent += `
-                            <path d="${pathD}"
-                                  fill="none"
-                                  stroke="${strokeColor}"
-                                  stroke-width="3"
-                                  stroke-linejoin="round"
-                                  marker-end="url(#${markerId})" />
-                        `;
+                        drawArrow(depTask, rt, null, null);
                     }
                 });
             }
         });
+
+        // Tracker Dependency arrows
+        if (window.PlannerState && typeof window.PlannerState.getDependencies === 'function') {
+            const trackerDependencies = window.PlannerState.getDependencies();
+            trackerDependencies.forEach(dep => {
+                if (dep.showOnGantt && dep.status !== 'Removed' && dep.toTask && dep.fromTasks && dep.fromTasks.length > 0) {
+                    const toTaskRt = taskMap.get(dep.toTask);
+                    if (toTaskRt) {
+                        dep.fromTasks.forEach(fromTaskId => {
+                            const fromTaskRt = taskMap.get(fromTaskId);
+                            if (fromTaskRt) {
+                                drawArrow(fromTaskRt, toTaskRt, dep.arrowColor, dep.arrowText);
+                            }
+                        });
+                    }
+                }
+            });
+        }
 
         if (!svgContent) return '';
 
