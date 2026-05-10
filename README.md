@@ -29,6 +29,7 @@ This tool provides a complete project management and capacity tracking solution 
 * **Demand Calculation:** Automatically calculate project demand based on task effort (e.g., design, dev, test) and distribute it across the task duration.
 * **Scenario Modelling:** Create, duplicate, and compare multiple project plans (scenarios) within a single file to see how different timelines affect capacity.
 * **Visual Analytics:** View a dynamic "Capacity vs. Demand" graph that highlights over-capacity periods in red, helping you balance your team's workload.
+* **Graph View:** Visualize complex webs of dependencies across tasks, risks, issues, and decisions with an interactive, force-directed node graph. Configure depth of connection and download visuals as images.
 
 ### Output & Sharing
 * **JSON Import/Export:** Seamlessly save your progress or load existing plans.

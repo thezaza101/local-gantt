@@ -98,6 +98,14 @@ async function initApp() {
     console.log('Initializing TrackerEngine');
     window.TrackerEngine = new Tracker(window.PlannerState);
 
+    // Initialize Graph Engine
+    if (window.GraphEngine) {
+        window.GraphEngine.init();
+    }
+    // Initialize RAIDA
+    console.log('Initializing RaidaEngine');
+    window.RaidaEngine = new Raida(window.PlannerState);
+
     // Initialize Graph Engine is removed, rendering logic moved to Analytics
 
     // Initialize UI

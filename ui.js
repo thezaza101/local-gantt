@@ -19,17 +19,64 @@ class UI {
 
         if (openTrackerBtn && trackerContainer) {
             openTrackerBtn.addEventListener("click", () => {
-                trackerContainer.style.display = "flex";
-                trackerContainer.style.setProperty("display", "flex", "important"); // Ensure display block works around playwright hiding
-                if (window.TrackerEngine) { window.TrackerEngine.render(); }
+                toggleView('tracker');
             });
         }
 
         if (closeTrackerBtn && trackerContainer) {
             closeTrackerBtn.addEventListener("click", () => {
-                trackerContainer.style.display = "none";
-                trackerContainer.classList.remove("d-flex");
-                trackerContainer.style.setProperty("display", "none", "important");
+                closeView('tracker');
+            });
+        }
+
+        const raidaContainer = document.getElementById("raidaContainer");
+        const openRaidaBtn = document.getElementById("openRaidaBtn");
+        const closeRaidaBtn = document.getElementById("closeRaidaBtn");
+
+        const toggleView = (viewName) => {
+            const views = {
+                'tracker': { container: trackerContainer, btn: openTrackerBtn, openLogic: () => { trackerContainer.style.display = "flex"; trackerContainer.style.setProperty("display", "flex", "important"); if (window.TrackerEngine) { window.TrackerEngine.render(); } }, closeLogic: () => { trackerContainer.style.display = "none"; trackerContainer.classList.remove("d-flex"); trackerContainer.style.setProperty("display", "none", "important"); } },
+                'raida': { container: raidaContainer, btn: openRaidaBtn, openLogic: () => { raidaContainer.style.display = "flex"; raidaContainer.style.setProperty("display", "flex", "important"); if (window.RaidaEngine) { window.RaidaEngine.render(); } }, closeLogic: () => { raidaContainer.style.display = "none"; raidaContainer.classList.remove("d-flex"); raidaContainer.style.setProperty("display", "none", "important"); } },
+                'analytics': { container: analyticsContainer, btn: openAnalyticsBtn, openLogic: () => { document.body.classList.add("analytics-fullscreen"); analyticsContainer.style.display = "flex"; if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); } }, closeLogic: () => { document.body.classList.remove("analytics-fullscreen"); analyticsContainer.style.display = "none"; if (window.GanttEngine) { window.GanttEngine.render(this.planner.getCurrentPlan()); } if (window.AnalyticsEngine) { const container = document.getElementById("analyticsContainer"); if (container && !container.classList.contains("d-none")) { if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); } } } } }
+            };
+
+            const isCurrentlyOpen = views[viewName].btn.classList.contains("active");
+
+            // Close all
+            Object.keys(views).forEach(v => {
+                if (views[v].btn && views[v].btn.classList.contains("active")) {
+                    views[v].btn.classList.remove("active");
+                    views[v].closeLogic();
+                }
+            });
+
+            // If it wasn't open, open it
+            if (!isCurrentlyOpen) {
+                if (views[viewName].btn) views[viewName].btn.classList.add("active");
+                views[viewName].openLogic();
+            }
+        };
+
+        const closeView = (viewName) => {
+            const views = {
+                'tracker': { container: trackerContainer, btn: openTrackerBtn, closeLogic: () => { trackerContainer.style.display = "none"; trackerContainer.classList.remove("d-flex"); trackerContainer.style.setProperty("display", "none", "important"); } },
+                'raida': { container: raidaContainer, btn: openRaidaBtn, closeLogic: () => { raidaContainer.style.display = "none"; raidaContainer.classList.remove("d-flex"); raidaContainer.style.setProperty("display", "none", "important"); } },
+                'analytics': { container: analyticsContainer, btn: openAnalyticsBtn, closeLogic: () => { document.body.classList.remove("analytics-fullscreen"); analyticsContainer.style.display = "none"; if (window.GanttEngine) { window.GanttEngine.render(this.planner.getCurrentPlan()); } if (window.AnalyticsEngine) { const container = document.getElementById("analyticsContainer"); if (container && !container.classList.contains("d-none")) { if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); } } } } }
+            };
+            if (views[viewName].btn) views[viewName].btn.classList.remove("active");
+            views[viewName].closeLogic();
+        };
+
+
+        if (openRaidaBtn && raidaContainer) {
+            openRaidaBtn.addEventListener("click", () => {
+                toggleView('raida');
+            });
+        }
+
+        if (closeRaidaBtn && raidaContainer) {
+            closeRaidaBtn.addEventListener("click", () => {
+                closeView('raida');
             });
         }
 
@@ -69,6 +116,22 @@ class UI {
         if (trackerUpdateLastCheckedBtn) {
             trackerUpdateLastCheckedBtn.addEventListener("click", () => {
                 if (window.TrackerEngine) window.TrackerEngine.updateLastChecked();
+            });
+        }
+
+        const trackerViewGraphBtn = document.getElementById("trackerViewGraphBtn");
+        if (trackerViewGraphBtn) {
+            trackerViewGraphBtn.addEventListener("click", () => {
+                const id = document.getElementById('trackerOriginalId').value || document.getElementById('trackerItemId').value;
+                let typeRaw = document.getElementById('trackerItemType').value;
+                if (typeRaw) {
+                    typeRaw = typeRaw.charAt(0).toUpperCase() + typeRaw.slice(1);
+                    if (typeRaw.endsWith('s')) typeRaw = typeRaw.slice(0, -1);
+                    if (typeRaw === 'Dependencie') typeRaw = 'Dependency';
+                }
+                if (id && typeRaw && window.GraphEngine) {
+                    window.GraphEngine.open(id, typeRaw);
+                }
             });
         }
 
@@ -118,17 +181,20 @@ class UI {
             });
         }
 
+        const taskViewGraphBtn = document.getElementById("taskViewGraphBtn");
+        if (taskViewGraphBtn) {
+            taskViewGraphBtn.addEventListener("click", () => {
+                const taskId = document.getElementById('originalTaskId').value || document.getElementById('taskId').value;
+                if (taskId && window.GraphEngine) {
+                    window.GraphEngine.open(taskId, 'Task');
+                }
+            });
+        }
+
         // Analytics Open/Close
         if (openAnalyticsBtn && analyticsContainer) {
             openAnalyticsBtn.addEventListener("click", () => {
-                document.body.classList.add("analytics-fullscreen");
-                analyticsContainer.style.display = "flex";
-
-                if (window.AnalyticsEngine) {
-                    const plan = this.planner.getCurrentPlan();
-                    // test
-                    window.AnalyticsEngine.render(this.planner.getCurrentPlan());
-                }
+                toggleView('analytics');
             });
         }
 
@@ -144,19 +210,7 @@ class UI {
 
         if (closeAnalyticsBtn && analyticsContainer) {
             closeAnalyticsBtn.addEventListener("click", () => {
-                document.body.classList.remove("analytics-fullscreen");
-                analyticsContainer.style.display = "none";
-
-                // Re-render Gantt when closing analytics
-                if (window.GanttEngine) {
-                    window.GanttEngine.render(this.planner.getCurrentPlan());
-                }
-                if (window.AnalyticsEngine) {
-                    const container = document.getElementById("analyticsContainer");
-                    if (container && !container.classList.contains("d-none")) {
-                        if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); }
-                    }
-                }
+                closeView('analytics');
             });
         }
 
@@ -1617,9 +1671,14 @@ class UI {
         const settingsModalEl = document.getElementById('settingsModal');
         const settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
         const baseLinkInput = document.getElementById('settingsBaseLink');
+        const raidaOverdueInput = document.getElementById('settingsRaidaOverdueDays');
+        const raidaStaleInput = document.getElementById('settingsRaidaStaleDays');
 
         const settings = this.planner.getState().settings || {};
         baseLinkInput.value = settings.baseLink || '';
+
+        if (raidaOverdueInput) raidaOverdueInput.value = settings.raidaOverdueDays !== undefined ? settings.raidaOverdueDays : 14;
+        if (raidaStaleInput) raidaStaleInput.value = settings.raidaStaleDays !== undefined ? settings.raidaStaleDays : 7;
 
         const teamsContainer = document.getElementById('teamsContainer');
         teamsContainer.innerHTML = '';
@@ -1748,6 +1807,11 @@ class UI {
     saveSettings() {
         const baseLink = document.getElementById('settingsBaseLink').value.trim();
 
+        const raidaOverdueInput = document.getElementById('settingsRaidaOverdueDays');
+        const raidaStaleInput = document.getElementById('settingsRaidaStaleDays');
+        const raidaOverdueDays = raidaOverdueInput ? parseInt(raidaOverdueInput.value) || 14 : 14;
+        const raidaStaleDays = raidaStaleInput ? parseInt(raidaStaleInput.value) || 7 : 7;
+
         let teams = [];
         const teamRows = document.querySelectorAll('.team-row');
         teamRows.forEach(row => {
@@ -1784,7 +1848,7 @@ class UI {
             }
         });
 
-        this.planner.updateSettings({ baseLink, teams, personnel });
+        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays });
         this.populateTeamSelects();
 
         const settingsModalEl = document.getElementById('settingsModal');
