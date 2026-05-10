@@ -9,6 +9,8 @@ class Planner {
             },
             settings: {
                 baseLink: "https://jira.company.com/browse/",
+                raidaOverdueDays: 14,
+                raidaStaleDays: 7,
                 fillLegends: [
                     {
                         id: 'default_fill',
@@ -556,6 +558,12 @@ class Planner {
         }
         if (newSettings.personnel !== undefined) {
             this.file.settings.personnel = newSettings.personnel;
+        }
+        if (newSettings.raidaOverdueDays !== undefined) {
+            this.file.settings.raidaOverdueDays = newSettings.raidaOverdueDays;
+        }
+        if (newSettings.raidaStaleDays !== undefined) {
+            this.file.settings.raidaStaleDays = newSettings.raidaStaleDays;
         }
         return true;
     }

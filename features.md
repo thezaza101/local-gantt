@@ -34,3 +34,16 @@ To maintain a single source of truth and prevent bi-directional synchronization 
 
 ### Bulk Operations & Dependencies
 The Tracker view includes bulk operation controls for deleting or modifying the status of multiple entities simultaneously. A specialized "Auto-Create Proper Dependencies" tool scans all tasks within the current plan and automatically provisions fully structured Dependency entities from simple task-level dependency links, marking them as removed if the task link is subsequently deleted.
+
+## RAIDA Summary
+The RAIDA view provides a summary dashboard for Risks, Issues, Dependencies, Assumptions, and Decisions (RAIDA) items, as well as tasks, that need attention.
+It highlights:
+- Overdue & upcoming deadlines
+- Items not checked recently (stale)
+- High severity/critical items open
+- Items with no owner
+- Items with no associated tasks
+- Recently auto-created dependencies
+- Decisions blocking progress
+
+It respects the Global/Plan scope filter and is configurable through the Global Settings.
