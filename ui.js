@@ -1680,6 +1680,51 @@ class UI {
         if (raidaOverdueInput) raidaOverdueInput.value = settings.raidaOverdueDays !== undefined ? settings.raidaOverdueDays : 14;
         if (raidaStaleInput) raidaStaleInput.value = settings.raidaStaleDays !== undefined ? settings.raidaStaleDays : 7;
 
+        const trackerSettings = this.planner.getTrackerSettings();
+        const truncateLengthInput = document.getElementById('settingsTrackerTruncateLength');
+        if (truncateLengthInput) truncateLengthInput.value = trackerSettings.truncateLength;
+
+        // Render column config lists
+        ['risks', 'issues', 'dependencies', 'assumptions', 'decisions'].forEach(type => {
+            const list = document.getElementById(`trackerConfigList-${type}`);
+            if (list) {
+                list.innerHTML = '';
+                const cols = trackerSettings.columns[type] || [];
+                cols.forEach((col, idx) => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center tracker-config-col';
+                    li.dataset.id = col.id;
+                    li.innerHTML = `
+                        <div class="form-check m-0">
+                            <input class="form-check-input tc-visible" type="checkbox" id="tc_${type}_${col.id}" ${col.visible ? 'checked' : ''}>
+                            <label class="form-check-label" for="tc_${type}_${col.id}">${this.escapeHtml(col.label)}</label>
+                        </div>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary tc-up" ${idx === 0 ? 'disabled' : ''}>↑</button>
+                            <button type="button" class="btn btn-outline-secondary tc-down" ${idx === cols.length - 1 ? 'disabled' : ''}>↓</button>
+                        </div>
+                    `;
+
+                    const upBtn = li.querySelector('.tc-up');
+                    const downBtn = li.querySelector('.tc-down');
+                    upBtn.addEventListener('click', () => {
+                        if (li.previousElementSibling) {
+                            li.parentNode.insertBefore(li, li.previousElementSibling);
+                            this.updateConfigButtons(list);
+                        }
+                    });
+                    downBtn.addEventListener('click', () => {
+                        if (li.nextElementSibling) {
+                            li.parentNode.insertBefore(li.nextElementSibling, li);
+                            this.updateConfigButtons(list);
+                        }
+                    });
+
+                    list.appendChild(li);
+                });
+            }
+        });
+
         const teamsContainer = document.getElementById('teamsContainer');
         teamsContainer.innerHTML = '';
         const teams = this.planner.getTeams();
@@ -1711,6 +1756,16 @@ class UI {
         }
 
         settingsModal.show();
+    }
+
+    updateConfigButtons(list) {
+        const items = list.querySelectorAll('.tracker-config-col');
+        items.forEach((item, idx) => {
+            const upBtn = item.querySelector('.tc-up');
+            const downBtn = item.querySelector('.tc-down');
+            upBtn.disabled = idx === 0;
+            downBtn.disabled = idx === items.length - 1;
+        });
     }
 
     addTeamRow(team) {
@@ -1812,6 +1867,24 @@ class UI {
         const raidaOverdueDays = raidaOverdueInput ? parseInt(raidaOverdueInput.value) || 14 : 14;
         const raidaStaleDays = raidaStaleInput ? parseInt(raidaStaleInput.value) || 7 : 7;
 
+        const truncateLengthInput = document.getElementById('settingsTrackerTruncateLength');
+        const trackerTruncateLength = truncateLengthInput ? parseInt(truncateLengthInput.value) || 50 : 50;
+
+        const trackerColumns = {};
+        ['risks', 'issues', 'dependencies', 'assumptions', 'decisions'].forEach(type => {
+            const list = document.getElementById(`trackerConfigList-${type}`);
+            if (list) {
+                const cols = [];
+                list.querySelectorAll('.tracker-config-col').forEach(li => {
+                    const id = li.dataset.id;
+                    const label = li.querySelector('.form-check-label').textContent;
+                    const visible = li.querySelector('.tc-visible').checked;
+                    cols.push({ id, label, visible });
+                });
+                trackerColumns[type] = cols;
+            }
+        });
+
         let teams = [];
         const teamRows = document.querySelectorAll('.team-row');
         teamRows.forEach(row => {
@@ -1848,8 +1921,10 @@ class UI {
             }
         });
 
-        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays });
+        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays, trackerTruncateLength, trackerColumns });
         this.populateTeamSelects();
+
+        if (window.TrackerEngine) window.TrackerEngine.render();
 
         const settingsModalEl = document.getElementById('settingsModal');
         const settingsModal = bootstrap.Modal.getInstance(settingsModalEl);

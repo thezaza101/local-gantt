@@ -258,7 +258,7 @@
                          </div>
                          <div class="table-responsive">
                             <table class="table table-sm table-hover" id="risksTable">
-                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Probability</th><th>Severity</th><th>Status</th><th>Owner</th></tr></thead>
+                                <thead></thead>
                                 <tbody></tbody>
                             </table>
                          </div>
@@ -270,7 +270,7 @@
                          </div>
                          <div class="table-responsive">
                             <table class="table table-sm table-hover" id="issuesTable">
-                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Owner</th></tr></thead>
+                                <thead></thead>
                                 <tbody></tbody>
                             </table>
                          </div>
@@ -285,7 +285,7 @@
                          </div>
                          <div class="table-responsive">
                             <table class="table table-sm table-hover" id="dependenciesTable">
-                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Status</th><th>From Task(s)</th><th>To Task</th></tr></thead>
+                                <thead></thead>
                                 <tbody></tbody>
                             </table>
                          </div>
@@ -297,7 +297,7 @@
                          </div>
                          <div class="table-responsive">
                             <table class="table table-sm table-hover" id="assumptionsTable">
-                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Status</th><th>Impact</th><th>Expiry Date</th></tr></thead>
+                                <thead></thead>
                                 <tbody></tbody>
                             </table>
                          </div>
@@ -309,7 +309,7 @@
                          </div>
                          <div class="table-responsive">
                             <table class="table table-sm table-hover" id="decisionsTable">
-                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Status</th><th>Owner</th><th>Deadline</th></tr></thead>
+                                <thead></thead>
                                 <tbody></tbody>
                             </table>
                          </div>
@@ -960,6 +960,9 @@
                             <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#settings-general" type="button" role="tab" aria-controls="settings-general" aria-selected="true">General</button>
                         </li>
                         <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tracker-settings-tab" data-bs-toggle="tab" data-bs-target="#settings-tracker" type="button" role="tab" aria-controls="settings-tracker" aria-selected="false">Tracker</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
                             <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#settings-teams" type="button" role="tab" aria-controls="settings-teams" aria-selected="false">Teams</button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -984,6 +987,27 @@
                                     </div>
                                 </div>
                             </form>
+                        </div>
+                        <div class="tab-pane fade" id="settings-tracker" role="tabpanel" aria-labelledby="tracker-settings-tab">
+                            <div class="mb-3">
+                                <label for="settingsTrackerTruncateLength" class="form-label">Text Truncation Length (characters)</label>
+                                <input type="number" class="form-control" id="settingsTrackerTruncateLength" value="50" min="10">
+                            </div>
+                            <h6 class="border-bottom pb-2 mt-4">Columns Configuration</h6>
+                            <ul class="nav nav-pills mb-3" id="trackerConfigTabs" role="tablist">
+                                <li class="nav-item" role="presentation"><button class="nav-link active px-3 py-1" data-bs-toggle="pill" data-bs-target="#tc-risks" type="button" role="tab">Risks</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link px-3 py-1" data-bs-toggle="pill" data-bs-target="#tc-issues" type="button" role="tab">Issues</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link px-3 py-1" data-bs-toggle="pill" data-bs-target="#tc-dependencies" type="button" role="tab">Dependencies</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link px-3 py-1" data-bs-toggle="pill" data-bs-target="#tc-assumptions" type="button" role="tab">Assumptions</button></li>
+                                <li class="nav-item" role="presentation"><button class="nav-link px-3 py-1" data-bs-toggle="pill" data-bs-target="#tc-decisions" type="button" role="tab">Decisions</button></li>
+                            </ul>
+                            <div class="tab-content" id="trackerConfigTabsContent">
+                                <div class="tab-pane fade show active" id="tc-risks" role="tabpanel"><ul class="list-group tracker-config-list" id="trackerConfigList-risks"></ul></div>
+                                <div class="tab-pane fade" id="tc-issues" role="tabpanel"><ul class="list-group tracker-config-list" id="trackerConfigList-issues"></ul></div>
+                                <div class="tab-pane fade" id="tc-dependencies" role="tabpanel"><ul class="list-group tracker-config-list" id="trackerConfigList-dependencies"></ul></div>
+                                <div class="tab-pane fade" id="tc-assumptions" role="tabpanel"><ul class="list-group tracker-config-list" id="trackerConfigList-assumptions"></ul></div>
+                                <div class="tab-pane fade" id="tc-decisions" role="tabpanel"><ul class="list-group tracker-config-list" id="trackerConfigList-decisions"></ul></div>
+                            </div>
                         </div>
                         <div class="tab-pane fade" id="settings-teams" role="tabpanel" aria-labelledby="teams-tab">
                             <div class="d-flex justify-content-between align-items-center mb-2">

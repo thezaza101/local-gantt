@@ -2,6 +2,8 @@ class Tracker {
     constructor(planner) {
         this.planner = planner;
         this.selectedItems = new Set();
+        this.sortState = {};
+        this.filterState = {};
         this.bindEvents();
     }
 
@@ -120,78 +122,103 @@ class Tracker {
     }
 
     renderTable(type, items, tableId) {
-        const tableBody = document.querySelector(`#${tableId} tbody`);
-        if (!tableBody) return;
-        tableBody.innerHTML = '';
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const thead = table.querySelector('thead');
+        const tbody = table.querySelector('tbody');
+        if (!thead || !tbody) return;
 
-        if (items.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="10" class="text-center text-muted">No ${type} found.</td></tr>`;
-            return;
-        }
+        const settings = this.planner.getTrackerSettings();
+        const truncateLength = settings.truncateLength || 50;
+        const columns = (settings.columns[type] || []).filter(c => c.visible);
 
-        items.forEach(item => {
-            const tr = document.createElement('tr');
+        // Build header
+        thead.innerHTML = '';
+        const trHead = document.createElement('tr');
+        trHead.innerHTML = '<th style="width: 30px;"></th>';
 
-            const isChecked = this.selectedItems.has(item.id) ? 'checked' : '';
-            let cellsHTML = `
-                <td><input class="form-check-input tracker-item-checkbox" type="checkbox" value="${this.escapeHtml(item.id)}" data-type="${type}" ${isChecked}></td>
-                <td>${this.escapeHtml(item.id)}</td>
-                <td>
-                    ${this.escapeHtml(item.title)}
-                    ${item.planId ? `<span class="badge bg-secondary ms-1">Plan Scope</span>` : `<span class="badge bg-info ms-1">Global Scope</span>`}
-                </td>
-            `;
+        if (!this.sortState[type]) this.sortState[type] = { column: 'id', direction: 'asc' };
+        if (!this.filterState[type]) this.filterState[type] = {};
 
-            if (type === 'risks') {
-                cellsHTML += `
-                    <td>${this.escapeHtml(item.probability || '')}</td>
-                    <td>${this.escapeHtml(item.severity || '')}</td>
-                    <td>${this.escapeHtml(item.status || '')}</td>
-                    <td>${this.escapeHtml(item.owner || '')}</td>
-                `;
-            } else if (type === 'issues') {
-                cellsHTML += `
-                    <td>${this.escapeHtml(item.severity || '')}</td>
-                    <td>${this.escapeHtml(item.status || '')}</td>
-                    <td>${this.escapeHtml(item.escalationOwner || '')}</td>
-                `;
-            } else if (type === 'dependencies') {
-                const fromTasksStr = (item.fromTasks || []).join(', ');
-                cellsHTML += `
-                    <td>${this.escapeHtml(item.status || '')}</td>
-                    <td>${this.escapeHtml(fromTasksStr)}</td>
-                    <td>${this.escapeHtml(item.toTask || '')}</td>
-                `;
-            } else if (type === 'assumptions') {
-                cellsHTML += `
-                    <td>${this.escapeHtml(item.status || '')}</td>
-                    <td>${this.escapeHtml(item.impact || '')}</td>
-                    <td>${this.escapeHtml(item.expiryDate || '')}</td>
-                `;
-            } else if (type === 'decisions') {
-                cellsHTML += `
-                    <td>${this.escapeHtml(item.status || '')}</td>
-                    <td>${this.escapeHtml(item.owner || '')}</td>
-                    <td>${this.escapeHtml(item.deadline || '')}</td>
-                `;
+        columns.forEach(col => {
+            const th = document.createElement('th');
+            let sortIndicator = '';
+            if (this.sortState[type].column === col.id) {
+                sortIndicator = this.sortState[type].direction === 'asc' ? ' ↑' : ' ↓';
             }
+            th.innerHTML = `
+                <div class="d-flex flex-column">
+                    <span class="cursor-pointer tracker-sort-header" data-type="${type}" data-col="${this.escapeHtml(col.id)}">${this.escapeHtml(col.label)}${sortIndicator}</span>
+                    <input type="text" class="form-control form-control-sm mt-1 tracker-filter-input" data-type="${type}" data-col="${this.escapeHtml(col.id)}" placeholder="Filter..." value="${this.escapeHtml(this.filterState[type][col.id] || '')}">
+                </div>
+            `;
+            trHead.appendChild(th);
+        });
+        thead.appendChild(trHead);
 
-            tr.innerHTML = cellsHTML;
-            tr.classList.add('cursor-pointer');
-            tr.style.cursor = 'pointer';
-
-            // Allow clicking row to edit, except when clicking the checkbox
-            tr.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('tracker-item-checkbox')) {
-                    this.openEditModal(type, item.id);
-                }
+        // Apply filtering
+        let filteredItems = items.filter(item => {
+            return columns.every(col => {
+                const filterVal = (this.filterState[type][col.id] || '').toLowerCase();
+                if (!filterVal) return true;
+                const cellVal = this.getCellValue(item, col.id, type).toLowerCase();
+                return cellVal.includes(filterVal);
             });
-
-            tableBody.appendChild(tr);
         });
 
+        // Apply sorting
+        filteredItems.sort((a, b) => {
+            const col = this.sortState[type].column;
+            const dir = this.sortState[type].direction === 'asc' ? 1 : -1;
+            const valA = this.getCellValue(a, col, type);
+            const valB = this.getCellValue(b, col, type);
+            return valA.localeCompare(valB, undefined, {numeric: true}) * dir;
+        });
+
+        // Build body
+        tbody.innerHTML = '';
+
+        if (filteredItems.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="${columns.length + 1}" class="text-center text-muted">No ${type} found matching filters.</td></tr>`;
+        } else {
+            filteredItems.forEach(item => {
+                const tr = document.createElement('tr');
+                const isChecked = this.selectedItems.has(item.id) ? 'checked' : '';
+                let cellsHTML = `<td><input class="form-check-input tracker-item-checkbox" type="checkbox" value="${this.escapeHtml(item.id)}" data-type="${type}" ${isChecked}></td>`;
+
+                columns.forEach(col => {
+                    let rawVal = this.getCellValue(item, col.id, type);
+
+                    // Truncate text heavy columns
+                    if (['description', 'triggerIndicators', 'workaround', 'businessImpact', 'options', 'recommendation', 'outcome', 'impact'].includes(col.id)) {
+                        if (rawVal.length > truncateLength) {
+                            rawVal = rawVal.substring(0, truncateLength) + '...';
+                        }
+                    }
+
+                    if (col.id === 'scope') {
+                        cellsHTML += `<td>${item.planId ? '<span class="badge bg-secondary">Plan Scope</span>' : '<span class="badge bg-info">Global Scope</span>'}</td>`;
+                    } else {
+                        cellsHTML += `<td>${this.escapeHtml(rawVal)}</td>`;
+                    }
+                });
+
+                tr.innerHTML = cellsHTML;
+                tr.classList.add('cursor-pointer');
+                tr.style.cursor = 'pointer';
+
+                tr.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('tracker-item-checkbox')) {
+                        this.openEditModal(type, item.id);
+                    }
+                });
+
+                tbody.appendChild(tr);
+            });
+        }
+
         // Add event listeners for checkboxes
-        tableBody.querySelectorAll('.tracker-item-checkbox').forEach(cb => {
+        tbody.querySelectorAll('.tracker-item-checkbox').forEach(cb => {
             cb.addEventListener('change', (e) => {
                 if (e.target.checked) this.selectedItems.add(e.target.value);
                 else this.selectedItems.delete(e.target.value);
@@ -205,6 +232,69 @@ class Tracker {
                 }
             });
         });
+
+        // Add event listeners for sorting and filtering
+        thead.querySelectorAll('.tracker-sort-header').forEach(sh => {
+            sh.addEventListener('click', (e) => {
+                const t = e.target.getAttribute('data-type');
+                const col = e.target.getAttribute('data-col');
+                if (this.sortState[t].column === col) {
+                    this.sortState[t].direction = this.sortState[t].direction === 'asc' ? 'desc' : 'asc';
+                } else {
+                    this.sortState[t] = { column: col, direction: 'asc' };
+                }
+                this.render();
+            });
+        });
+
+        thead.querySelectorAll('.tracker-filter-input').forEach(fi => {
+            fi.addEventListener('input', (e) => {
+                const t = e.target.getAttribute('data-type');
+                const col = e.target.getAttribute('data-col');
+                this.filterState[t][col] = e.target.value;
+                this.render();
+
+                // Refocus the input after render
+                setTimeout(() => {
+                    const input = document.querySelector(`input.tracker-filter-input[data-type="${t}"][data-col="${col}"]`);
+                    if (input) {
+                        input.focus();
+                        // Move cursor to end
+                        const val = input.value;
+                        input.value = '';
+                        input.value = val;
+                    }
+                }, 0);
+            });
+        });
+    }
+
+    getCellValue(item, colId, type) {
+        if (colId === 'scope') return item.planId ? 'Plan' : 'Global';
+        if (colId === 'owningTeamFromTask') {
+            const owningTeamObj = (this.planner.getTeams ? this.planner.getTeams() : []).find(t => t.id === item.owningTeam);
+            const owningTeamStr = owningTeamObj ? owningTeamObj.name : (item.owningTeam || '');
+            let fromTaskStr = '';
+            if (item.fromTasks && item.fromTasks.length > 0) fromTaskStr = item.fromTasks[0] + (item.fromTasks.length > 1 ? '*' : '');
+
+            if (owningTeamStr && fromTaskStr) return owningTeamStr + ' / ' + fromTaskStr;
+            if (owningTeamStr) return owningTeamStr;
+            if (fromTaskStr) return fromTaskStr;
+            return '';
+        }
+        if (colId === 'affectedTeamsToTask') {
+            const affectedTeamsStr = item.affectedTeams || '';
+            const toTaskStr = item.toTask || '';
+            if (affectedTeamsStr && toTaskStr) return affectedTeamsStr + ' / ' + toTaskStr;
+            if (affectedTeamsStr) return affectedTeamsStr;
+            if (toTaskStr) return toTaskStr;
+            return '';
+        }
+        if (colId === 'dueDate' && type === 'risks') return item.dueDate || '';
+        if (colId === 'requiredDate' && type === 'dependencies') return item.requiredDate || '';
+        if (colId === 'targetDate' && type === 'issues') return item.targetDate || '';
+
+        return item[colId] || '';
     }
 
     openEditModal(type, id = null) {
