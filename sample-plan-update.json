@@ -393,39 +393,37 @@
             ]
         }
     ],
-    "tracker": {
-        "risks": [
-            {
-                "id": "R00001",
-                "title": "API Rate Limits",
-                "description": "Third-party APIs might throttle our requests during load testing. - UPDATE: Mitigation plan approved.",
-                "tags": [
-                    "backend",
-                    "api"
-                ],
-                "associatedTasks": [
-                    "TASK-106",
-                    "TASK-110"
-                ],
-                "associatedTeams": [
-                    "T00002"
-                ],
-                "associatedPersonnel": [],
-                "lastUpdated": "2024-05-15 10:00:00",
-                "lastChecked": "2024-05-15 10:00:00",
-                "probability": "Low",
-                "severity": "High",
-                "mitigationPlan": "Implement exponential backoff and caching layers. (Approved by architecture team)",
-                "owner": "Jane Smith",
-                "triggerIndicators": "429 Too Many Requests responses",
-                "status": "Mitigated",
-                "dueDate": "2026-02-15",
-                "planId": "global"
-            }
-        ],
-        "issues": [],
-        "dependencies": [],
-        "assumptions": [],
-        "decisions": []
-    }
+    "risks": [
+        {
+            "id": "R00001",
+            "title": "API Rate Limits",
+            "description": "Third-party APIs might throttle our requests during load testing. - UPDATE: Mitigation plan approved.",
+            "tags": [
+                "backend",
+                "api"
+            ],
+            "associatedTasks": [
+                "TASK-106",
+                "TASK-110"
+            ],
+            "associatedTeams": [
+                "T00002"
+            ],
+            "associatedPersonnel": [],
+            "lastUpdated": "2024-05-15 10:00:00",
+            "lastChecked": "2024-05-15 10:00:00",
+            "probability": "Low",
+            "severity": "High",
+            "mitigationPlan": "Implement exponential backoff and caching layers. (Approved by architecture team)",
+            "owner": "Jane Smith",
+            "triggerIndicators": "429 Too Many Requests responses",
+            "status": "Mitigated",
+            "dueDate": "2026-02-15",
+            "planId": "global"
+        }
+    ],
+    "issues": [],
+    "dependencies": [],
+    "assumptions": [],
+    "decisions": []
 }

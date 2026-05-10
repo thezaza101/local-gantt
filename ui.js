@@ -200,6 +200,7 @@ class UI {
                                 // Here we would normally trigger a re-render of the Gantt chart
                                 // and other components in a later phase.
                                 this.updateUI();
+                                if (window.TrackerEngine) window.TrackerEngine.render();
                             }
                         }
                     });
