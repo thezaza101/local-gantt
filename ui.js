@@ -19,17 +19,13 @@ class UI {
 
         if (openTrackerBtn && trackerContainer) {
             openTrackerBtn.addEventListener("click", () => {
-                trackerContainer.style.display = "flex";
-                trackerContainer.style.setProperty("display", "flex", "important"); // Ensure display block works around playwright hiding
-                if (window.TrackerEngine) { window.TrackerEngine.render(); }
+                toggleView('tracker');
             });
         }
 
         if (closeTrackerBtn && trackerContainer) {
             closeTrackerBtn.addEventListener("click", () => {
-                trackerContainer.style.display = "none";
-                trackerContainer.classList.remove("d-flex");
-                trackerContainer.style.setProperty("display", "none", "important");
+                closeView('tracker');
             });
         }
 
@@ -37,19 +33,50 @@ class UI {
         const openRaidaBtn = document.getElementById("openRaidaBtn");
         const closeRaidaBtn = document.getElementById("closeRaidaBtn");
 
+        const toggleView = (viewName) => {
+            const views = {
+                'tracker': { container: trackerContainer, btn: openTrackerBtn, openLogic: () => { trackerContainer.style.display = "flex"; trackerContainer.style.setProperty("display", "flex", "important"); if (window.TrackerEngine) { window.TrackerEngine.render(); } }, closeLogic: () => { trackerContainer.style.display = "none"; trackerContainer.classList.remove("d-flex"); trackerContainer.style.setProperty("display", "none", "important"); } },
+                'raida': { container: raidaContainer, btn: openRaidaBtn, openLogic: () => { raidaContainer.style.display = "flex"; raidaContainer.style.setProperty("display", "flex", "important"); if (window.RaidaEngine) { window.RaidaEngine.render(); } }, closeLogic: () => { raidaContainer.style.display = "none"; raidaContainer.classList.remove("d-flex"); raidaContainer.style.setProperty("display", "none", "important"); } },
+                'analytics': { container: analyticsContainer, btn: openAnalyticsBtn, openLogic: () => { document.body.classList.add("analytics-fullscreen"); analyticsContainer.style.display = "flex"; if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); } }, closeLogic: () => { document.body.classList.remove("analytics-fullscreen"); analyticsContainer.style.display = "none"; if (window.GanttEngine) { window.GanttEngine.render(this.planner.getCurrentPlan()); } if (window.AnalyticsEngine) { const container = document.getElementById("analyticsContainer"); if (container && !container.classList.contains("d-none")) { if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); } } } } }
+            };
+
+            const isCurrentlyOpen = views[viewName].btn.classList.contains("active");
+
+            // Close all
+            Object.keys(views).forEach(v => {
+                if (views[v].btn && views[v].btn.classList.contains("active")) {
+                    views[v].btn.classList.remove("active");
+                    views[v].closeLogic();
+                }
+            });
+
+            // If it wasn't open, open it
+            if (!isCurrentlyOpen) {
+                if (views[viewName].btn) views[viewName].btn.classList.add("active");
+                views[viewName].openLogic();
+            }
+        };
+
+        const closeView = (viewName) => {
+            const views = {
+                'tracker': { container: trackerContainer, btn: openTrackerBtn, closeLogic: () => { trackerContainer.style.display = "none"; trackerContainer.classList.remove("d-flex"); trackerContainer.style.setProperty("display", "none", "important"); } },
+                'raida': { container: raidaContainer, btn: openRaidaBtn, closeLogic: () => { raidaContainer.style.display = "none"; raidaContainer.classList.remove("d-flex"); raidaContainer.style.setProperty("display", "none", "important"); } },
+                'analytics': { container: analyticsContainer, btn: openAnalyticsBtn, closeLogic: () => { document.body.classList.remove("analytics-fullscreen"); analyticsContainer.style.display = "none"; if (window.GanttEngine) { window.GanttEngine.render(this.planner.getCurrentPlan()); } if (window.AnalyticsEngine) { const container = document.getElementById("analyticsContainer"); if (container && !container.classList.contains("d-none")) { if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); } } } } }
+            };
+            if (views[viewName].btn) views[viewName].btn.classList.remove("active");
+            views[viewName].closeLogic();
+        };
+
+
         if (openRaidaBtn && raidaContainer) {
             openRaidaBtn.addEventListener("click", () => {
-                raidaContainer.style.display = "flex";
-                raidaContainer.style.setProperty("display", "flex", "important");
-                if (window.RaidaEngine) { window.RaidaEngine.render(); }
+                toggleView('raida');
             });
         }
 
         if (closeRaidaBtn && raidaContainer) {
             closeRaidaBtn.addEventListener("click", () => {
-                raidaContainer.style.display = "none";
-                raidaContainer.classList.remove("d-flex");
-                raidaContainer.style.setProperty("display", "none", "important");
+                closeView('raida');
             });
         }
 
@@ -167,14 +194,7 @@ class UI {
         // Analytics Open/Close
         if (openAnalyticsBtn && analyticsContainer) {
             openAnalyticsBtn.addEventListener("click", () => {
-                document.body.classList.add("analytics-fullscreen");
-                analyticsContainer.style.display = "flex";
-
-                if (window.AnalyticsEngine) {
-                    const plan = this.planner.getCurrentPlan();
-                    // test
-                    window.AnalyticsEngine.render(this.planner.getCurrentPlan());
-                }
+                toggleView('analytics');
             });
         }
 
@@ -190,19 +210,7 @@ class UI {
 
         if (closeAnalyticsBtn && analyticsContainer) {
             closeAnalyticsBtn.addEventListener("click", () => {
-                document.body.classList.remove("analytics-fullscreen");
-                analyticsContainer.style.display = "none";
-
-                // Re-render Gantt when closing analytics
-                if (window.GanttEngine) {
-                    window.GanttEngine.render(this.planner.getCurrentPlan());
-                }
-                if (window.AnalyticsEngine) {
-                    const container = document.getElementById("analyticsContainer");
-                    if (container && !container.classList.contains("d-none")) {
-                        if (window.AnalyticsEngine) { window.AnalyticsEngine.render(this.planner.getCurrentPlan()); }
-                    }
-                }
+                closeView('analytics');
             });
         }
 
