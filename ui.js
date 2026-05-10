@@ -33,6 +33,26 @@ class UI {
             });
         }
 
+        const raidaContainer = document.getElementById("raidaContainer");
+        const openRaidaBtn = document.getElementById("openRaidaBtn");
+        const closeRaidaBtn = document.getElementById("closeRaidaBtn");
+
+        if (openRaidaBtn && raidaContainer) {
+            openRaidaBtn.addEventListener("click", () => {
+                raidaContainer.style.display = "flex";
+                raidaContainer.style.setProperty("display", "flex", "important");
+                if (window.RaidaEngine) { window.RaidaEngine.render(); }
+            });
+        }
+
+        if (closeRaidaBtn && raidaContainer) {
+            closeRaidaBtn.addEventListener("click", () => {
+                raidaContainer.style.display = "none";
+                raidaContainer.classList.remove("d-flex");
+                raidaContainer.style.setProperty("display", "none", "important");
+            });
+        }
+
         // Tracker modal events
         const addButtons = [
             { id: 'addRiskBtn', type: 'risks' },
@@ -1643,9 +1663,14 @@ class UI {
         const settingsModalEl = document.getElementById('settingsModal');
         const settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
         const baseLinkInput = document.getElementById('settingsBaseLink');
+        const raidaOverdueInput = document.getElementById('settingsRaidaOverdueDays');
+        const raidaStaleInput = document.getElementById('settingsRaidaStaleDays');
 
         const settings = this.planner.getState().settings || {};
         baseLinkInput.value = settings.baseLink || '';
+
+        if (raidaOverdueInput) raidaOverdueInput.value = settings.raidaOverdueDays !== undefined ? settings.raidaOverdueDays : 14;
+        if (raidaStaleInput) raidaStaleInput.value = settings.raidaStaleDays !== undefined ? settings.raidaStaleDays : 7;
 
         const teamsContainer = document.getElementById('teamsContainer');
         teamsContainer.innerHTML = '';
@@ -1774,6 +1799,11 @@ class UI {
     saveSettings() {
         const baseLink = document.getElementById('settingsBaseLink').value.trim();
 
+        const raidaOverdueInput = document.getElementById('settingsRaidaOverdueDays');
+        const raidaStaleInput = document.getElementById('settingsRaidaStaleDays');
+        const raidaOverdueDays = raidaOverdueInput ? parseInt(raidaOverdueInput.value) || 14 : 14;
+        const raidaStaleDays = raidaStaleInput ? parseInt(raidaStaleInput.value) || 7 : 7;
+
         let teams = [];
         const teamRows = document.querySelectorAll('.team-row');
         teamRows.forEach(row => {
@@ -1810,7 +1840,7 @@ class UI {
             }
         });
 
-        this.planner.updateSettings({ baseLink, teams, personnel });
+        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays });
         this.populateTeamSelects();
 
         const settingsModalEl = document.getElementById('settingsModal');

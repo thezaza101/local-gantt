@@ -49,3 +49,15 @@ The application uses a custom, lightweight, force-directed graph physics engine 
 - Nodes are color-coded based on their entity type (e.g., Task, Risk, Issue).
 - Users can click and drag the canvas to pan, scroll to zoom, or drag individual nodes to arrange them manually.
 - A "Download Image" button allows users to export the current graph visualization as a high-resolution PNG image.
+## RAIDA Summary
+The RAIDA view provides a summary dashboard for Risks, Issues, Dependencies, Assumptions, and Decisions (RAIDA) items, as well as tasks, that need attention.
+It highlights:
+- Overdue & upcoming deadlines
+- Items not checked recently (stale)
+- High severity/critical items open
+- Items with no owner
+- Items with no associated tasks
+- Recently auto-created dependencies
+- Decisions blocking progress
+
+It respects the Global/Plan scope filter and is configurable through the Global Settings.
