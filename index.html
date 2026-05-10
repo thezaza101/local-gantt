@@ -402,114 +402,122 @@
                             </div>
                         </div>
                         <div class="row mb-3">
-                            <div class="col-md-3">
-                                <label for="taskTeam" class="form-label">Team</label>
-                                <select class="form-select" id="taskTeam">
-                                    <option value="">Unassigned</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Personnel</label>
-                                <div class="dropdown">
-                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate" type="button" id="taskPersonnelBtn" data-bs-toggle="dropdown" aria-expanded="false">
-                                        Select Personnel
-                                    </button>
-                                    <ul class="dropdown-menu w-100 p-0 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="taskPersonnelDropdown" onclick="event.stopPropagation()">
-                                        <!-- Populated dynamically -->
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label for="taskFillLegend" class="form-label">Fill Legend</label>
                                 <select class="form-select" id="taskFillLegend">
                                     <!-- Populated dynamically -->
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-6">
                                 <label for="taskBorderLegend" class="form-label">Border Legend</label>
                                 <select class="form-select" id="taskBorderLegend">
                                     <!-- Populated dynamically -->
                                 </select>
                             </div>
                         </div>
-                        <h6 class="border-bottom pb-2">Effort</h6>
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="taskEffortDesign" class="form-label">Design</label>
-                                <input type="number" class="form-control" id="taskEffortDesign" min="0" value="0">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="taskEffortDev" class="form-label">Dev</label>
-                                <input type="number" class="form-control" id="taskEffortDev" min="0" value="0">
-                            </div>
-                            <div class="col-md-4">
-                                <label for="taskEffortTest" class="form-label">Test</label>
-                                <input type="number" class="form-control" id="taskEffortTest" min="0" value="0">
-                            </div>
-                        </div>
 
-                        <h6 class="border-bottom pb-2 mt-4">Tracker Associations</h6>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <ul class="nav nav-pills nav-sm mb-2" id="taskTrackerTabs" role="tablist">
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link px-2 py-1" id="task-taskdeps-tab" data-bs-toggle="tab" data-bs-target="#task-taskdeps-pane" type="button" role="tab">Task Predecessors</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link active px-2 py-1" id="task-risks-tab" data-bs-toggle="tab" data-bs-target="#task-risks-pane" type="button" role="tab">Risks</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link px-2 py-1" id="task-issues-tab" data-bs-toggle="tab" data-bs-target="#task-issues-pane" type="button" role="tab">Issues</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link px-2 py-1" id="task-deps-tab" data-bs-toggle="tab" data-bs-target="#task-deps-pane" type="button" role="tab">Dependencies</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link px-2 py-1" id="task-assumps-tab" data-bs-toggle="tab" data-bs-target="#task-assumps-pane" type="button" role="tab">Assumptions</button>
-                                    </li>
-                                    <li class="nav-item" role="presentation">
-                                        <button class="nav-link px-2 py-1" id="task-decs-tab" data-bs-toggle="tab" data-bs-target="#task-decs-pane" type="button" role="tab">Decisions</button>
-                                    </li>
-                                </ul>
-                                <div class="tab-content border rounded p-2" id="taskTrackerTabsContent" style="min-height: 100px; max-height: 200px; overflow-y: auto;">
-                                    <div class="tab-pane fade" id="task-taskdeps-pane" role="tabpanel">
-                                        <label for="taskDependencies" class="form-label small text-muted">Dependencies (comma-separated Task IDs)</label>
-                                        <input type="text" class="form-control form-control-sm" id="taskDependencies" placeholder="e.g. TASK-101, TASK-102">
+                        <details class="mb-3">
+                            <summary class="fw-bold mb-2 cursor-pointer" style="cursor: pointer;">Advanced Options</summary>
+                            <div class="border rounded p-3 bg-light" data-bs-theme="light">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="taskTeam" class="form-label">Team</label>
+                                        <select class="form-select" id="taskTeam">
+                                            <option value="">Unassigned</option>
+                                        </select>
                                     </div>
-                                    <div class="tab-pane fade show active" id="task-risks-pane" role="tabpanel">
-                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search risks..." data-target="taskRisksList">
-                                        <div id="taskRisksList" class="tracker-checkbox-list"></div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Personnel</label>
+                                        <div class="dropdown">
+                                            <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start text-truncate bg-white" type="button" id="taskPersonnelBtn" data-bs-toggle="dropdown" aria-expanded="false">
+                                                Select Personnel
+                                            </button>
+                                            <ul class="dropdown-menu w-100 p-0 shadow-sm" style="max-height: 250px; overflow-y: auto;" id="taskPersonnelDropdown" onclick="event.stopPropagation()">
+                                                <!-- Populated dynamically -->
+                                            </ul>
+                                        </div>
                                     </div>
-                                    <div class="tab-pane fade" id="task-issues-pane" role="tabpanel">
-                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search issues..." data-target="taskIssuesList">
-                                        <div id="taskIssuesList" class="tracker-checkbox-list"></div>
+                                </div>
+                                <h6 class="border-bottom pb-2">Effort</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-4">
+                                        <label for="taskEffortDesign" class="form-label">Design</label>
+                                        <input type="number" class="form-control" id="taskEffortDesign" min="0" value="0">
                                     </div>
-                                    <div class="tab-pane fade" id="task-deps-pane" role="tabpanel">
-                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search dependencies..." data-target="taskDepsList">
-                                        <div id="taskDepsList" class="tracker-checkbox-list"></div>
+                                    <div class="col-md-4">
+                                        <label for="taskEffortDev" class="form-label">Dev</label>
+                                        <input type="number" class="form-control" id="taskEffortDev" min="0" value="0">
                                     </div>
-                                    <div class="tab-pane fade" id="task-assumps-pane" role="tabpanel">
-                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search assumptions..." data-target="taskAssumpsList">
-                                        <div id="taskAssumpsList" class="tracker-checkbox-list"></div>
+                                    <div class="col-md-4">
+                                        <label for="taskEffortTest" class="form-label">Test</label>
+                                        <input type="number" class="form-control" id="taskEffortTest" min="0" value="0">
                                     </div>
-                                    <div class="tab-pane fade" id="task-decs-pane" role="tabpanel">
-                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search decisions..." data-target="taskDecsList">
-                                        <div id="taskDecsList" class="tracker-checkbox-list"></div>
+                                </div>
+
+                                <h6 class="border-bottom pb-2 mt-4">Tracker Associations</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <ul class="nav nav-pills nav-sm mb-2" id="taskTrackerTabs" role="tablist">
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link px-2 py-1" id="task-taskdeps-tab" data-bs-toggle="tab" data-bs-target="#task-taskdeps-pane" type="button" role="tab">Task Predecessors</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link active px-2 py-1" id="task-risks-tab" data-bs-toggle="tab" data-bs-target="#task-risks-pane" type="button" role="tab">Risks</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link px-2 py-1" id="task-issues-tab" data-bs-toggle="tab" data-bs-target="#task-issues-pane" type="button" role="tab">Issues</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link px-2 py-1" id="task-deps-tab" data-bs-toggle="tab" data-bs-target="#task-deps-pane" type="button" role="tab">Dependencies</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link px-2 py-1" id="task-assumps-tab" data-bs-toggle="tab" data-bs-target="#task-assumps-pane" type="button" role="tab">Assumptions</button>
+                                            </li>
+                                            <li class="nav-item" role="presentation">
+                                                <button class="nav-link px-2 py-1" id="task-decs-tab" data-bs-toggle="tab" data-bs-target="#task-decs-pane" type="button" role="tab">Decisions</button>
+                                            </li>
+                                        </ul>
+                                        <div class="tab-content border rounded p-2 bg-white" id="taskTrackerTabsContent" style="min-height: 100px; max-height: 200px; overflow-y: auto;">
+                                            <div class="tab-pane fade" id="task-taskdeps-pane" role="tabpanel">
+                                                <label for="taskDependencies" class="form-label small text-muted">Dependencies (comma-separated Task IDs)</label>
+                                                <input type="text" class="form-control form-control-sm" id="taskDependencies" placeholder="e.g. TASK-101, TASK-102">
+                                            </div>
+                                            <div class="tab-pane fade show active" id="task-risks-pane" role="tabpanel">
+                                                <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search risks..." data-target="taskRisksList">
+                                                <div id="taskRisksList" class="tracker-checkbox-list"></div>
+                                            </div>
+                                            <div class="tab-pane fade" id="task-issues-pane" role="tabpanel">
+                                                <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search issues..." data-target="taskIssuesList">
+                                                <div id="taskIssuesList" class="tracker-checkbox-list"></div>
+                                            </div>
+                                            <div class="tab-pane fade" id="task-deps-pane" role="tabpanel">
+                                                <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search dependencies..." data-target="taskDepsList">
+                                                <div id="taskDepsList" class="tracker-checkbox-list"></div>
+                                            </div>
+                                            <div class="tab-pane fade" id="task-assumps-pane" role="tabpanel">
+                                                <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search assumptions..." data-target="taskAssumpsList">
+                                                <div id="taskAssumpsList" class="tracker-checkbox-list"></div>
+                                            </div>
+                                            <div class="tab-pane fade" id="task-decs-pane" role="tabpanel">
+                                                <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search decisions..." data-target="taskDecsList">
+                                                <div id="taskDecsList" class="tracker-checkbox-list"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <h6 class="border-bottom pb-2">Options</h6>
+                                <div class="row mb-3">
+                                    <div class="col-md-12">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="taskExcludeFromAnalytics">
+                                            <label class="form-check-label" for="taskExcludeFromAnalytics">
+                                                Exclude from Analytics & Export
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-<h6 class="border-bottom pb-2">Options</h6>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="taskExcludeFromAnalytics">
-                                    <label class="form-check-label" for="taskExcludeFromAnalytics">
-                                        Exclude from Analytics & Export
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
+                        </details>
                     </form>
                 </div>
                 <div class="modal-footer d-flex justify-content-between">
