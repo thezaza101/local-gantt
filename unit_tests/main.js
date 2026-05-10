@@ -246,7 +246,8 @@ async function loadTestFiles(files) {
 const TEST_FILES = [
     'unit_tests/appjs/test_utils.js',
     'unit_tests/appjs/test_planner.js',
-    'unit_tests/appjs/test_storage.js'
+    'unit_tests/appjs/test_storage.js',
+    'unit_tests/appjs/test_app.js'
 ];
 
 window.onload = async () => {

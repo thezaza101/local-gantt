@@ -40,11 +40,11 @@ const TEST_REGISTRY = {
         }
     },
     "app.js": {
-        tested: false,
-        notes: "Mainly UI bindings and startup logic. Might be hard to unit test without DOM mocking.",
+        tested: true,
+        notes: "Added tests for checkFileVersionWarning and initApp. DOM and global engine classes were mocked dynamically.",
         functions: {
-            "initApp": false,
-            "checkFileVersionWarning": false
+            "initApp": true,
+            "checkFileVersionWarning": true
         }
     },
     "ui.js": {
