@@ -60,5 +60,7 @@ The application is built using vanilla HTML, CSS, and JavaScript. It uses Bootst
 
 For a deeper dive into the component responsibilities and data model, see the `architecture_component_breakdown.md` and `requirements.md` files included in the repository.
 
+For information on how to run and write unit tests, please see [docs/UNIT_TESTING.md](docs/UNIT_TESTING.md).
+
 ## License
 This project is licensed under the MIT License.

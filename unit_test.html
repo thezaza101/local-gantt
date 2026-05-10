@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Unit Tests</title>
+    <!-- Local Bootstrap CSS -->
+    <link href="vendor/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; font-family: system-ui, -apple-system, sans-serif; }
+        .test-suite { margin-bottom: 20px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden; }
+        .suite-header { background-color: #f8f9fa; padding: 10px 15px; font-weight: bold; border-bottom: 1px solid #ddd; display: flex; justify-content: space-between; align-items: center; }
+        .suite-body { padding: 10px 15px; }
+        .test-case { padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: flex-start; }
+        .test-case:last-child { border-bottom: none; }
+        .status-pass { color: #198754; font-weight: bold; }
+        .status-fail { color: #dc3545; font-weight: bold; }
+        .status-skip { color: #6c757d; font-weight: bold; }
+        .error-message { font-size: 0.85em; color: #dc3545; margin-top: 5px; white-space: pre-wrap; font-family: monospace; background: #fff0f0; padding: 5px; border-radius: 4px; }
+        .summary-card { border: 1px solid #ddd; padding: 15px; border-radius: 8px; margin-bottom: 20px; background: #f8f9fa; display: flex; gap: 20px; }
+        .summary-item { text-align: center; }
+        .summary-value { font-size: 1.5em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <h1>Unit Tests</h1>
+
+    <div class="summary-card" id="test-summary" style="display: none;">
+        <div class="summary-item">
+            <div class="text-muted small">Total</div>
+            <div class="summary-value" id="summary-total">0</div>
+        </div>
+        <div class="summary-item">
+            <div class="text-muted small">Passed</div>
+            <div class="summary-value status-pass" id="summary-passed">0</div>
+        </div>
+        <div class="summary-item">
+            <div class="text-muted small">Failed</div>
+            <div class="summary-value status-fail" id="summary-failed">0</div>
+        </div>
+        <div class="summary-item">
+            <div class="text-muted small">Skipped</div>
+            <div class="summary-value status-skip" id="summary-skipped">0</div>
+        </div>
+    </div>
+
+    <div id="test-results">
+        <p class="text-muted">Loading tests...</p>
+    </div>
+
+    <!-- Vendor JS -->
+    <script src="vendor/chart.umd.js"></script>
+
+    <!-- Core App Logic (loaded so tests have context) -->
+    <script src="storage.js"></script>
+    <script src="planner.js"></script>
+    <script src="gantt.js"></script>
+    <script src="capacity.js"></script>
+    <script src="tracker.js"></script>
+    <script src="analytics.js"></script>
+    <script src="graph.js"></script>
+    <script src="ui.js"></script>
+    <script src="raida.js"></script>
+    <script src="app.js"></script>
+
+    <!-- Test Framework and Execution -->
+    <script src="unit_tests/main.js"></script>
+
+</body>
+</html>
