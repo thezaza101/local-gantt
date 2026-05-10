@@ -19,7 +19,7 @@ class UI {
 
         if (openTrackerBtn && trackerContainer) {
             openTrackerBtn.addEventListener("click", () => {
-                trackerContainer.classList.remove("d-none");
+                trackerContainer.style.display = "flex";
                 trackerContainer.style.setProperty("display", "flex", "important"); // Ensure display block works around playwright hiding
                 if (window.TrackerEngine) { window.TrackerEngine.render(); }
             });
@@ -27,7 +27,7 @@ class UI {
 
         if (closeTrackerBtn && trackerContainer) {
             closeTrackerBtn.addEventListener("click", () => {
-                trackerContainer.classList.add("d-none");
+                trackerContainer.style.display = "none";
                 trackerContainer.classList.remove("d-flex");
                 trackerContainer.style.setProperty("display", "none", "important");
             });
@@ -98,7 +98,7 @@ class UI {
         if (openAnalyticsBtn && analyticsContainer) {
             openAnalyticsBtn.addEventListener("click", () => {
                 document.body.classList.add("analytics-fullscreen");
-                analyticsContainer.classList.remove("d-none");
+                analyticsContainer.style.display = "flex";
 
                 if (window.AnalyticsEngine) {
                     const plan = this.planner.getCurrentPlan();
@@ -121,7 +121,7 @@ class UI {
         if (closeAnalyticsBtn && analyticsContainer) {
             closeAnalyticsBtn.addEventListener("click", () => {
                 document.body.classList.remove("analytics-fullscreen");
-                analyticsContainer.classList.add("d-none");
+                analyticsContainer.style.display = "none";
 
                 // Re-render Gantt when closing analytics
                 if (window.GanttEngine) {
@@ -159,7 +159,7 @@ class UI {
                 document.body.classList.add("presenter-mode");
                 // Trigger re-render
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
-                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("d-none")) {
+                if (window.AnalyticsEngine && analyticsContainer && analyticsContainer.style.display !== "none") {
                     window.AnalyticsEngine.render(this.planner.getCurrentPlan());
                 }
             });
@@ -170,7 +170,7 @@ class UI {
                 document.body.classList.remove("presenter-mode");
                 // Trigger re-render
                 if (window.GanttEngine) window.GanttEngine.render(this.planner.getCurrentPlan());
-                if (window.AnalyticsEngine && analyticsContainer && !analyticsContainer.classList.contains("d-none")) {
+                if (window.AnalyticsEngine && analyticsContainer && analyticsContainer.style.display !== "none") {
                     window.AnalyticsEngine.render(this.planner.getCurrentPlan());
                 }
             });

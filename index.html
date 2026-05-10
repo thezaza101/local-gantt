@@ -168,7 +168,7 @@
         </div>
 
         <!-- Analytics Panel -->
-        <div class="analytics-panel p-0 d-flex flex-column bg-white d-none" id="analyticsContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1040;">
+        <div class="analytics-panel p-0 flex-column bg-white" id="analyticsContainer" style="display: none;">
              <div class="analytics-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
                  <h6 class="m-0 text-dark fw-bold" id="analyticsTitle">Analytics</h6>
                  <div class="d-flex align-items-center gap-2">
@@ -184,7 +184,7 @@
         </div>
 
         <!-- Tracker Panel -->
-        <div class="tracker-panel p-0 d-flex flex-column bg-white d-none" id="trackerContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1050;">
+        <div class="tracker-panel p-0 flex-column bg-white" id="trackerContainer" style="display: none;">
              <div class="tracker-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
                  <h6 class="m-0 text-dark fw-bold" id="trackerTitle">Tracker (Risks, Issues, Dependencies, Assumptions, Decisions)</h6>
                  <div class="d-flex align-items-center gap-2">
@@ -300,13 +300,7 @@
              </div>
         </div>
 
-             <div class="analytics-content p-4 d-flex flex-column flex-grow-1 overflow-auto bg-white" id="analyticsContent">
-                 <div class="text-center text-muted my-auto" id="analyticsPlaceholder">
-                     <h5>Analytics Panel</h5>
-                     <p class="small">Effort summaries and tag metrics will render here</p>
-                 </div>
-             </div>
-        </div>
+
     </div>
 
     <!-- Vendor JS -->
