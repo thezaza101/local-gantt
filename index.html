@@ -140,6 +140,7 @@
 
             <div class="vr mx-1 flex-shrink-0"></div>
 
+            <button type="button" id="openTrackerBtn" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Open Tracker (Risks, Issues, Dependencies, Assumptions, Decisions)">📋</button>
             <button type="button" id="openAnalyticsBtn" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Open Analytics">📊</button>
             <button type="button" id="darkModeToggleBtn" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Toggle Dark Mode">🌙</button>
             <button type="button" id="presenterModeBtn" class="btn btn-sm btn-outline-secondary flex-shrink-0" title="Presenter Mode">📺</button>
@@ -167,7 +168,7 @@
         </div>
 
         <!-- Analytics Panel -->
-        <div class="analytics-panel p-0 d-flex flex-column bg-white d-none" id="analyticsContainer" style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; z-index: 1040;">
+        <div class="analytics-panel p-0 flex-column bg-white" id="analyticsContainer" style="display: none;">
              <div class="analytics-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
                  <h6 class="m-0 text-dark fw-bold" id="analyticsTitle">Analytics</h6>
                  <div class="d-flex align-items-center gap-2">
@@ -181,6 +182,125 @@
                  </div>
              </div>
         </div>
+
+        <!-- Tracker Panel -->
+        <div class="tracker-panel p-0 flex-column bg-white" id="trackerContainer" style="display: none;">
+             <div class="tracker-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
+                 <h6 class="m-0 text-dark fw-bold" id="trackerTitle">Tracker (Risks, Issues, Dependencies, Assumptions, Decisions)</h6>
+                 <div class="d-flex align-items-center gap-2">
+                     <button type="button" id="closeTrackerBtn" class="btn-close" aria-label="Close" title="Close Tracker"></button>
+                 </div>
+             </div>
+             <div class="tracker-content p-4 d-flex flex-column flex-grow-1 overflow-auto bg-white" id="trackerContent">
+                 <!-- Tabs -->
+                 <div class="d-flex justify-content-between align-items-center mb-3 p-2 bg-light border rounded">
+                     <div class="d-flex align-items-center gap-2">
+                         <div class="form-check m-0">
+                             <input class="form-check-input" type="checkbox" id="trackerSelectAllCheckbox" title="Select All in current view">
+                             <label class="form-check-label small" for="trackerSelectAllCheckbox">All</label>
+                         </div>
+                         <div class="vr mx-1"></div>
+                         <button class="btn btn-sm btn-outline-secondary" id="trackerBulkDeleteBtn" title="Delete Selected">🗑️</button>
+                         <div class="dropdown">
+                             <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Update Status">
+                                 Status
+                             </button>
+                             <ul class="dropdown-menu" id="trackerBulkStatusDropdown">
+                                 <li><h6 class="dropdown-header">Update Status</h6></li>
+                                 <li><hr class="dropdown-divider"></li>
+                                 <!-- Options injected via JS based on tab -->
+                             </ul>
+                         </div>
+                     </div>
+                     <span class="text-muted small" id="trackerSelectionCount">0 selected</span>
+                 </div>
+                 <!-- Tabs -->
+                 <ul class="nav nav-tabs mb-3" id="trackerTabs" role="tablist">
+                     <li class="nav-item" role="presentation">
+                         <button class="nav-link active" id="risks-tab" data-bs-toggle="tab" data-bs-target="#tracker-risks" type="button" role="tab" aria-controls="tracker-risks" aria-selected="true">Risks</button>
+                     </li>
+                     <li class="nav-item" role="presentation">
+                         <button class="nav-link" id="issues-tab" data-bs-toggle="tab" data-bs-target="#tracker-issues" type="button" role="tab" aria-controls="tracker-issues" aria-selected="false">Issues</button>
+                     </li>
+                     <li class="nav-item" role="presentation">
+                         <button class="nav-link" id="dependencies-tab" data-bs-toggle="tab" data-bs-target="#tracker-dependencies" type="button" role="tab" aria-controls="tracker-dependencies" aria-selected="false">Dependencies</button>
+                     </li>
+                     <li class="nav-item" role="presentation">
+                         <button class="nav-link" id="assumptions-tab" data-bs-toggle="tab" data-bs-target="#tracker-assumptions" type="button" role="tab" aria-controls="tracker-assumptions" aria-selected="false">Assumptions</button>
+                     </li>
+                     <li class="nav-item" role="presentation">
+                         <button class="nav-link" id="decisions-tab" data-bs-toggle="tab" data-bs-target="#tracker-decisions" type="button" role="tab" aria-controls="tracker-decisions" aria-selected="false">Decisions</button>
+                     </li>
+                 </ul>
+                 <div class="tab-content flex-grow-1" id="trackerTabsContent">
+                     <div class="tab-pane fade show active" id="tracker-risks" role="tabpanel" aria-labelledby="risks-tab">
+                         <div class="d-flex justify-content-between mb-2">
+                             <h6>Risks</h6>
+                             <button class="btn btn-sm btn-primary" id="addRiskBtn">+ Add Risk</button>
+                         </div>
+                         <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="risksTable">
+                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Probability</th><th>Severity</th><th>Status</th><th>Owner</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                         </div>
+                     </div>
+                     <div class="tab-pane fade" id="tracker-issues" role="tabpanel" aria-labelledby="issues-tab">
+                         <div class="d-flex justify-content-between mb-2">
+                             <h6>Issues</h6>
+                             <button class="btn btn-sm btn-primary" id="addIssueBtn">+ Add Issue</button>
+                         </div>
+                         <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="issuesTable">
+                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Severity</th><th>Status</th><th>Owner</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                         </div>
+                     </div>
+                     <div class="tab-pane fade" id="tracker-dependencies" role="tabpanel" aria-labelledby="dependencies-tab">
+                         <div class="d-flex justify-content-between mb-2">
+                             <h6>Dependencies</h6>
+                             <div>
+                                 <button class="btn btn-sm btn-outline-secondary me-2" id="createProperDepsBtn" title="Create proper dependencies from tasks">Auto-Create from Tasks</button>
+                                 <button class="btn btn-sm btn-primary" id="addDependencyBtn">+ Add Dependency</button>
+                             </div>
+                         </div>
+                         <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="dependenciesTable">
+                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Status</th><th>From Task(s)</th><th>To Task</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                         </div>
+                     </div>
+                     <div class="tab-pane fade" id="tracker-assumptions" role="tabpanel" aria-labelledby="assumptions-tab">
+                         <div class="d-flex justify-content-between mb-2">
+                             <h6>Assumptions</h6>
+                             <button class="btn btn-sm btn-primary" id="addAssumptionBtn">+ Add Assumption</button>
+                         </div>
+                         <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="assumptionsTable">
+                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Status</th><th>Impact</th><th>Expiry Date</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                         </div>
+                     </div>
+                     <div class="tab-pane fade" id="tracker-decisions" role="tabpanel" aria-labelledby="decisions-tab">
+                         <div class="d-flex justify-content-between mb-2">
+                             <h6>Decisions</h6>
+                             <button class="btn btn-sm btn-primary" id="addDecisionBtn">+ Add Decision</button>
+                         </div>
+                         <div class="table-responsive">
+                            <table class="table table-sm table-hover" id="decisionsTable">
+                                <thead><tr><th style="width: 30px;"></th><th>ID</th><th>Title</th><th>Status</th><th>Owner</th><th>Deadline</th><th>Actions</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                         </div>
+                     </div>
+                 </div>
+             </div>
+        </div>
+
+
     </div>
 
     <!-- Vendor JS -->
@@ -192,6 +312,7 @@
     <script src="planner.js"></script>
     <script src="gantt.js"></script>
     <script src="capacity.js"></script>
+    <script src="tracker.js"></script>
     <script src="analytics.js"></script>
     <script src="ui.js"></script>
     <script src="app.js"></script>
@@ -247,12 +368,7 @@
                                 <input type="number" class="form-control" id="taskRow" min="0" value="1" required>
                             </div>
                         </div>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label for="taskDependencies" class="form-label">Dependencies (comma-separated Task IDs)</label>
-                                <input type="text" class="form-control" id="taskDependencies">
-                            </div>
-                        </div>
+
                         <div class="row mb-3">
                             <div class="col-md-4">
                                 <label for="taskStatus" class="form-label">Status</label>
@@ -331,7 +447,59 @@
                                 <input type="number" class="form-control" id="taskEffortTest" min="0" value="0">
                             </div>
                         </div>
-                        <h6 class="border-bottom pb-2">Options</h6>
+
+                        <h6 class="border-bottom pb-2 mt-4">Tracker Associations</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <ul class="nav nav-pills nav-sm mb-2" id="taskTrackerTabs" role="tablist">
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-2 py-1" id="task-taskdeps-tab" data-bs-toggle="tab" data-bs-target="#task-taskdeps-pane" type="button" role="tab">Task Predecessors</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link active px-2 py-1" id="task-risks-tab" data-bs-toggle="tab" data-bs-target="#task-risks-pane" type="button" role="tab">Risks</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-2 py-1" id="task-issues-tab" data-bs-toggle="tab" data-bs-target="#task-issues-pane" type="button" role="tab">Issues</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-2 py-1" id="task-deps-tab" data-bs-toggle="tab" data-bs-target="#task-deps-pane" type="button" role="tab">Dependencies</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-2 py-1" id="task-assumps-tab" data-bs-toggle="tab" data-bs-target="#task-assumps-pane" type="button" role="tab">Assumptions</button>
+                                    </li>
+                                    <li class="nav-item" role="presentation">
+                                        <button class="nav-link px-2 py-1" id="task-decs-tab" data-bs-toggle="tab" data-bs-target="#task-decs-pane" type="button" role="tab">Decisions</button>
+                                    </li>
+                                </ul>
+                                <div class="tab-content border rounded p-2" id="taskTrackerTabsContent" style="min-height: 100px; max-height: 200px; overflow-y: auto;">
+                                    <div class="tab-pane fade" id="task-taskdeps-pane" role="tabpanel">
+                                        <label for="taskDependencies" class="form-label small text-muted">Dependencies (comma-separated Task IDs)</label>
+                                        <input type="text" class="form-control form-control-sm" id="taskDependencies" placeholder="e.g. TASK-101, TASK-102">
+                                    </div>
+                                    <div class="tab-pane fade show active" id="task-risks-pane" role="tabpanel">
+                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search risks..." data-target="taskRisksList">
+                                        <div id="taskRisksList" class="tracker-checkbox-list"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="task-issues-pane" role="tabpanel">
+                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search issues..." data-target="taskIssuesList">
+                                        <div id="taskIssuesList" class="tracker-checkbox-list"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="task-deps-pane" role="tabpanel">
+                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search dependencies..." data-target="taskDepsList">
+                                        <div id="taskDepsList" class="tracker-checkbox-list"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="task-assumps-pane" role="tabpanel">
+                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search assumptions..." data-target="taskAssumpsList">
+                                        <div id="taskAssumpsList" class="tracker-checkbox-list"></div>
+                                    </div>
+                                    <div class="tab-pane fade" id="task-decs-pane" role="tabpanel">
+                                        <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search decisions..." data-target="taskDecsList">
+                                        <div id="taskDecsList" class="tracker-checkbox-list"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+<h6 class="border-bottom pb-2">Options</h6>
                         <div class="row mb-3">
                             <div class="col-md-12">
                                 <div class="form-check">
@@ -1225,6 +1393,118 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="cancelUpdateDependenciesBtn">Cancel</button>
                     <button type="button" class="btn btn-warning" id="saveWithoutUpdatingBtn">Save without Updating</button>
                     <button type="button" class="btn btn-primary" id="updateDependenciesAndSaveBtn">Update and Save</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Tracker Edit Modal -->
+    <div class="modal fade" id="trackerEditModal" tabindex="-1" aria-labelledby="trackerEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="trackerEditModalLabel">Edit Item</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="trackerEditForm">
+                        <input type="hidden" id="trackerItemType">
+                        <input type="hidden" id="trackerOriginalId">
+
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label for="trackerItemId" class="form-label">ID</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="trackerItemId" required>
+                                    <button class="btn btn-outline-secondary" type="button" id="trackerBaseLinkBtn" title="Open Base Link">🔗</button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="trackerItemTitle" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="trackerItemTitle" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="trackerItemScope" class="form-label">Scope</label>
+                                <select class="form-select" id="trackerItemScope">
+                                    <option value="global">Global (All Plans)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="trackerItemDescription" class="form-label">Description</label>
+                                <textarea class="form-control" id="trackerItemDescription" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic fields injected here based on type -->
+                        <div id="trackerDynamicFields" class="row mb-3"></div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="trackerItemTags" class="form-label">Tags (comma-separated)</label>
+                                <input type="text" class="form-control" id="trackerItemTags">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Grouped Tags</label>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <span class="text-truncate">Select Grouped Tags...</span>
+                                    </button>
+                                    <ul class="dropdown-menu w-100 p-2" id="trackerItemGroupedTagsDropdown" style="max-height: 200px; overflow-y: auto;">
+                                        <!-- Checkboxes injected dynamically -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="border-bottom pb-2 mt-4">Associations</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">Associated Teams</label>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <span class="text-truncate">Select Teams...</span>
+                                    </button>
+                                    <ul class="dropdown-menu w-100 p-2" id="trackerItemTeamsDropdown" style="max-height: 200px; overflow-y: auto;">
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Associated Personnel</label>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <span class="text-truncate">Select Personnel...</span>
+                                    </button>
+                                    <ul class="dropdown-menu w-100 p-2" id="trackerItemPersonnelDropdown" style="max-height: 200px; overflow-y: auto;">
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Associated Tasks</label>
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        <span class="text-truncate">Select Tasks...</span>
+                                    </button>
+                                    <ul class="dropdown-menu w-100 p-2" id="trackerItemTasksDropdown" style="max-height: 200px; overflow-y: auto;">
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer d-flex justify-content-between">
+                    <div>
+                        <span class="text-muted small d-block" id="trackerLastUpdatedDisplay">Last Updated: -</span>
+                        <span class="text-muted small d-block" id="trackerLastCheckedDisplay">Last Checked: -</span>
+                    </div>
+                    <div>
+                        <button type="button" class="btn btn-outline-secondary me-2" id="trackerUpdateLastCheckedBtn">Check</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveTrackerItemBtn">Save</button>
+                    </div>
                 </div>
             </div>
         </div>

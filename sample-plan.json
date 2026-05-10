@@ -442,5 +442,149 @@
                 }
             ]
         }
+    ],
+    "risks": [
+        {
+            "id": "R00001",
+            "title": "API Rate Limits",
+            "description": "Third-party APIs might throttle our requests during load testing.",
+            "tags": [
+                "backend",
+                "api"
+            ],
+            "associatedTasks": [
+                "TASK-106",
+                "TASK-110"
+            ],
+            "associatedTeams": [
+                "T00002"
+            ],
+            "associatedPersonnel": [],
+            "lastUpdated": "2024-05-10 10:00:00",
+            "lastChecked": "2024-05-10 10:00:00",
+            "probability": "Medium",
+            "severity": "High",
+            "mitigationPlan": "Implement exponential backoff and caching layers.",
+            "owner": "Jane Smith",
+            "triggerIndicators": "429 Too Many Requests responses",
+            "status": "Open",
+            "dueDate": "2026-02-15",
+            "planId": "global"
+        }
+    ],
+    "issues": [
+        {
+            "id": "I00001",
+            "title": "Login UI inconsistent on mobile",
+            "description": "The login button overlaps with text on smaller screens.",
+            "tags": [
+                "frontend",
+                "ui",
+                "mobile"
+            ],
+            "associatedTasks": [
+                "TASK-103",
+                "TASK-111"
+            ],
+            "associatedTeams": [
+                "T00003"
+            ],
+            "associatedPersonnel": [],
+            "lastUpdated": "2024-05-10 10:00:00",
+            "lastChecked": "2024-05-10 10:00:00",
+            "businessImpact": "Poor user experience for mobile users",
+            "severity": "Medium",
+            "workaround": "Users can use landscape mode temporarily",
+            "owner": "John Doe",
+            "targetResolutionDate": "2026-01-20",
+            "status": "In Progress",
+            "planId": "global"
+        }
+    ],
+    "dependencies": [
+        {
+            "id": "D00001",
+            "title": "Auth Backend requires DB Schema",
+            "description": "Cannot finalize auth backend without the core user tables.",
+            "tags": [
+                "backend",
+                "database"
+            ],
+            "associatedTasks": [
+                "TASK-101"
+            ],
+            "associatedTeams": [
+                "T00001",
+                "T00002"
+            ],
+            "associatedPersonnel": [],
+            "lastUpdated": "2024-05-10 10:00:00",
+            "lastChecked": "2024-05-10 10:00:00",
+            "owningTeam": "T00001",
+            "requiredByDate": "2026-01-10",
+            "affectedTeams": "T00002",
+            "fromTasks": [
+                "TASK-102"
+            ],
+            "toTask": "TASK-101",
+            "status": "Completed",
+            "criticalPath": true,
+            "impactIfDelayed": "Delays entire backend integration phase.",
+            "planId": "global"
+        }
+    ],
+    "assumptions": [
+        {
+            "id": "A00001",
+            "title": "Cloud provider availability",
+            "description": "Assuming AWS us-east-1 will have 99.99% uptime during launch.",
+            "tags": [
+                "infrastructure"
+            ],
+            "associatedTasks": [
+                "TASK-107",
+                "TASK-113"
+            ],
+            "associatedTeams": [
+                "T00003"
+            ],
+            "associatedPersonnel": [],
+            "lastUpdated": "2024-05-10 10:00:00",
+            "lastChecked": "2024-05-10 10:00:00",
+            "status": "Active",
+            "impactIfWrong": "Critical",
+            "validationMethod": "Review SLAs and set up multi-region failover if budget allows.",
+            "reviewDate": "2026-01-05",
+            "planId": "global"
+        }
+    ],
+    "decisions": [
+        {
+            "id": "DE00001",
+            "title": "Frontend Framework",
+            "description": "Choosing between React and Vue for the new dashboard.",
+            "tags": [
+                "frontend",
+                "architecture"
+            ],
+            "associatedTasks": [
+                "TASK-103",
+                "TASK-105"
+            ],
+            "associatedTeams": [
+                "T00003"
+            ],
+            "associatedPersonnel": [],
+            "lastUpdated": "2024-05-10 10:00:00",
+            "lastChecked": "2024-05-10 10:00:00",
+            "options": "React, Vue.js, Angular",
+            "recommendation": "React due to team familiarity",
+            "impactOfDelay": "Cannot start Login UI development",
+            "owner": "Alice Johnson",
+            "deadline": "2025-12-20",
+            "status": "Made",
+            "outcome": "Selected React 18.",
+            "planId": "global"
+        }
     ]
 }
