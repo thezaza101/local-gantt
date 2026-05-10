@@ -34,3 +34,18 @@ To maintain a single source of truth and prevent bi-directional synchronization 
 
 ### Bulk Operations & Dependencies
 The Tracker view includes bulk operation controls for deleting or modifying the status of multiple entities simultaneously. A specialized "Auto-Create Proper Dependencies" tool scans all tasks within the current plan and automatically provisions fully structured Dependency entities from simple task-level dependency links, marking them as removed if the task link is subsequently deleted.
+
+## Graph View
+The Graph View provides an interactive, visual representation of dependencies and relationships between Tasks, Risks, Issues, Dependencies, Assumptions, and Decisions (RIDAD).
+
+### Usage
+- The view can be launched by clicking the "View Graph" button inside the edit modal of any Task or Tracker item.
+- The item from which the view is launched acts as the "root" (n=0) at the center of the graph.
+- The depth of traversal (`n`) is fully configurable via an input in the modal header, updating the visualization dynamically as the depth changes.
+
+### Rendering Engine
+The application uses a custom, lightweight, force-directed graph physics engine drawn on an HTML5 `<canvas>`, removing the need for heavy third-party packages.
+- Connected nodes attract each other, while all nodes repel each other, naturally distributing elements in the view.
+- Nodes are color-coded based on their entity type (e.g., Task, Risk, Issue).
+- Users can click and drag the canvas to pan, scroll to zoom, or drag individual nodes to arrange them manually.
+- A "Download Image" button allows users to export the current graph visualization as a high-resolution PNG image.

@@ -98,7 +98,10 @@ async function initApp() {
     console.log('Initializing TrackerEngine');
     window.TrackerEngine = new Tracker(window.PlannerState);
 
-    // Initialize Graph Engine is removed, rendering logic moved to Analytics
+    // Initialize Graph Engine
+    if (window.GraphEngine) {
+        window.GraphEngine.init();
+    }
 
     // Initialize UI
     window.UIController = new UI();

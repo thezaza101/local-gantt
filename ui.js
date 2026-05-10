@@ -72,6 +72,22 @@ class UI {
             });
         }
 
+        const trackerViewGraphBtn = document.getElementById("trackerViewGraphBtn");
+        if (trackerViewGraphBtn) {
+            trackerViewGraphBtn.addEventListener("click", () => {
+                const id = document.getElementById('trackerOriginalId').value || document.getElementById('trackerItemId').value;
+                let typeRaw = document.getElementById('trackerItemType').value;
+                if (typeRaw) {
+                    typeRaw = typeRaw.charAt(0).toUpperCase() + typeRaw.slice(1);
+                    if (typeRaw.endsWith('s')) typeRaw = typeRaw.slice(0, -1);
+                    if (typeRaw === 'Dependencie') typeRaw = 'Dependency';
+                }
+                if (id && typeRaw && window.GraphEngine) {
+                    window.GraphEngine.open(id, typeRaw);
+                }
+            });
+        }
+
         const createProperDepsBtn = document.getElementById("createProperDepsBtn");
         if (createProperDepsBtn) {
             createProperDepsBtn.addEventListener("click", () => {
@@ -114,6 +130,16 @@ class UI {
                     window.open(baseLink + id, '_blank');
                 } else if (!baseLink) {
                     alert('Base Link is not configured in Global Settings.');
+                }
+            });
+        }
+
+        const taskViewGraphBtn = document.getElementById("taskViewGraphBtn");
+        if (taskViewGraphBtn) {
+            taskViewGraphBtn.addEventListener("click", () => {
+                const taskId = document.getElementById('originalTaskId').value || document.getElementById('taskId').value;
+                if (taskId && window.GraphEngine) {
+                    window.GraphEngine.open(taskId, 'Task');
                 }
             });
         }
