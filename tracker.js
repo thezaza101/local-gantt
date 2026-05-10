@@ -898,6 +898,146 @@ class Tracker {
         }
     }
 
+    processImportedCsv(csvText, planIdScope) {
+        const parsedData = this.parseCsv(csvText);
+        if (parsedData.length === 0) return { success: 0, skipped: [] };
+
+        let successCount = 0;
+        let skippedTypes = new Set();
+
+        const typeMapping = {
+            'risk': 'risks',
+            'risks': 'risks',
+            'issue': 'issues',
+            'issues': 'issues',
+            'dependency': 'dependencies',
+            'dependencies': 'dependencies',
+            'assumption': 'assumptions',
+            'assumptions': 'assumptions',
+            'decision': 'decisions',
+            'decisions': 'decisions'
+        };
+
+        const prefixes = { risks: 'R', issues: 'I', dependencies: 'D', assumptions: 'A', decisions: 'C' };
+
+        const nowStr = this.planner.getNowTimestamp();
+
+        parsedData.forEach(row => {
+            const rawType = (row.type || '').trim().toLowerCase();
+            const type = typeMapping[rawType];
+
+            if (!type) {
+                if (rawType) skippedTypes.add(rawType);
+                return;
+            }
+
+            let id = (row.id || '').trim();
+            let title = (row.title || '').trim();
+            const description = (row.description || '').trim();
+
+            if (!title) {
+                title = 'Imported Item';
+            }
+
+            if (id) {
+                const existing = this.planner.getEntityById(type, id);
+                if (existing) {
+                    const originalId = id;
+                    id = this.planner.generateEntityId(prefixes[type]);
+                    title = `[original id ${originalId}] ${title}`;
+                }
+            } else {
+                id = this.planner.generateEntityId(prefixes[type]);
+            }
+
+            title = title + ' [Imported]';
+
+            const itemData = {
+                id: id,
+                title: title,
+                description: description,
+                planId: planIdScope || null,
+                tags: ['Imported'],
+                lastUpdated: nowStr,
+                lastChecked: nowStr
+            };
+
+            if (this.planner.addEntity(type, itemData)) {
+                successCount++;
+            }
+        });
+
+        this.render();
+        if (window.UIController) { window.UIController.updateUI(); }
+
+        return {
+            success: successCount,
+            skipped: Array.from(skippedTypes)
+        };
+    }
+
+    parseCsv(csvText) {
+        if (!csvText) return [];
+
+        const lines = [];
+        let currentLine = [];
+        let currentCell = '';
+        let insideQuotes = false;
+
+        for (let i = 0; i < csvText.length; i++) {
+            const char = csvText[i];
+            const nextChar = csvText[i + 1];
+
+            if (char === '"') {
+                if (insideQuotes && nextChar === '"') {
+                    // Escaped quote
+                    currentCell += '"';
+                    i++;
+                } else {
+                    insideQuotes = !insideQuotes;
+                }
+            } else if (char === ',' && !insideQuotes) {
+                currentLine.push(currentCell);
+                currentCell = '';
+            } else if ((char === '\n' || char === '\r') && !insideQuotes) {
+                if (char === '\r' && nextChar === '\n') {
+                    i++;
+                }
+                currentLine.push(currentCell);
+                lines.push(currentLine);
+                currentLine = [];
+                currentCell = '';
+            } else {
+                currentCell += char;
+            }
+        }
+
+        if (currentCell !== '' || currentLine.length > 0) {
+            currentLine.push(currentCell);
+            lines.push(currentLine);
+        }
+
+        if (lines.length === 0) return [];
+
+        const headers = lines[0].map(h => h.trim().toLowerCase());
+        const result = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i];
+            if (line.length === 0 || (line.length === 1 && line[0].trim() === '')) continue;
+
+            const rowObj = {};
+            for (let j = 0; j < headers.length; j++) {
+                if (headers[j]) {
+                    rowObj[headers[j]] = line[j] ? line[j].trim() : '';
+                }
+            }
+            result.push(rowObj);
+        }
+
+        return result;
+    }
+
     autoCreateProperDependencies() {
         const plan = this.planner.getCurrentPlan();
         if (!plan || !plan.tasks) return;

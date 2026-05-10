@@ -142,6 +142,73 @@ class UI {
             });
         }
 
+        const trackerImportCsvBtn = document.getElementById("trackerImportCsvBtn");
+        const trackerImportCsvFileInput = document.getElementById("trackerImportCsvFileInput");
+
+        if (trackerImportCsvBtn && trackerImportCsvFileInput) {
+            trackerImportCsvBtn.addEventListener("click", () => {
+                trackerImportCsvFileInput.click();
+            });
+
+            trackerImportCsvFileInput.addEventListener("change", (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    this.pendingTrackerCsvFile = file;
+                    document.getElementById("trackerImportCsvFileName").textContent = file.name;
+
+                    const scopeSelect = document.getElementById("trackerImportCsvScope");
+                    scopeSelect.innerHTML = '<option value="">Global (All Plans)</option>';
+
+                    const currentPlan = this.planner.getCurrentPlan();
+                    if (currentPlan) {
+                        const option = document.createElement("option");
+                        option.value = currentPlan.id;
+                        option.textContent = `Plan: ${currentPlan.name}`;
+                        option.selected = true;
+                        scopeSelect.appendChild(option);
+                    }
+
+                    const modal = new bootstrap.Modal(document.getElementById("trackerImportCsvModal"));
+                    modal.show();
+                }
+                trackerImportCsvFileInput.value = "";
+            });
+        }
+
+        const confirmTrackerImportCsvBtn = document.getElementById("confirmTrackerImportCsvBtn");
+        if (confirmTrackerImportCsvBtn) {
+            confirmTrackerImportCsvBtn.addEventListener("click", () => {
+                const fileName = document.getElementById("trackerImportCsvFileName").textContent;
+                if (fileName === "None") return;
+
+                if (this.pendingTrackerCsvFile) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const csvText = event.target.result;
+                        const planIdScope = document.getElementById("trackerImportCsvScope").value;
+
+                        if (window.TrackerEngine) {
+                            const result = window.TrackerEngine.processImportedCsv(csvText, planIdScope);
+
+                            let msg = `Successfully imported ${result.success} items.`;
+                            if (result.skipped.length > 0) {
+                                msg += `\nSkipped unknown types: ${result.skipped.join(', ')}`;
+                            }
+                            alert(msg);
+
+                            const modalEl = document.getElementById('trackerImportCsvModal');
+                            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            }
+                            this.pendingTrackerCsvFile = null;
+                        }
+                    };
+                    reader.readAsText(this.pendingTrackerCsvFile);
+                }
+            });
+        }
+
         ['risks', 'issues', 'dependencies', 'assumptions', 'decisions'].forEach(type => {
             const addBtn = document.getElementById(`add${type.charAt(0).toUpperCase() + type.slice(1, -1)}Btn`) || document.getElementById(`add${type.charAt(0).toUpperCase() + type.slice(1)}Btn`);
             if (addBtn) {
