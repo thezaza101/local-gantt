@@ -1,1 +1,11 @@
 server.log
+
+# Testing artifacts
+report.html
+test-results/
+.pytest_cache/
+tests/__pycache__/
+tests/registry/__pycache__/
+tests/helpers/__pycache__/
+tests/workflows/__pycache__/
+tests/functions/__pycache__/
