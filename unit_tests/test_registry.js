@@ -98,6 +98,23 @@ const TEST_REGISTRY = {
             "bindRowEvents": true,
             "escapeHtml": true
         }
+    },
+    "tracker.js": {
+        tested: true,
+        notes: "DOM and planner interactions mocked to test Tracker functionality.",
+        functions: {
+            "Tracker constructor": true,
+            "escapeHtml": true,
+            "getCellValue": true,
+            "parseCsv": true,
+            "processImportedCsv": true,
+            "renderTable": true,
+            "openEditModal": true,
+            "saveItem": true,
+            "deleteItem": true,
+            "updateLastChecked": true,
+            "autoCreateProperDependencies": true
+        }
     }
 };
 
