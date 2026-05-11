@@ -98,6 +98,14 @@ const TEST_REGISTRY = {
             "bindRowEvents": true,
             "escapeHtml": true
         }
+    },
+    "raida.js": {
+        tested: true,
+        notes: "Raida constructor and render function are tested. DOM interactions and planner were mocked.",
+        functions: {
+            "Raida constructor": true,
+            "render": true
+        }
     }
 };
 
