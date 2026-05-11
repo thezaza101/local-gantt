@@ -67,13 +67,13 @@ const TEST_REGISTRY = {
         }
     },
     "ui.js": {
-        tested: false,
-        notes: "Currently 0% coverage. Should test purely logical helper methods first.",
+        tested: true,
+        notes: "Added tests for escapeHtml, exportLegendImage, and renderTagFilters. Note: updateTheme is no longer present in ui.js.",
         functions: {
-            "escapeHtml": false,
+            "escapeHtml": true,
             "updateTheme": false,
-            "renderTagFilters": false,
-            "exportLegendImage": false
+            "renderTagFilters": true,
+            "exportLegendImage": true
         }
     },
     "utils (misc)": {
