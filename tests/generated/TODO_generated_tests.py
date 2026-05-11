@@ -240,11 +240,6 @@ def test_deleteMarker(page: Page):
     # TODO: Implement test for deleteMarker in planner.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for planner.js -> addTask")
-def test_addTask(page: Page):
-    # TODO: Implement test for addTask in planner.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> updateSettings")
 def test_updateSettings(page: Page):
     # TODO: Implement test for updateSettings in planner.js
@@ -263,11 +258,6 @@ def test_updateTask(page: Page):
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> updateTaskLastChecked")
 def test_updateTaskLastChecked(page: Page):
     # TODO: Implement test for updateTaskLastChecked in planner.js
-    pass
-
-@pytest.mark.skip(reason="TODO: implement test for planner.js -> generateEntityId")
-def test_generateEntityId(page: Page):
-    # TODO: Implement test for generateEntityId in planner.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> getRisks")
@@ -320,11 +310,6 @@ def test_getTaskById(page: Page):
     # TODO: Implement test for getTaskById in planner.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for planner.js -> deleteTask")
-def test_deleteTask(page: Page):
-    # TODO: Implement test for deleteTask in planner.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> syncTaskToPlan")
 def test_syncTaskToPlan(page: Page):
     # TODO: Implement test for syncTaskToPlan in planner.js
@@ -363,11 +348,6 @@ def test_appendPlan(page: Page):
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> calculatePlanDiff")
 def test_calculatePlanDiff(page: Page):
     # TODO: Implement test for calculatePlanDiff in planner.js
-    pass
-
-@pytest.mark.skip(reason="TODO: implement test for planner.js -> applyPlanMerge")
-def test_applyPlanMerge(page: Page):
-    # TODO: Implement test for applyPlanMerge in planner.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> getFillLegends")
@@ -420,11 +400,6 @@ def test_bindEvents(page: Page):
     # TODO: Implement test for bindEvents in ui.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for ui.js -> renderGantt")
-def test_renderGantt(page: Page):
-    # TODO: Implement test for renderGantt in ui.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> openImportPlanOptionsModal")
 def test_openImportPlanOptionsModal(page: Page):
     # TODO: Implement test for openImportPlanOptionsModal in ui.js
@@ -448,11 +423,6 @@ def test_confirmMergePlan(page: Page):
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> openTaskListModal")
 def test_openTaskListModal(page: Page):
     # TODO: Implement test for openTaskListModal in ui.js
-    pass
-
-@pytest.mark.skip(reason="TODO: implement test for ui.js -> renderTaskListTable")
-def test_renderTaskListTable(page: Page):
-    # TODO: Implement test for renderTaskListTable in ui.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> openSyncPlanModal")
@@ -520,11 +490,6 @@ def test_openMarkerManagementModal(page: Page):
     # TODO: Implement test for openMarkerManagementModal in ui.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for ui.js -> renderMarkerTable")
-def test_renderMarkerTable(page: Page):
-    # TODO: Implement test for renderMarkerTable in ui.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> openMarkerEditModal")
 def test_openMarkerEditModal(page: Page):
     # TODO: Implement test for openMarkerEditModal in ui.js
@@ -535,19 +500,9 @@ def test_saveMarker(page: Page):
     # TODO: Implement test for saveMarker in ui.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for ui.js -> openLegendsModal")
-def test_openLegendsModal(page: Page):
-    # TODO: Implement test for openLegendsModal in ui.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> addLegendRow")
 def test_addLegendRow(page: Page):
     # TODO: Implement test for addLegendRow in ui.js
-    pass
-
-@pytest.mark.skip(reason="TODO: implement test for ui.js -> openTagGroupsModal")
-def test_openTagGroupsModal(page: Page):
-    # TODO: Implement test for openTagGroupsModal in ui.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> addTagGroupCard")
@@ -610,16 +565,6 @@ def test_populateTeamSelects(page: Page):
     # TODO: Implement test for populateTeamSelects in ui.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for ui.js -> renderHistory")
-def test_renderHistory(page: Page):
-    # TODO: Implement test for renderHistory in ui.js
-    pass
-
-@pytest.mark.skip(reason="TODO: implement test for ui.js -> renderTagFilters")
-def test_renderTagFilters(page: Page):
-    # TODO: Implement test for renderTagFilters in ui.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateTagAggregates")
 def test_calculateTagAggregates(page: Page):
     # TODO: Implement test for calculateTagAggregates in analytics.js
@@ -640,19 +585,9 @@ def test_taskMatchesTags(page: Page):
     # TODO: Implement test for taskMatchesTags in analytics.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateEffortByTag")
-def test_calculateEffortByTag(page: Page):
-    # TODO: Implement test for calculateEffortByTag in analytics.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateEffortByStatus")
 def test_calculateEffortByStatus(page: Page):
     # TODO: Implement test for calculateEffortByStatus in analytics.js
-    pass
-
-@pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateTaskCountByStatus")
-def test_calculateTaskCountByStatus(page: Page):
-    # TODO: Implement test for calculateTaskCountByStatus in analytics.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateEffortByType")
