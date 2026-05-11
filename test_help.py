@@ -22,7 +22,7 @@ def test_help_modal():
         # Assertions
         assert "🗃️ Bulk Operations:" in modal_text, "Bulk Operations help text is missing"
         assert "➕/🗑️ Manage Rows:" in modal_text, "Manage Rows help text is missing"
-        assert "Create and manage groups of tags to quickly apply multiple tags to tasks, or use them in Bulk Operations." in modal_text, "Tag Groups updated text is missing"
+        assert "Select a specific team to filter tasks on the chart, now located next to the tag filters." in modal_text, "Team filter help text is missing"
 
         print("All help text updates verified successfully in the DOM.")
 

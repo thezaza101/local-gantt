@@ -31,7 +31,7 @@ class Analytics {
         // Exclude tasks marked as excludeFromAnalytics
         let filtered = plan.tasks.filter(task => !task.excludeFromAnalytics);
 
-        // Apply global text search filter and notCheckedDays filter if it exists on PlannerState
+        // Apply global text search filter if it exists on PlannerState
         const globalFilterState = this.planner ? this.planner.getFilterState() : null;
         if (globalFilterState) {
             if (globalFilterState.searchText) {
@@ -40,16 +40,6 @@ class Analytics {
                     const idMatch = (task.id || '').toLowerCase().includes(term);
                     const titleMatch = (task.title || '').toLowerCase().includes(term);
                     return idMatch || titleMatch;
-                });
-            }
-            if (globalFilterState.notCheckedDays !== undefined && globalFilterState.notCheckedDays !== null && globalFilterState.notCheckedDays >= 0) {
-                filtered = filtered.filter(task => {
-                    if (!task.lastChecked) return true;
-                    const checkedDate = new Date(task.lastChecked.replace(' ', 'T'));
-                    if (isNaN(checkedDate)) return true;
-                    const diffTime = Math.abs(new Date() - checkedDate);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    return diffDays > globalFilterState.notCheckedDays;
                 });
             }
         }
@@ -136,23 +126,7 @@ class Analytics {
      * @param {string} matchMode 'any' (OR) or 'all' (AND).
      * @returns {boolean} True if the task matches, false otherwise.
      */
-    taskMatchesTags(task, selectedTags, matchMode = 'any', searchText = '', notCheckedDays = null) {
-        // Check "Not checked > N days" filter
-        if (notCheckedDays !== null && notCheckedDays >= 0) {
-            if (!task.lastChecked) {
-                // If it was never checked, and N > 0, maybe we show it? Yes, it's older than any days.
-            } else {
-                const checkedDate = new Date(task.lastChecked.replace(' ', 'T'));
-                if (!isNaN(checkedDate)) {
-                    const diffTime = Math.abs(new Date() - checkedDate);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                    if (diffDays <= notCheckedDays) {
-                        return false;
-                    }
-                }
-            }
-        }
-
+    taskMatchesTags(task, selectedTags, matchMode = 'any', searchText = '') {
         // First check text search if provided
         if (searchText) {
             const term = searchText.toLowerCase();

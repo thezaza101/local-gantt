@@ -42,7 +42,7 @@ t2.lastUpdated = oldStr;
 const analytics = new ctx.window.Analytics();
 analytics.planner = planner;
 
-planner.setFilterState({ notCheckedDays: 5 });
+planner.setFilterState({ searchText: 'Old' });
 analytics.filterState.team = '';
 analytics.filterState.selectedTags = [];
 analytics.filterState.startDate = '';

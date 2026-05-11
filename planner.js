@@ -46,7 +46,6 @@ class Planner {
             matchMode: 'any', // 'any' or 'all'
             visualMode: 'show', // 'show' or 'highlight'
             searchText: '',
-            notCheckedDays: null,
             team: ''
         };
 
