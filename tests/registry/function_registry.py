@@ -14,6 +14,22 @@ FUNCTION_REGISTRY = {
             "getNowTimestamp": {
                 "tested": False,
                 "test_file": None
+            },
+            "generateEntityId": {
+                "tested": True,
+                "test_file": "tests/functions/planner_test.py"
+            },
+            "addTask": {
+                "tested": True,
+                "test_file": "tests/functions/planner_test.py"
+            },
+            "deleteTask": {
+                "tested": True,
+                "test_file": "tests/functions/planner_test.py"
+            },
+            "applyPlanMerge": {
+                "tested": True,
+                "test_file": "tests/functions/planner_test.py"
             }
         }
     },
