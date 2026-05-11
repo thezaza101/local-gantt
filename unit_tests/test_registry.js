@@ -39,6 +39,25 @@ const TEST_REGISTRY = {
             "importPlanFile": false
         }
     },
+        "graph.js": {
+        tested: true,
+        notes: "Added tests for initialization and data traversal (init, open, getEntity, getConnectedIds, buildGraph). Visual rendering and physics (draw, updatePhysics) remain untested as they require extensive canvas mocking.",
+        functions: {
+            "init": true,
+            "open": true,
+            "getEntity": true,
+            "getConnectedIds": true,
+            "buildGraph": true,
+            "startSimulation": false,
+            "stopSimulation": false,
+            "tick": false,
+            "updatePhysics": false,
+            "draw": false,
+            "drawNode": false,
+            "setupCanvasInteractions": false,
+            "downloadImage": false
+        }
+    },
     "app.js": {
         tested: true,
         notes: "Added tests for checkFileVersionWarning and initApp. DOM and global engine classes were mocked dynamically.",
