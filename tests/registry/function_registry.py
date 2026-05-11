@@ -40,9 +40,21 @@ FUNCTION_REGISTRY = {
                 "tested": False,
                 "test_file": None
             },
-            "renderGantt": {
-                "tested": False,
-                "test_file": None
+            "renderTaskListTable": {
+                "tested": True,
+                "test_file": "tests/functions/ui_rendering_test.py"
+            },
+            "renderMarkerTable": {
+                "tested": True,
+                "test_file": "tests/functions/ui_rendering_test.py"
+            },
+            "renderHistory": {
+                "tested": True,
+                "test_file": "tests/functions/ui_rendering_test.py"
+            },
+            "renderTagFilters": {
+                "tested": True,
+                "test_file": "tests/functions/ui_rendering_test.py"
             }
         }
     },
@@ -52,6 +64,14 @@ FUNCTION_REGISTRY = {
             "calculateTagAggregates": {
                 "tested": False,
                 "test_file": None
+            },
+            "calculateEffortByTag": {
+                "tested": True,
+                "test_file": "tests/functions/analytics_functions_test.py"
+            },
+            "calculateTaskCountByStatus": {
+                "tested": True,
+                "test_file": "tests/functions/analytics_functions_test.py"
             }
         }
     }
