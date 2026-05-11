@@ -34,5 +34,15 @@ WORKFLOW_REGISTRY = {
                 "test_file": "tests/workflows/analytics_test.py"
             }
         ]
+    },
+    "tracker": {
+        "description": "Tracker workflows for RIDAD management",
+        "tests": [
+            {
+                "name": "tracker_crud",
+                "tested": True,
+                "test_file": "tests/workflows/tracker_test.py"
+            }
+        ]
     }
 }
