@@ -61,6 +61,24 @@ const TEST_REGISTRY = {
         tested: true,
         notes: "General examples for string manipulation and date comparison added.",
         functions: {}
+    },
+    "gantt.js": {
+        tested: true,
+        notes: "DOM interactions were mocked dynamically.",
+        functions: {
+            "Gantt constructor": true,
+            "getSafeDate": true,
+            "render": true,
+            "generateTasksHtml": true,
+            "getMixedColor": true,
+            "generateDependencyArrows": true,
+            "bindTaskEvents": true,
+            "repeatString": true,
+            "generateGridLines": true,
+            "bindBackgroundEvents": true,
+            "bindRowEvents": true,
+            "escapeHtml": true
+        }
     }
 };
 
