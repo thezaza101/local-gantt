@@ -9,3 +9,4 @@ tests/registry/__pycache__/
 tests/helpers/__pycache__/
 tests/workflows/__pycache__/
 tests/functions/__pycache__/
+venv/

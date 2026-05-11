@@ -73,8 +73,6 @@
         <div class="btn-group flex-shrink-0" role="group" id="tasksAndElementsGroupBtnGroup">
             <button type="button" id="addMarkerBtn" class="btn btn-sm btn-outline-secondary" title="Manage Markers">📍</button>
             <button type="button" id="taskListBtn" class="btn btn-sm btn-outline-secondary" title="Task List">📋</button>
-            <button type="button" id="legendsBtn" class="btn btn-sm btn-outline-secondary" title="Legends">🎨</button>
-            <button type="button" id="tagGroupsBtn" class="btn btn-sm btn-outline-secondary" title="Tag Groups">🏷️</button>
         </div>
 
         <div class="vr mx-1 flex-shrink-0"></div>
@@ -89,12 +87,7 @@
         <div class="vr mx-1 flex-shrink-0"></div>
 
         <div class="d-flex align-items-center flex-shrink-0 gap-1">
-            <select class="form-select form-select-sm" id="teamFilterSelect" style="width: 120px;" title="Filter by Team">
-                <option value="">All Teams</option>
-                <!-- Populated dynamically -->
-            </select>
             <input type="text" id="taskTextSearch" class="form-control form-control-sm" placeholder="Filter tasks..." style="width: 150px;">
-            <input type="number" id="notCheckedDaysFilter" class="form-control form-control-sm" placeholder="Not checked > N days" style="width: 170px;" min="0">
         </div>
 
         <!-- Tag Filters Container -->
@@ -104,6 +97,13 @@
 
         <div class="d-flex align-items-center gap-1 flex-shrink-0" id="tagFiltersIconsContainer">
             <!-- Dynamically generated tag icons will appear here -->
+        </div>
+
+        <div class="d-flex align-items-center flex-shrink-0 gap-1 ms-1">
+            <select class="form-select form-select-sm" id="teamFilterSelect" style="width: 120px;" title="Filter by Team">
+                <option value="">All Teams</option>
+                <!-- Populated dynamically -->
+            </select>
         </div>
 
         <div class="d-flex align-items-center gap-1 ms-auto flex-shrink-0">
@@ -559,77 +559,7 @@
         </div>
     </div>
 
-    <!-- Tag Groups Modal -->
-    <div class="modal fade" id="tagGroupsModal" tabindex="-1" aria-labelledby="tagGroupsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="tagGroupsModalLabel">Configure Tag Groups</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-muted">Create groups of tags to easily apply them to tasks. These tags do not have colors and will not appear in the legend.</p>
-                    <div id="tagGroupsContainer">
-                        <!-- Tag groups injected here -->
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-primary mt-3" id="addTagGroupBtn">+ Add Tag Group</button>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveTagGroupsBtn">Save Tag Groups</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Legends Modal -->
-    <div class="modal fade" id="legendsModal" tabindex="-1" aria-labelledby="legendsModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="legendsModalLabel">Configure Task Legends</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <h6>Fill Colors</h6>
-                    <table class="table table-sm" id="fillLegendsTable">
-                        <thead>
-                            <tr>
-                                <th>Label</th>
-                                <th>Color</th>
-                                <th>Associated Tag</th>
-                                <th style="width: 80px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="fillLegendsTableBody">
-                            <!-- Fill Legends rows injected here -->
-                        </tbody>
-                    </table>
-                    <button type="button" class="btn btn-sm btn-outline-primary mb-4" id="addFillLegendRowBtn">+ Add Fill Legend</button>
-
-                    <h6>Border Colors</h6>
-                    <table class="table table-sm" id="borderLegendsTable">
-                        <thead>
-                            <tr>
-                                <th>Label</th>
-                                <th>Color</th>
-                                <th>Associated Tag</th>
-                                <th style="width: 80px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="borderLegendsTableBody">
-                            <!-- Border Legends rows injected here -->
-                        </tbody>
-                    </table>
-                    <button type="button" class="btn btn-sm btn-outline-primary" id="addBorderLegendRowBtn">+ Add Border Legend</button>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary" id="saveLegendsBtn">Save Legends</button>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <!-- Marker Management Modal -->
     <div class="modal fade" id="markerManagementModal" tabindex="-1" aria-labelledby="markerManagementModalLabel" aria-hidden="true">
@@ -847,14 +777,12 @@
                                 <li class="mb-2"><strong>➕/🗑️ Manage Rows:</strong> Hover over a row number in the chart to insert empty rows above or delete empty rows.</li>
                                 <li class="mb-2"><strong>📍 Manage Markers:</strong> Add, edit, or delete timeline markers.</li>
                                 <li class="mb-2"><strong>📋 Task List:</strong> View all tasks in a searchable list format.</li>
-                                <li class="mb-2"><strong>🎨 Legends:</strong> Customize task fill and border colors and map them to tags.</li>
-                                <li class="mb-2"><strong>🏷️ Tag Groups:</strong> Create and manage groups of tags to quickly apply multiple tags to tasks, or use them in Bulk Operations.</li>
                             </ul>
                         </div>
                         <div class="col-md-6 mb-4">
                             <h6 class="border-bottom pb-2">View & Filters</h6>
                             <ul class="list-unstyled">
-                                <li class="mb-2"><strong>👥 Filter Team:</strong> Select a specific team to filter tasks on the chart.</li>
+                                <li class="mb-2"><strong>👥 Filter Team:</strong> Select a specific team to filter tasks on the chart, now located next to the tag filters.</li>
                                 <li class="mb-2"><strong>🏷️ Filter Tags:</strong> Select specific tags to show or highlight in the chart.</li>
                                 <li class="mb-2"><strong>∪ / ∩ (Match Any/All):</strong> Determine if a task needs to match Any or All of the selected tags to be shown.</li>
                                 <li class="mb-2"><strong>👁️ / 🔦 (Show/Highlight):</strong> Choose whether non-matching tasks should be completely hidden (Show) or just faded out (Highlight).</li>
@@ -971,6 +899,12 @@
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="personnel-tab" data-bs-toggle="tab" data-bs-target="#settings-personnel" type="button" role="tab" aria-controls="settings-personnel" aria-selected="false">Personnel</button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="legends-tab" data-bs-toggle="tab" data-bs-target="#settings-legends" type="button" role="tab" aria-controls="settings-legends" aria-selected="false">Legends</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="taggroups-tab" data-bs-toggle="tab" data-bs-target="#settings-taggroups" type="button" role="tab" aria-controls="settings-taggroups" aria-selected="false">Tag Groups</button>
+                        </li>
                     </ul>
                     <div class="tab-content px-3" id="settingsTabsContent">
                         <div class="tab-pane fade show active" id="settings-general" role="tabpanel" aria-labelledby="general-tab">
@@ -1031,6 +965,46 @@
                                 <!-- Personnel rows will be dynamically injected here -->
                             </div>
                             <div class="form-text">Define key personnel and associate them with teams.</div>
+                        </div>
+                        <div class="tab-pane fade" id="settings-legends" role="tabpanel" aria-labelledby="legends-tab">
+                            <h6>Fill Colors</h6>
+                            <table class="table table-sm" id="fillLegendsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Label</th>
+                                        <th>Color</th>
+                                        <th>Associated Tag</th>
+                                        <th style="width: 80px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fillLegendsTableBody">
+                                    <!-- Fill Legends rows injected here -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-4" id="addFillLegendRowBtn">+ Add Fill Legend</button>
+
+                            <h6>Border Colors</h6>
+                            <table class="table table-sm" id="borderLegendsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Label</th>
+                                        <th>Color</th>
+                                        <th>Associated Tag</th>
+                                        <th style="width: 80px;"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="borderLegendsTableBody">
+                                    <!-- Border Legends rows injected here -->
+                                </tbody>
+                            </table>
+                            <button type="button" class="btn btn-sm btn-outline-primary" id="addBorderLegendRowBtn">+ Add Border Legend</button>
+                        </div>
+                        <div class="tab-pane fade" id="settings-taggroups" role="tabpanel" aria-labelledby="taggroups-tab">
+                            <p class="text-muted">Create groups of tags to easily apply them to tasks. These tags do not have colors and will not appear in the legend.</p>
+                            <div id="tagGroupsContainer">
+                                <!-- Tag groups injected here -->
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-3" id="addTagGroupBtn">+ Add Tag Group</button>
                         </div>
                     </div>
                 </div>

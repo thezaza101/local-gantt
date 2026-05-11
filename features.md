@@ -40,11 +40,9 @@ The application provides a comprehensive toolbar with various functionalities gr
 - **➕/🗑️ Manage Rows:** Hover over a row number in the chart to insert empty rows above or delete empty rows.
 - **📍 Manage Markers:** Add, edit, or delete timeline markers.
 - **📋 Task List:** View all tasks in a searchable list format.
-- **🎨 Legends:** Customize task fill and border colors and map them to tags.
-- **🏷️ Tag Groups:** Create and manage groups of tags to quickly apply multiple tags to tasks, or use them in Bulk Operations.
 
 ### View & Filters
-- **👥 Filter Team:** Select a specific team to filter tasks on the chart.
+- **👥 Filter Team:** Select a specific team to filter tasks on the chart, now located next to the tag filters.
 - **🏷️ Filter Tags:** Select specific tags to show or highlight in the chart.
 - **∪ / ∩ (Match Any/All):** Determine if a task needs to match Any or All of the selected tags to be shown.
 - **👁️ / 🔦 (Show/Highlight):** Choose whether non-matching tasks should be completely hidden (Show) or just faded out (Highlight).

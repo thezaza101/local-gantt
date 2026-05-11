@@ -578,14 +578,6 @@ class UI {
             });
         }
 
-        // Legends Button
-        const legendsBtn = document.getElementById("legendsBtn");
-        if (legendsBtn) {
-            legendsBtn.addEventListener("click", () => {
-                this.openLegendsModal();
-            });
-        }
-
         // Export CSV Button
         const exportCsvBtn = document.getElementById("exportCsvBtn");
         if (exportCsvBtn) {
@@ -892,13 +884,6 @@ class UI {
         }
 
         // Tag Groups Modals actions
-        const tagGroupsBtn = document.getElementById("tagGroupsBtn");
-        if (tagGroupsBtn) {
-            tagGroupsBtn.addEventListener("click", () => {
-                this.openTagGroupsModal();
-            });
-        }
-
         const addTagGroupBtn = document.getElementById("addTagGroupBtn");
         if (addTagGroupBtn) {
             addTagGroupBtn.addEventListener("click", () => {
@@ -907,33 +892,6 @@ class UI {
         }
 
         const saveTagGroupsBtn = document.getElementById("saveTagGroupsBtn");
-        if (saveTagGroupsBtn) {
-            saveTagGroupsBtn.addEventListener("click", () => {
-                this.saveTagGroups();
-            });
-        }
-
-        // Legends Modals actions
-        const addFillLegendRowBtn = document.getElementById("addFillLegendRowBtn");
-        if (addFillLegendRowBtn) {
-            addFillLegendRowBtn.addEventListener("click", () => {
-                this.addLegendRow('fill');
-            });
-        }
-
-        const addBorderLegendRowBtn = document.getElementById("addBorderLegendRowBtn");
-        if (addBorderLegendRowBtn) {
-            addBorderLegendRowBtn.addEventListener("click", () => {
-                this.addLegendRow('border');
-            });
-        }
-
-        const saveLegendsBtn = document.getElementById("saveLegendsBtn");
-        if (saveLegendsBtn) {
-            saveLegendsBtn.addEventListener("click", () => {
-                this.saveLegends();
-            });
-        }
 
         // Add Marker Button (For testing phase 3)
         const addMarkerBtn = document.getElementById("addMarkerBtn");
@@ -1308,13 +1266,6 @@ class UI {
 
         const teamFilterSelect = document.getElementById('teamFilterSelect');
         const team = teamFilterSelect ? teamFilterSelect.value : '';
-
-        const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
-        if (notCheckedDaysFilter) {
-            notCheckedDaysFilter.addEventListener('input', () => {
-                this.updateTagFiltersState();
-            });
-        }
     }
 
     openImportPlanOptionsModal(data) {
@@ -1811,6 +1762,27 @@ class UI {
             this.addPersonnelRow(person);
         });
 
+        const fillTbody = document.getElementById('fillLegendsTableBody');
+        fillTbody.innerHTML = '';
+        const fillLegends = this.planner.getFillLegends();
+        fillLegends.forEach(legend => {
+            this.addLegendRow('fill', legend);
+        });
+
+        const borderTbody = document.getElementById('borderLegendsTableBody');
+        borderTbody.innerHTML = '';
+        const borderLegends = this.planner.getBorderLegends();
+        borderLegends.forEach(legend => {
+            this.addLegendRow('border', legend);
+        });
+
+        const tagGroupsContainer = document.getElementById('tagGroupsContainer');
+        tagGroupsContainer.innerHTML = '';
+        const tagGroups = this.planner.getTagGroups();
+        tagGroups.forEach(group => {
+            this.addTagGroupCard(group);
+        });
+
         // Initialize adding buttons if not already initialized
         if (!this.settingsInitDone) {
             document.getElementById('addTeamBtn').addEventListener('click', () => {
@@ -1819,6 +1791,16 @@ class UI {
             document.getElementById('addPersonnelBtn').addEventListener('click', () => {
                 this.addPersonnelRow({ id: 'P' + Math.floor(10000 + Math.random() * 90000), name: '', role: '', notes: '', teams: [] });
             });
+            document.getElementById('addFillLegendRowBtn').addEventListener('click', () => {
+                this.addLegendRow('fill');
+            });
+            document.getElementById('addBorderLegendRowBtn').addEventListener('click', () => {
+                this.addLegendRow('border');
+            });
+            document.getElementById('addTagGroupBtn').addEventListener('click', () => {
+                this.addTagGroupCard();
+            });
+
             this.settingsInitDone = true;
         }
 
@@ -1989,6 +1971,10 @@ class UI {
         });
 
         this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays, trackerTruncateLength, trackerColumns });
+
+        this.saveTagGroups();
+        this.saveLegends();
+
         this.populateTeamSelects();
 
         if (window.TrackerEngine) window.TrackerEngine.render();
@@ -2027,15 +2013,11 @@ class UI {
         const teamFilterSelect = document.getElementById('teamFilterSelect');
         const team = teamFilterSelect ? teamFilterSelect.value : '';
 
-        const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
-        const notCheckedDays = notCheckedDaysFilter && notCheckedDaysFilter.value !== '' ? parseInt(notCheckedDaysFilter.value, 10) : null;
-
         this.planner.setFilterState({
             selectedTags,
             matchMode,
             visualMode,
             searchText,
-            notCheckedDays,
             team
         });
 
@@ -2789,27 +2771,6 @@ class UI {
         }
     }
 
-    openLegendsModal() {
-        const legendsModalEl = document.getElementById('legendsModal');
-        const legendsModal = bootstrap.Modal.getOrCreateInstance(legendsModalEl);
-
-        const fillTbody = document.getElementById('fillLegendsTableBody');
-        fillTbody.innerHTML = '';
-        const fillLegends = this.planner.getFillLegends();
-        fillLegends.forEach(legend => {
-            this.addLegendRow('fill', legend);
-        });
-
-        const borderTbody = document.getElementById('borderLegendsTableBody');
-        borderTbody.innerHTML = '';
-        const borderLegends = this.planner.getBorderLegends();
-        borderLegends.forEach(legend => {
-            this.addLegendRow('border', legend);
-        });
-
-        legendsModal.show();
-    }
-
     addLegendRow(type, legend = null) {
         const tbody = document.getElementById(type === 'fill' ? 'fillLegendsTableBody' : 'borderLegendsTableBody');
         const tr = document.createElement('tr');
@@ -2837,20 +2798,6 @@ class UI {
         }
 
         tbody.appendChild(tr);
-    }
-
-    openTagGroupsModal() {
-        const tagGroupsModalEl = document.getElementById('tagGroupsModal');
-        const tagGroupsModal = bootstrap.Modal.getOrCreateInstance(tagGroupsModalEl);
-
-        const container = document.getElementById('tagGroupsContainer');
-        container.innerHTML = '';
-        const tagGroups = this.planner.getTagGroups();
-        tagGroups.forEach(group => {
-            this.addTagGroupCard(group);
-        });
-
-        tagGroupsModal.show();
     }
 
     addTagGroupCard(group = null) {
@@ -2949,15 +2896,6 @@ class UI {
 
         if (!this.planner.file.settings) this.planner.file.settings = {};
         this.planner.file.settings.tagGroups = newTagGroups;
-
-        const tagGroupsModalEl = document.getElementById('tagGroupsModal');
-        const tagGroupsModal = bootstrap.Modal.getInstance(tagGroupsModalEl);
-        if (tagGroupsModal) {
-            tagGroupsModal.hide();
-        }
-
-        // Refresh UI so dropdowns correctly pick up changes
-        this.updateUI();
     }
 
     saveLegends() {
@@ -3010,12 +2948,6 @@ class UI {
         if (!this.planner.file.settings) this.planner.file.settings = {};
         this.planner.file.settings.fillLegends = newFillLegends;
         this.planner.file.settings.borderLegends = newBorderLegends;
-
-        const legendsModalEl = document.getElementById('legendsModal');
-        const legendsModal = bootstrap.Modal.getInstance(legendsModalEl);
-        if (legendsModal) {
-            legendsModal.hide();
-        }
     }
 
     escapeHtml(unsafe) {
@@ -3659,11 +3591,6 @@ class UI {
             teamFilterSelect.addEventListener('change', () => {
                 this.updateTagFiltersState();
             });
-        }
-
-        const notCheckedDaysFilter = document.getElementById('notCheckedDaysFilter');
-        if (notCheckedDaysFilter && filterState.notCheckedDays !== undefined) {
-            notCheckedDaysFilter.value = filterState.notCheckedDays !== null ? filterState.notCheckedDays : '';
         }
 
         if (uniqueTags.length === 0) {
