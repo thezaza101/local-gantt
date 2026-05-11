@@ -172,7 +172,7 @@ describe('Application Bootstrap (app.js)', () => {
         // Restore
         document.getElementById = safeGetElementById;
         window.isShareableMode = originalIsShareableMode;
-        cleanupMockElement('embedded-state');
+        mockEl.remove();
         document.body.classList.remove('shareable-mode');
         teardownMocks();
     });
