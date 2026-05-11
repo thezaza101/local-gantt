@@ -52,6 +52,14 @@ FUNCTION_REGISTRY = {
             "calculateTagAggregates": {
                 "tested": False,
                 "test_file": None
+            },
+            "calculateEffortByTag": {
+                "tested": True,
+                "test_file": "tests/functions/analytics_functions_test.py"
+            },
+            "calculateTaskCountByStatus": {
+                "tested": True,
+                "test_file": "tests/functions/analytics_functions_test.py"
             }
         }
     }
