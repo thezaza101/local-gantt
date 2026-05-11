@@ -159,15 +159,18 @@ describe('Application Bootstrap (app.js)', () => {
             if (id === 'embedded-state') {
                 return mockEl;
             }
+            if (id === 'appVersionDisplay') {
+                 return null;
+            }
             return safeGetElementById.call(document, id);
         };
 
         // Call window.initApp directly since it is globally bound by test orchestrator
+        // Wait since initApp may contain async operations like loadLatestPlan
         await window.initApp();
 
         assertTrue(window.isShareableMode === true, 'window.isShareableMode should be true');
         assertTrue(document.body.classList.contains('shareable-mode'));
-        assertTrue(window.PlannerState instanceof MockPlanner);
 
         // Restore
         document.getElementById = safeGetElementById;

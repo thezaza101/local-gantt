@@ -10,3 +10,4 @@ tests/helpers/__pycache__/
 tests/workflows/__pycache__/
 tests/functions/__pycache__/
 venv/
+node_modules/
