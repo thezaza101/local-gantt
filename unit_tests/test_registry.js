@@ -15,18 +15,26 @@
 const TEST_REGISTRY = {
     "planner.js": {
         tested: true,
-        notes: "Basic tests added for instantiation and adding tasks. Needs edge cases.",
+        notes: "Basic tests added for instantiation and adding tasks. Added coverage for core row and plan manipulation.",
         functions: {
             "Planner constructor": true,
             "addPlan": true,
             "addTask": true,
             "getTaskById": true,
             "calculateTotalEffort": true,
-            "deleteTask": false,
+            "deleteTask": true,
             "moveTaskToRow": false,
             "saveTask": false,
-            "calculatePlanDiff": false,
-            "applyPlanMerge": false
+            "updateTask": true,
+            "duplicateTask": true,
+            "insertRowBefore": true,
+            "deleteRow": true,
+            "addEntity": true,
+            "getEntityById": true,
+            "updateEntity": true,
+            "deleteEntity": true,
+            "calculatePlanDiff": true,
+            "applyPlanMerge": true
         }
     },
     "storage.js": {
