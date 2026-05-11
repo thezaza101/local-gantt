@@ -99,6 +99,12 @@ const TEST_REGISTRY = {
             "escapeHtml": true
         }
     },
+    "raida.js": {
+        tested: true,
+        notes: "Raida constructor and render function are tested. DOM interactions and planner were mocked.",
+        functions: {
+            "Raida constructor": true,
+            "render": true
     "tracker.js": {
         tested: true,
         notes: "DOM and planner interactions mocked to test Tracker functionality.",
