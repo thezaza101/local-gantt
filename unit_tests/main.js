@@ -251,6 +251,8 @@ const TEST_FILES = [
     'unit_tests/appjs/test_gantt.js',
     'unit_tests/appjs/test_graph.js',
     'unit_tests/appjs/test_raida.js'
+    'unit_tests/appjs/test_ui.js'
+    'unit_tests/appjs/test_tracker.js'
 ];
 
 window.onload = async () => {
