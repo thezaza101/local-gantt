@@ -113,6 +113,8 @@ const TEST_REGISTRY = {
         functions: {
             "Raida constructor": true,
             "render": true
+        }
+    },
     "tracker.js": {
         tested: true,
         notes: "DOM and planner interactions mocked to test Tracker functionality.",

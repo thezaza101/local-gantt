@@ -103,6 +103,49 @@ describe('RAIDA (raida.js)', () => {
         }
     });
 
+    test('Raida.render handles excluded task statuses for stale and upcoming tasks', () => {
+        const now = new Date();
+        const staleDateStr = new Date(now.getTime() - (10 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+        const upcomingDateStr = new Date(now.getTime() + (2 * 24 * 60 * 60 * 1000)).toISOString().split('T')[0];
+
+        const mockPlanner = createMockPlanner({
+            tasks: [
+                { id: 'T1', title: 'Stale Excluded', status: 'Completed', lastChecked: staleDateStr },
+                { id: 'T2', title: 'Stale Included', status: 'In progress', lastChecked: staleDateStr },
+                { id: 'T3', title: 'Upcoming Excluded', status: 'Removed', endDate: upcomingDateStr },
+                { id: 'T4', title: 'Upcoming Included', status: 'In progress', endDate: upcomingDateStr }
+            ]
+        });
+
+        // Add excluded statuses to settings
+        mockPlanner.getState = () => ({
+            settings: {
+                raidaOverdueDays: 14,
+                raidaStaleDays: 7,
+                raidaExcludeTaskStatuses: ['Completed', 'Removed']
+            },
+            plans: [{ id: 'plan-1', tasks: mockPlanner.getCurrentPlan().tasks }]
+        });
+
+        const raida = new Raida(mockPlanner);
+
+        const container = document.createElement('div');
+        container.id = 'raidaContent';
+        document.body.appendChild(container);
+
+        try {
+            raida.render();
+            const html = container.innerHTML;
+
+            assertFalse(html.includes('Stale Excluded'), 'Excluded stale task should not be rendered');
+            assertTrue(html.includes('Stale Included'), 'Included stale task should be rendered');
+            assertFalse(html.includes('Upcoming Excluded'), 'Excluded upcoming task should not be rendered');
+            assertTrue(html.includes('Upcoming Included'), 'Included upcoming task should be rendered');
+        } finally {
+            container.remove();
+        }
+    });
+
     test('Raida.render detects decisions blocking progress', () => {
         const mockPlanner = createMockPlanner({
             tasks: [{ id: 'TASK01', title: 'Blocked Task', fillColor: '#cccccc' }], // #cccccc is 'Not started'

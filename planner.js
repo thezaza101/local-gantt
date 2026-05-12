@@ -11,6 +11,7 @@ class Planner {
                 baseLink: "https://jira.company.com/browse/",
                 raidaOverdueDays: 14,
                 raidaStaleDays: 7,
+                raidaExcludeTaskStatuses: ['Completed', 'Removed'],
                 fillLegends: [
                     {
                         id: 'default_fill',
@@ -563,6 +564,9 @@ class Planner {
         }
         if (newSettings.raidaStaleDays !== undefined) {
             this.file.settings.raidaStaleDays = newSettings.raidaStaleDays;
+        }
+        if (newSettings.raidaExcludeTaskStatuses !== undefined) {
+            this.file.settings.raidaExcludeTaskStatuses = newSettings.raidaExcludeTaskStatuses;
         }
         if (newSettings.trackerTruncateLength !== undefined) {
             this.file.settings.trackerTruncateLength = newSettings.trackerTruncateLength;

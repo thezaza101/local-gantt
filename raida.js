@@ -13,6 +13,7 @@ class Raida {
         const settings = this.planner.getState().settings || {};
         const overdueDays = parseInt(settings.raidaOverdueDays) || 14;
         const staleDays = parseInt(settings.raidaStaleDays) || 7;
+        const excludedTaskStatuses = settings.raidaExcludeTaskStatuses || ['Completed', 'Removed'];
 
         const now = new Date();
         const overdueDateThreshold = new Date(now.getTime() + overdueDays * 24 * 60 * 60 * 1000);
@@ -140,11 +141,12 @@ class Raida {
 
         // 7. Tasks that have not been checked recently
         const staleTasks = [];
+        const upcomingTasks = [];
+
         tasks.forEach(t => {
-            // Check status of task based on color or tags? The prompt says "Tasks that have not been checked recently".
-            // Typically we ignore completed/removed tasks. Let's assume completed are out.
-            // But planner.js handles status colors.
-            // Let's just check lastChecked.
+            if (t.status && excludedTaskStatuses.includes(t.status)) return;
+
+            // Stale
             if (t.lastChecked) {
                 const d = new Date(t.lastChecked);
                 if (d <= staleDateThreshold) {
@@ -153,8 +155,17 @@ class Raida {
             } else {
                 staleTasks.push({ item: t, lastChecked: new Date(0) });
             }
+
+            // Upcoming deadlines
+            if (t.endDate) {
+                const ed = new Date(t.endDate);
+                if (ed <= overdueDateThreshold) {
+                    upcomingTasks.push({ item: t, date: ed, dateStr: t.endDate });
+                }
+            }
         });
         staleTasks.sort((a, b) => a.lastChecked - b.lastChecked);
+        upcomingTasks.sort((a, b) => a.date - b.date);
 
         // 8. Decisions blocking progress
         const blockingDecisions = [];
@@ -224,13 +235,26 @@ class Raida {
         const renderTrackerItem = (data) => {
             const {item, type, desc, dateStr} = data;
             let extra = '';
-            if (desc) extra = `<span class="badge bg-warning text-dark ms-2">${escapeHtml(desc)}</span>`;
-            if (dateStr) extra += ` <small class="text-danger ms-2">${escapeHtml(dateStr)}</small>`;
+            let reasonText = '';
+            if (desc) {
+                 extra = `<span class="badge bg-warning text-dark ms-2">${escapeHtml(desc)}</span>`;
+                 reasonText = desc;
+            }
+            if (dateStr) {
+                extra += ` <small class="text-danger ms-2">${escapeHtml(dateStr)}</small>`;
+                reasonText += reasonText ? ` | ${dateStr}` : dateStr;
+            }
+            const safeTitle = escapeHtml(item.title || item.id);
+            const safeReason = escapeHtml(reasonText);
+
             return `
                 <li class="list-group-item list-group-item-action cursor-pointer d-flex justify-content-between align-items-center" onclick="if(window.TrackerEngine) window.TrackerEngine.openEditModal('${type}', '${item.id}')" style="cursor: pointer;">
-                    <div>
-                        <strong>[${escapeHtml(item.id)}]</strong> ${getTitle(item)}
-                        ${extra}
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" class="form-check-input mt-0 raida-copy-checkbox" data-id="${escapeHtml(item.id)}" data-title="${safeTitle}" data-reason="${safeReason}" onclick="event.stopPropagation()">
+                        <div>
+                            <strong>[${escapeHtml(item.id)}]</strong> ${getTitle(item)}
+                            ${extra}
+                        </div>
                     </div>
                     <span class="badge bg-light text-dark border">${type.toUpperCase()}</span>
                 </li>
@@ -255,11 +279,34 @@ class Raida {
         createSection('Tasks not checked recently', staleTasks, (data) => {
             const t = data.item;
             const dateStr = data.lastChecked.getTime() === 0 ? 'Never' : data.lastChecked.toISOString().split('T')[0];
+            const reason = `Last checked: ${dateStr}`;
+            const safeTitle = escapeHtml(t.title || t.id);
             return `
                 <li class="list-group-item list-group-item-action cursor-pointer d-flex justify-content-between align-items-center" onclick="if(window.UIController) window.UIController.openTaskModal('${t.id}')" style="cursor: pointer;">
-                    <div>
-                        <strong>[${escapeHtml(t.id)}]</strong> ${getTitle(t)}
-                        <span class="badge bg-warning text-dark ms-2">Last checked: ${dateStr}</span>
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" class="form-check-input mt-0 raida-copy-checkbox" data-id="${escapeHtml(t.id)}" data-title="${safeTitle}" data-reason="${escapeHtml(reason)}" onclick="event.stopPropagation()">
+                        <div>
+                            <strong>[${escapeHtml(t.id)}]</strong> ${getTitle(t)}
+                            <span class="badge bg-warning text-dark ms-2">${reason}</span>
+                        </div>
+                    </div>
+                    <span class="badge bg-light text-dark border">TASK</span>
+                </li>
+            `;
+        });
+
+        createSection('Tasks with upcoming deadlines', upcomingTasks, (data) => {
+            const t = data.item;
+            const reason = `End date: ${data.dateStr}`;
+            const safeTitle = escapeHtml(t.title || t.id);
+            return `
+                <li class="list-group-item list-group-item-action cursor-pointer d-flex justify-content-between align-items-center" onclick="if(window.UIController) window.UIController.openTaskModal('${t.id}')" style="cursor: pointer;">
+                    <div class="d-flex align-items-center gap-2">
+                        <input type="checkbox" class="form-check-input mt-0 raida-copy-checkbox" data-id="${escapeHtml(t.id)}" data-title="${safeTitle}" data-reason="${escapeHtml(reason)}" onclick="event.stopPropagation()">
+                        <div>
+                            <strong>[${escapeHtml(t.id)}]</strong> ${getTitle(t)}
+                            <small class="text-danger ms-2">${reason}</small>
+                        </div>
                     </div>
                     <span class="badge bg-light text-dark border">TASK</span>
                 </li>

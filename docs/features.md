@@ -59,5 +59,6 @@ It highlights:
 - Items with no associated tasks
 - Recently auto-created dependencies
 - Decisions blocking progress
+- Tasks with upcoming deadlines
 
-It respects the Global/Plan scope filter and is configurable through the Global Settings.
+It respects the Global/Plan scope filter and is configurable through the Global Settings. Users can exclude specific task statuses (e.g., "Completed", "Removed") from appearing in the Task-related sections. Additionally, users can use the "Copy Selected" button to quickly copy selected RAIDA summary items to their clipboard for sharing.
