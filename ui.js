@@ -33,6 +33,59 @@ class UI {
         const openRaidaBtn = document.getElementById("openRaidaBtn");
         const closeRaidaBtn = document.getElementById("closeRaidaBtn");
 
+        const copyRaidaSelectedBtn = document.getElementById("copyRaidaSelectedBtn");
+        if (copyRaidaSelectedBtn) {
+            copyRaidaSelectedBtn.addEventListener("click", () => {
+                const checkboxes = document.querySelectorAll('.raida-copy-checkbox:checked');
+                if (checkboxes.length === 0) {
+                    alert("No items selected to copy.");
+                    return;
+                }
+
+                let copyText = '';
+                checkboxes.forEach(cb => {
+                    const id = cb.getAttribute('data-id');
+                    const title = cb.getAttribute('data-title');
+                    const reason = cb.getAttribute('data-reason');
+                    copyText += `[${id}] ${title}`;
+                    if (reason) {
+                        copyText += ` - ${reason}`;
+                    }
+                    copyText += '\n';
+                });
+
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(copyText).then(() => {
+                        const originalText = copyRaidaSelectedBtn.textContent;
+                        copyRaidaSelectedBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyRaidaSelectedBtn.textContent = originalText;
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy text: ', err);
+                        alert('Failed to copy to clipboard.');
+                    });
+                } else {
+                    // Fallback
+                    const textArea = document.createElement("textarea");
+                    textArea.value = copyText;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    try {
+                        document.execCommand('copy');
+                        const originalText = copyRaidaSelectedBtn.textContent;
+                        copyRaidaSelectedBtn.textContent = 'Copied!';
+                        setTimeout(() => {
+                            copyRaidaSelectedBtn.textContent = originalText;
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Fallback copy failed', err);
+                    }
+                    document.body.removeChild(textArea);
+                }
+            });
+        }
+
         const toggleView = (viewName) => {
             const views = {
                 'tracker': { container: trackerContainer, btn: openTrackerBtn, openLogic: () => { trackerContainer.style.display = "flex"; trackerContainer.style.setProperty("display", "flex", "important"); if (window.TrackerEngine) { window.TrackerEngine.render(); } }, closeLogic: () => { trackerContainer.style.display = "none"; trackerContainer.classList.remove("d-flex"); trackerContainer.style.setProperty("display", "none", "important"); } },
@@ -1698,6 +1751,24 @@ class UI {
         if (raidaOverdueInput) raidaOverdueInput.value = settings.raidaOverdueDays !== undefined ? settings.raidaOverdueDays : 14;
         if (raidaStaleInput) raidaStaleInput.value = settings.raidaStaleDays !== undefined ? settings.raidaStaleDays : 7;
 
+        const raidaExcludeStatusesSelect = document.getElementById('settingsRaidaExcludeStatuses');
+        if (raidaExcludeStatusesSelect) {
+            raidaExcludeStatusesSelect.innerHTML = '';
+            const statusColors = this.planner.getStatusColors ? this.planner.getStatusColors() : {};
+            const statuses = Object.keys(statusColors);
+            const excludedStatuses = settings.raidaExcludeTaskStatuses || ['Completed', 'Removed'];
+
+            statuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                if (excludedStatuses.includes(status)) {
+                    option.selected = true;
+                }
+                raidaExcludeStatusesSelect.appendChild(option);
+            });
+        }
+
         const trackerSettings = this.planner.getTrackerSettings();
         const truncateLengthInput = document.getElementById('settingsTrackerTruncateLength');
         if (truncateLengthInput) truncateLengthInput.value = trackerSettings.truncateLength;
@@ -1916,6 +1987,9 @@ class UI {
         const raidaOverdueDays = raidaOverdueInput ? parseInt(raidaOverdueInput.value) || 14 : 14;
         const raidaStaleDays = raidaStaleInput ? parseInt(raidaStaleInput.value) || 7 : 7;
 
+        const raidaExcludeStatusesSelect = document.getElementById('settingsRaidaExcludeStatuses');
+        const raidaExcludeTaskStatuses = raidaExcludeStatusesSelect ? Array.from(raidaExcludeStatusesSelect.selectedOptions).map(opt => opt.value) : ['Completed', 'Removed'];
+
         const truncateLengthInput = document.getElementById('settingsTrackerTruncateLength');
         const trackerTruncateLength = truncateLengthInput ? parseInt(truncateLengthInput.value) || 50 : 50;
 
@@ -1970,7 +2044,7 @@ class UI {
             }
         });
 
-        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays, trackerTruncateLength, trackerColumns });
+        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays, raidaExcludeTaskStatuses, trackerTruncateLength, trackerColumns });
 
         this.saveTagGroups();
         this.saveLegends();

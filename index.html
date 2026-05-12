@@ -189,6 +189,7 @@
              <div class="raida-header d-flex justify-content-between align-items-center p-2 border-bottom bg-light">
                  <h6 class="m-0 text-dark fw-bold" id="raidaTitle">RAIDA Summary</h6>
                  <div class="d-flex align-items-center gap-2">
+                     <button type="button" class="btn btn-sm btn-outline-primary" id="copyRaidaSelectedBtn" title="Copy Selected to Clipboard">📋 Copy Selected</button>
                      <select class="form-select form-select-sm" id="raidaScopeFilter" style="width: 150px;" onchange="if(window.RaidaEngine) window.RaidaEngine.render()">
                          <option value="all">Global (All Plans)</option>
                          <option value="plan">Current Plan Only</option>
@@ -795,6 +796,7 @@
                                 <li class="mb-2"><strong>D, W, F, M (Zoom):</strong> Adjust the timeline scale to Daily, Weekly, Fortnightly, or Monthly views.</li>
                                 <li class="mb-2"><strong>⏱️ Effort/Day:</strong> Toggle the display of calculated daily effort values within the timeline grid.</li>
                                 <li class="mb-2"><strong>🚩 ⛳ 📝 (Markers):</strong> Toggle the visibility of Major, Minor, and Note markers respectively.</li>
+                                <li class="mb-2"><strong>💡 RAIDA:</strong> Open the full-screen summary for tracking overdue and stale items.</li>
                                 <li class="mb-2"><strong>📊 Analytics:</strong> Open the full-screen Analytics dashboard.</li>
                                 <li class="mb-2"><strong>📺 Presenter Mode:</strong> Hide the toolbar for a cleaner, presentation-ready view.</li>
                             </ul>
@@ -922,6 +924,13 @@
                                         <label for="settingsRaidaStaleDays" class="form-label">RAIDA Not Checked Recently Window (Days)</label>
                                         <input type="number" class="form-control" id="settingsRaidaStaleDays" value="7" min="0">
                                     </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="settingsRaidaExcludeStatuses" class="form-label">Task Statuses to Exclude from Tasks Section</label>
+                                    <select multiple class="form-select" id="settingsRaidaExcludeStatuses" size="4">
+                                        <!-- Populated via JS -->
+                                    </select>
+                                    <div class="form-text">Tasks with these statuses will be ignored in the 'Tasks not checked recently' and 'Upcoming Task Deadlines' lists. Hold Ctrl/Cmd to select multiple.</div>
                                 </div>
                             </form>
                         </div>
