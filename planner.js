@@ -50,6 +50,8 @@ class Planner {
             selectedTeams: []
         };
 
+        this.changeLog = [];
+
         // UI View State (Not saved to file)
         this.zoomLevel = 'daily'; // 'daily', 'weekly', 'fortnight', 'monthly'
         this.showDependencies = false;
@@ -558,6 +560,7 @@ class Planner {
         task.lastChecked = nowStr;
 
         plan.tasks.push(task);
+        this.logChange('Added Task', 'task', task.id, task.title);
         return true;
     }
 
@@ -624,7 +627,11 @@ class Planner {
             updatedTask.lastUpdated = nowStr;
             updatedTask.lastChecked = nowStr;
 
+            const differences = this.getDifferences(plan.tasks[taskIndex], updatedTask);
             plan.tasks[taskIndex] = updatedTask;
+            if (differences.length > 0) {
+                this.logChange('Updated Task', 'task', taskId, updatedTask.title, differences);
+            }
             return true;
         }
         return false;
@@ -657,6 +664,7 @@ class Planner {
     addEntity(type, entity) {
         if (!this.file[type]) this.file[type] = [];
         this.file[type].push(entity);
+        this.logChange('Added Entity', type, entity.id, entity.title || entity.description || 'N/A');
         return true;
     }
 
@@ -664,7 +672,11 @@ class Planner {
         if (!this.file[type]) return false;
         const index = this.file[type].findIndex(e => e.id === id);
         if (index !== -1) {
+            const differences = this.getDifferences(this.file[type][index], updatedEntity);
             this.file[type][index] = updatedEntity;
+            if (differences.length > 0) {
+                this.logChange('Updated Entity', type, id, updatedEntity.title || updatedEntity.description || 'N/A', differences);
+            }
             return true;
         }
         return false;
@@ -674,7 +686,8 @@ class Planner {
         if (!this.file[type]) return false;
         const index = this.file[type].findIndex(e => e.id === id);
         if (index !== -1) {
-            this.file[type].splice(index, 1);
+            const deletedEntity = this.file[type].splice(index, 1)[0];
+            this.logChange('Deleted Entity', type, deletedEntity.id, deletedEntity.title || deletedEntity.description || 'N/A');
             return true;
         }
         return false;
@@ -683,6 +696,65 @@ class Planner {
     getEntityById(type, id) {
         if (!this.file[type]) return null;
         return this.file[type].find(e => e.id === id) || null;
+    }
+
+
+    logChange(action, type, id, title, differences = null) {
+        const timestamp = this.getNowTimestamp();
+        let planName = 'Global';
+
+        // Try to get plan name
+        const state = this.getState();
+        if (state.plans && state.currentPlanId) {
+            const currentPlan = state.plans.find(p => p.id === state.currentPlanId);
+            if (currentPlan) planName = currentPlan.name;
+        }
+
+        let diffStr = '';
+        if (differences && differences.length > 0) {
+            diffStr = ' - ' + differences.map(d => `[${d.attribute}]: [${d.from}] -> [${d.to}]`).join(', ');
+        }
+
+        const logEntry = `[${timestamp}] - [${planName}] - [${id}] - ${title} - ${action}${diffStr}`;
+        this.changeLog.push(logEntry);
+
+        try {
+            if (window.UIController && window.UIController.renderChangeLog) {
+                window.UIController.renderChangeLog();
+            }
+        } catch (e) {
+            console.error("Error in logChange render:", e);
+        }
+    }
+
+    getDifferences(oldObj, newObj, ignoredFields = ['lastUpdated', 'lastChecked']) {
+        const differences = [];
+        const allKeys = new Set([...Object.keys(oldObj || {}), ...Object.keys(newObj || {})]);
+
+        allKeys.forEach(key => {
+            if (ignoredFields.includes(key)) return;
+
+            const oldVal = oldObj ? oldObj[key] : undefined;
+            const newVal = newObj ? newObj[key] : undefined;
+
+            if (JSON.stringify(oldVal) !== JSON.stringify(newVal)) {
+                differences.push({
+                    attribute: key,
+                    from: typeof oldVal === 'object' ? JSON.stringify(oldVal) : oldVal,
+                    to: typeof newVal === 'object' ? JSON.stringify(newVal) : newVal
+                });
+            }
+        });
+
+        return differences;
+    }
+
+    getChangeLog() {
+        return this.changeLog;
+    }
+
+    clearChangeLog() {
+        this.changeLog = [];
     }
 
     getNowTimestamp() {
@@ -703,7 +775,8 @@ class Planner {
 
         const taskIndex = plan.tasks.findIndex(t => t.id === taskId);
         if (taskIndex !== -1) {
-            plan.tasks.splice(taskIndex, 1);
+            const deletedTask = plan.tasks.splice(taskIndex, 1)[0];
+            this.logChange('Deleted Task', 'task', deletedTask.id, deletedTask.title);
             return true;
         }
         return false;
@@ -1076,6 +1149,7 @@ class Planner {
     }
 
     loadState(newState) {
+        this.clearChangeLog();
         if (newState && newState.meta && newState.plans) {
             this.file = newState;
 
