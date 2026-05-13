@@ -906,6 +906,7 @@
                         </li>
                         <li class="nav-item" role="presentation">
                             <button class="nav-link" id="taggroups-tab" data-bs-toggle="tab" data-bs-target="#settings-taggroups" type="button" role="tab" aria-controls="settings-taggroups" aria-selected="false">Tag Groups</button>
+                            <button class="nav-link" id="changelog-tab" data-bs-toggle="tab" data-bs-target="#settings-changelog" type="button" role="tab" aria-controls="settings-changelog" aria-selected="false">Change Log</button>
                         </li>
                     </ul>
                     <div class="tab-content px-3" id="settingsTabsContent">
@@ -1014,6 +1015,13 @@
                                 <!-- Tag groups injected here -->
                             </div>
                             <button type="button" class="btn btn-sm btn-outline-primary mt-3" id="addTagGroupBtn">+ Add Tag Group</button>
+                        </div>
+                        <div class="tab-pane fade" id="settings-changelog" role="tabpanel" aria-labelledby="changelog-tab">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <p class="text-muted mb-0">Unsaved changes made to the current plan during this session.</p>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="copyChangeLogBtn">Copy Selected/All</button>
+                            </div>
+                            <textarea id="changeLogTextArea" class="form-control font-monospace" style="height: 300px; resize: vertical;" readonly></textarea>
                         </div>
                     </div>
                 </div>

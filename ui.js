@@ -9,6 +9,7 @@ class UI {
     }
 
     bindEvents() {
+        this.initChangeLog();
         const analyticsContainer = document.getElementById("analyticsContainer");
         const openAnalyticsBtn = document.getElementById("openAnalyticsBtn");
         const closeAnalyticsBtn = document.getElementById("closeAnalyticsBtn");
@@ -1739,6 +1740,7 @@ class UI {
     }
 
     openSettingsModal() {
+        this.renderChangeLog();
         const settingsModalEl = document.getElementById('settingsModal');
         const settingsModal = bootstrap.Modal.getOrCreateInstance(settingsModalEl);
         const baseLinkInput = document.getElementById('settingsBaseLink');
@@ -3457,6 +3459,48 @@ class UI {
             tempElement.remove();
             alert("Failed to export legend image.");
         });
+    }
+
+
+    renderChangeLog() {
+        const changeLogTextArea = document.getElementById('changeLogTextArea');
+        if (changeLogTextArea && this.planner) {
+            const logs = (this.planner.getChangeLog && typeof this.planner.getChangeLog === 'function') ? this.planner.getChangeLog() : [];
+            changeLogTextArea.value = (logs || []).join('\n');
+            changeLogTextArea.scrollTop = changeLogTextArea.scrollHeight;
+        }
+    }
+
+    initChangeLog() {
+        const copyBtn = document.getElementById('copyChangeLogBtn');
+        const textArea = document.getElementById('changeLogTextArea');
+
+        if (copyBtn && textArea) {
+            copyBtn.addEventListener('click', () => {
+                let textToCopy = '';
+                if (textArea.selectionStart !== textArea.selectionEnd) {
+                    textToCopy = textArea.value.substring(textArea.selectionStart, textArea.selectionEnd);
+                } else {
+                    textToCopy = textArea.value;
+                }
+
+                if (!textToCopy) {
+                    alert('No changes to copy.');
+                    return;
+                }
+
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = 'Copied!';
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy change log: ', err);
+                    alert('Failed to copy to clipboard.');
+                });
+            });
+        }
     }
 
     updateUI() {
