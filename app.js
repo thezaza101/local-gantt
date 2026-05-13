@@ -1,7 +1,7 @@
 /* Application Bootstrap */
 
-const APP_VERSION = "78";
-const APP_DATE = "2026-04-29";
+const APP_VERSION = "119";
+const APP_DATE = "2026-05-14";
 window.APP_VERSION = APP_VERSION;
 
 window.checkFileVersionWarning = function(data) {
