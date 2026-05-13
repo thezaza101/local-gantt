@@ -47,7 +47,7 @@ class Planner {
             matchMode: 'any', // 'any' or 'all'
             visualMode: 'show', // 'show' or 'highlight'
             searchText: '',
-            team: ''
+            selectedTeams: []
         };
 
         // UI View State (Not saved to file)
@@ -335,11 +335,26 @@ class Planner {
         const plan = this.getCurrentPlan();
         if (!plan || !plan.tasks) return false;
 
+        const teams = this.getTeams();
+        const newTeamObj = teams.find(t => t.id === team || t === team);
+        const newTeamName = typeof newTeamObj === 'string' ? newTeamObj : (newTeamObj ? newTeamObj.name : team);
+
         let changed = false;
         plan.tasks.forEach(task => {
             if (task.isMarked && task.team !== team) {
+                const oldTeamObj = teams.find(t => t.id === task.team || t === task.team);
+                const oldTeamName = typeof oldTeamObj === 'string' ? oldTeamObj : (oldTeamObj ? oldTeamObj.name : task.team);
+
                 task.team = team;
                 changed = true;
+
+                if (!task.tags) task.tags = [];
+                if (oldTeamName) {
+                    task.tags = task.tags.filter(t => t !== oldTeamName);
+                }
+                if (newTeamName && !task.tags.includes(newTeamName)) {
+                    task.tags.push(newTeamName);
+                }
             }
         });
         return changed;

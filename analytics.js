@@ -44,17 +44,19 @@ class Analytics {
             }
         }
 
-        // Apply Team Filter
-        const activeTeam = this.filterState.team;
-        if (activeTeam) {
-            filtered = filtered.filter(task => task.team === activeTeam);
-        }
+        // Apply Tag & Team Filters
+        const hasTagFilter = this.filterState.selectedTags && this.filterState.selectedTags.length > 0;
+        const hasTeamFilter = this.filterState.selectedTeams && this.filterState.selectedTeams.length > 0;
 
-        // Apply Tag Filter (OR logic)
-        if (this.filterState.selectedTags && this.filterState.selectedTags.length > 0) {
+        if (hasTagFilter || hasTeamFilter) {
             filtered = filtered.filter(task => {
-                const taskTags = (task.tags || []).map(t => t.trim()).filter(t => t);
-                return this.filterState.selectedTags.some(tag => taskTags.includes(tag));
+                return this.taskMatchesTags(
+                    task,
+                    this.filterState.selectedTags || [],
+                    this.filterState.matchMode || 'any',
+                    '', // search text already handled above
+                    this.filterState.selectedTeams || []
+                );
             });
         }
 
@@ -126,7 +128,7 @@ class Analytics {
      * @param {string} matchMode 'any' (OR) or 'all' (AND).
      * @returns {boolean} True if the task matches, false otherwise.
      */
-    taskMatchesTags(task, selectedTags, matchMode = 'any', searchText = '') {
+    taskMatchesTags(task, selectedTags, matchMode = 'any', searchText = '', selectedTeams = []) {
         // First check text search if provided
         if (searchText) {
             const term = searchText.toLowerCase();
@@ -137,23 +139,41 @@ class Analytics {
             }
         }
 
-        if (!selectedTags || selectedTags.length === 0) {
-            // If no tags are selected, by default we show everything or nothing?
-            // Usually, no filters = show everything.
+        const taskTags = (task.tags || []).map(t => t.trim()).filter(t => t);
+
+        // Handle Teams Filter (OR condition for teams: task must have at least one team tag if teams are selected)
+        let teamMatch = true;
+        if (selectedTeams && selectedTeams.length > 0) {
+            const plannerTeams = this.planner && this.planner.getTeams ? this.planner.getTeams() : [];
+            const selectedTeamNames = selectedTeams.map(tId => {
+                const teamObj = plannerTeams.find(t => t.id === tId || t === tId);
+                return typeof teamObj === 'string' ? teamObj : (teamObj ? teamObj.name : tId);
+            });
+            teamMatch = selectedTeamNames.some(teamName => taskTags.includes(teamName));
+        }
+
+        // Handle Tags Filter
+        let tagMatch = true;
+        if (selectedTags && selectedTags.length > 0) {
+            if (matchMode === 'any') {
+                tagMatch = selectedTags.some(tag => taskTags.includes(tag));
+            } else if (matchMode === 'all') {
+                tagMatch = selectedTags.every(tag => taskTags.includes(tag));
+            }
+        }
+
+        // If neither selected, everything matches
+        if ((!selectedTags || selectedTags.length === 0) && (!selectedTeams || selectedTeams.length === 0)) {
             return true;
         }
 
-        const taskTags = (task.tags || []).map(t => t.trim()).filter(t => t);
-
-        if (matchMode === 'any') {
-            // OR condition: task must have at least one of the selected tags
-            return selectedTags.some(tag => taskTags.includes(tag));
-        } else if (matchMode === 'all') {
-            // AND condition: task must have ALL of the selected tags
-            return selectedTags.every(tag => taskTags.includes(tag));
+        // If both are selected, task must match BOTH the team condition AND the tag condition
+        if ((selectedTags && selectedTags.length > 0) && (selectedTeams && selectedTeams.length > 0)) {
+            return teamMatch && tagMatch;
         }
 
-        return true;
+        // Otherwise return whichever was active
+        return (selectedTeams && selectedTeams.length > 0) ? teamMatch : tagMatch;
     }
 
     /**
@@ -299,7 +319,9 @@ class Analytics {
     calculateDemandCapacity(plan, filteredTasks) {
         if (!plan || !window.CapacityEngine) return [];
 
-        const activeTeam = this.filterState.team;
+        // For DemandCapacity summary, active team filtering usually looks at a specific team.
+        // If multiple teams are selected, we might pass undefined or handle it. Let's pass the first one or null.
+        const activeTeam = (this.filterState.selectedTeams && this.filterState.selectedTeams.length === 1) ? this.filterState.selectedTeams[0] : null;
         const capacityData = window.CapacityEngine.calculateExpandedCapacity(plan, activeTeam);
 
         // We need to calculate demand using ONLY the filtered tasks.
@@ -635,24 +657,8 @@ class Analytics {
         }
         tagFilterHtml += `</div>`;
 
-        // Team filter dropdown
-        const allTeams = this.planner.getTeams ? this.planner.getTeams() : [];
-        let teamOptions = `<option value="">All Teams</option>`;
-        allTeams.forEach(t => {
-            const tId = typeof t === 'string' ? t : t.id;
-            const tName = typeof t === 'string' ? t : t.name;
-            const selected = this.filterState.team === tId ? 'selected' : '';
-            teamOptions += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
-        });
-
         const filterBarHtml = `
             <div class="analytics-filters d-flex justify-content-between align-items-center flex-wrap p-3 mb-3 bg-white border-bottom shadow-sm rounded gap-3">
-                <div class="d-flex align-items-center">
-                    <span class="fw-bold text-muted small me-2">Team:</span>
-                    <select class="form-select form-select-sm" id="analyticsTeamFilter" style="width: 150px;">
-                        ${teamOptions}
-                    </select>
-                </div>
                 <div class="d-flex align-items-center flex-wrap flex-grow-1" id="analyticsTagFiltersContainer">
                     <span class="fw-bold text-muted small me-2">Tags:</span>
                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" id="analyticsSelectAllTagsBtn" style="font-size: 0.75rem;">All</button>
@@ -907,12 +913,7 @@ class Analytics {
             });
         }
 
-        const teamFilterSelect = document.getElementById('analyticsTeamFilter');
-        if (teamFilterSelect) {
-            teamFilterSelect.addEventListener('change', (e) => {
-                this.updateFilterState();
-            });
-        }
+
     }
 
     /**
@@ -927,16 +928,12 @@ class Analytics {
 
         const startDateInput = document.getElementById('analyticsStartDate');
         const endDateInput = document.getElementById('analyticsEndDate');
-        const teamFilterSelect = document.getElementById('analyticsTeamFilter');
 
         if (startDateInput) {
             this.filterState.startDate = startDateInput.value;
         }
         if (endDateInput) {
             this.filterState.endDate = endDateInput.value;
-        }
-        if (teamFilterSelect) {
-            this.filterState.team = teamFilterSelect.value;
         }
 
         // Re-render

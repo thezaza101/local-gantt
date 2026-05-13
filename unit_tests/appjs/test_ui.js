@@ -110,7 +110,6 @@ describe('UI Controller (ui.js)', () => {
         const originalPlannerState = window.PlannerState;
         let container = null;
         let taskTextSearch = null;
-        let teamFilterSelect = null;
 
         try {
             // Setup DOM
@@ -122,19 +121,12 @@ describe('UI Controller (ui.js)', () => {
             taskTextSearch.id = 'taskTextSearch';
             document.body.appendChild(taskTextSearch);
 
-            teamFilterSelect = document.createElement('select');
-            teamFilterSelect.id = 'teamFilterSelect';
-            const teamOption = document.createElement('option');
-            teamOption.value = 'Team A';
-            teamFilterSelect.appendChild(teamOption);
-            document.body.appendChild(teamFilterSelect);
-
             // Mock dependencies
             window.AnalyticsEngine = {
                 getUniqueTags: () => ['Dev', 'QA']
             };
 
-            let filterState = { searchText: 'test', team: 'Team A', selectedTags: ['Dev'] };
+            let filterState = { searchText: 'test', selectedTeams: ['T001'], selectedTags: ['Dev'] };
             window.PlannerState = {
                 getFilterState: () => filterState,
                 setFilterState: (newState) => { Object.assign(filterState, newState); },
@@ -142,6 +134,7 @@ describe('UI Controller (ui.js)', () => {
                 getFillLegends: () => [{tag: 'Dev', color: '#ff0000'}],
                 getBorderLegends: () => [{tag: 'QA', color: '#00ff00'}],
                 getTagGroups: () => [],
+                getTeams: () => [{id: 'T001', name: 'Team Alpha'}],
                 settings: { tagGroups: [] }
             };
 
@@ -152,7 +145,6 @@ describe('UI Controller (ui.js)', () => {
 
             // Verify inputs are updated
             assertEqual(taskTextSearch.value, 'test', 'Search text input should be updated');
-            assertEqual(teamFilterSelect.value, 'Team A', 'Team filter select should be updated');
 
             // Verify dropdown is rendered
             const dropdownBtn = container.querySelector('#tagFilterDropdown');
@@ -167,11 +159,15 @@ describe('UI Controller (ui.js)', () => {
 
             assertTrue(qaCheckbox !== null, 'QA checkbox should exist');
             assertFalse(qaCheckbox.checked, 'QA checkbox should not be checked');
+
+            // Verify Team Alpha is checked
+            const teamCheckbox = container.querySelector('#teamFilter_T001');
+            assertTrue(teamCheckbox !== null, 'Team checkbox should exist');
+            assertTrue(teamCheckbox.checked, 'Team Alpha checkbox should be checked');
         } finally {
             // Cleanup
             if (container && container.parentNode) document.body.removeChild(container);
             if (taskTextSearch && taskTextSearch.parentNode) document.body.removeChild(taskTextSearch);
-            if (teamFilterSelect && teamFilterSelect.parentNode) document.body.removeChild(teamFilterSelect);
 
             window.AnalyticsEngine = originalAnalyticsEngine;
             window.PlannerState = originalPlannerState;

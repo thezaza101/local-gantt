@@ -1278,7 +1278,7 @@ class UI {
         const tagFiltersContainer = document.getElementById('tagFiltersContainer');
         if (tagFiltersContainer) {
             tagFiltersContainer.addEventListener('change', (e) => {
-                if (e.target.matches('.tag-checkbox')) {
+                if (e.target.matches('.tag-checkbox') || e.target.matches('.team-tag-checkbox')) {
                     this.updateTagFiltersState();
                 }
             });
@@ -1317,8 +1317,7 @@ class UI {
             });
         }
 
-        const teamFilterSelect = document.getElementById('teamFilterSelect');
-        const team = teamFilterSelect ? teamFilterSelect.value : '';
+        // teamFilterSelect logic removed
     }
 
     openImportPlanOptionsModal(data) {
@@ -2084,15 +2083,14 @@ class UI {
         const taskTextSearch = document.getElementById('taskTextSearch');
         const searchText = taskTextSearch ? taskTextSearch.value : '';
 
-        const teamFilterSelect = document.getElementById('teamFilterSelect');
-        const team = teamFilterSelect ? teamFilterSelect.value : '';
+        const selectedTeams = Array.from(container.querySelectorAll('.team-tag-checkbox:checked')).map(cb => cb.value);
 
         this.planner.setFilterState({
             selectedTags,
             matchMode,
             visualMode,
             searchText,
-            team
+            selectedTeams
         });
 
         if (window.GanttEngine) {
@@ -2164,6 +2162,30 @@ class UI {
                 existingTags.push(cb.value);
             }
         });
+
+        const newTeam = document.getElementById('taskTeam').value;
+        const teams = this.planner.getTeams ? this.planner.getTeams() : [];
+
+        let oldTeamName = null;
+        if (originalTaskId) {
+            const originalTask = this.planner.getTaskById(originalTaskId);
+            if (originalTask && originalTask.team) {
+                const oldTeamObj = teams.find(t => t.id === originalTask.team || t === originalTask.team);
+                oldTeamName = typeof oldTeamObj === 'string' ? oldTeamObj : (oldTeamObj ? oldTeamObj.name : originalTask.team);
+            }
+        }
+
+        if (oldTeamName) {
+            existingTags = existingTags.filter(t => t !== oldTeamName);
+        }
+
+        if (newTeam) {
+            const newTeamObj = teams.find(t => t.id === newTeam || t === newTeam);
+            const newTeamName = typeof newTeamObj === 'string' ? newTeamObj : (newTeamObj ? newTeamObj.name : newTeam);
+            if (newTeamName && !existingTags.includes(newTeamName)) {
+                existingTags.push(newTeamName);
+            }
+        }
 
         if (originalTaskId) {
             const originalTask = this.planner.getTaskById(originalTaskId);
@@ -3551,17 +3573,7 @@ class UI {
         const teams = this.planner.getTeams ? this.planner.getTeams() : [];
         const personnel = this.planner.getPersonnel ? this.planner.getPersonnel() : [];
 
-        const teamFilterSelect = document.getElementById('teamFilterSelect');
-        if (teamFilterSelect) {
-            const currentFilter = this.planner.getFilterState().team || '';
-            teamFilterSelect.innerHTML = '<option value="">All Teams</option>';
-            teams.forEach(t => {
-                const tId = typeof t === 'string' ? t : t.id;
-                const tName = typeof t === 'string' ? t : t.name;
-                const selected = tId === currentFilter ? 'selected' : '';
-                teamFilterSelect.innerHTML += `<option value="${this.escapeHtml(tId)}" ${selected}>${this.escapeHtml(tName)}</option>`;
-            });
-        }
+        // teamFilterSelect removed
 
         const taskTeamSelect = document.getElementById('taskTeam');
         if (taskTeamSelect) {
@@ -3655,16 +3667,6 @@ class UI {
         const taskTextSearch = document.getElementById('taskTextSearch');
         if (taskTextSearch && filterState.searchText !== undefined) {
             taskTextSearch.value = filterState.searchText;
-        }
-
-        const teamFilterSelect = document.getElementById('teamFilterSelect');
-        if (teamFilterSelect && filterState.team !== undefined) {
-            teamFilterSelect.value = filterState.team;
-        }
-        if (teamFilterSelect) {
-            teamFilterSelect.addEventListener('change', () => {
-                this.updateTagFiltersState();
-            });
         }
 
         if (uniqueTags.length === 0) {
@@ -3818,6 +3820,40 @@ class UI {
 
         for (const [groupName, items] of Object.entries(groupedTags.groups)) {
             html += renderTagGroup(groupName, items);
+        }
+
+        // Render Teams specifically to use .team-tag-checkbox and special select all/none logic
+        const teams = this.planner.getTeams ? this.planner.getTeams() : [];
+        if (teams.length > 0) {
+            let teamHtml = `<li><h6 class="dropdown-header border-bottom mb-1 pb-1 text-uppercase fw-bold d-flex justify-content-between align-items-center">
+                <span>Teams</span>
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="document.querySelectorAll('.team-tag-checkbox').forEach(cb => cb.checked = true); window.UIController.updateTagFiltersState();" title="Select All Teams">✓</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-1" onclick="document.querySelectorAll('.team-tag-checkbox').forEach(cb => cb.checked = false); window.UIController.updateTagFiltersState();" title="Deselect All Teams">✗</button>
+                </div>
+            </h6></li>`;
+
+            teams.forEach(t => {
+                const tId = typeof t === 'string' ? t : t.id;
+                const tName = typeof t === 'string' ? t : t.name;
+                const isChecked = filterState.selectedTeams && filterState.selectedTeams.includes(tId) ? 'checked' : '';
+                const safeTIdAttr = tId.replace(/"/g, '&quot;');
+                const safeTNameText = escapeHtml(tName);
+
+                teamHtml += `
+                    <li>
+                        <div class="dropdown-item d-flex align-items-center py-1">
+                            <div class="form-check m-0 d-flex align-items-center w-100">
+                                <input class="form-check-input team-tag-checkbox me-2" type="checkbox" id="teamFilter_${safeTIdAttr}" value="${safeTIdAttr}" ${isChecked}>
+                                <label class="form-check-label small w-100 d-flex align-items-center" for="teamFilter_${safeTIdAttr}" style="cursor: pointer;">
+                                    ${safeTNameText}
+                                </label>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            });
+            html += teamHtml;
         }
 
         html += renderTagGroup('Custom Tags', groupedTags.custom);
