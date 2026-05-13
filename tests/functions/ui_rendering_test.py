@@ -68,7 +68,7 @@ def test_render_tag_filters(page: Page, base_url: str):
 
     custom_state = {
         "meta": {"fileVersion": 1, "history": []},
-        "settings": {"teams": [], "personnel": [], "tagGroups": []},
+        "settings": {"teams": [{"id": "T001", "name": "Team Alpha"}], "personnel": [], "tagGroups": []},
         "plans": [{
             "id": "Plan-1", "name": "Plan", "isActive": True,
             "tasks": [
@@ -87,3 +87,5 @@ def test_render_tag_filters(page: Page, base_url: str):
     # Should show frontend and backend as labels
     expect(container).to_contain_text("frontend")
     expect(container).to_contain_text("backend")
+    # Should show Team Alpha
+    expect(container).to_contain_text("Team Alpha")
