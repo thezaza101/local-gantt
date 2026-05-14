@@ -250,11 +250,11 @@ class GraphView {
     }
 
     updatePhysics() {
-        // Increase optimal distance 'k' significantly to account for wider nodes (220px width)
-        const k = Math.max(250, Math.sqrt((this.canvas.width * this.canvas.height) / (this.nodes.length || 1)));
-        const REPULSION = 80000; // Drastically increase base repulsion
-        const ATTRACTION = 0.02; // Lower attraction to allow nodes to spread
-        const DAMPING = 0.80;
+        // Reduced optimal distance to bring nodes closer
+        const k = Math.max(150, Math.sqrt((this.canvas.width * this.canvas.height) / (this.nodes.length || 1)));
+        const REPULSION = 20000; // Decrease base repulsion so they don't fly apart
+        const ATTRACTION = 0.08; // Increase attraction to pull together
+        const DAMPING = 0.60; // Lower damping (more friction) to settle quickly and prevent jumping
 
         // Repulsive forces
         for (let i = 0; i < this.nodes.length; i++) {
@@ -270,12 +270,12 @@ class GraphView {
                 // Base repulsion
                 let force = REPULSION / (dist * dist);
 
-                // Add extreme rigid collision avoidance if they overlap or get too close
-                const minDistanceX = ((node1.width || 220) + (node2.width || 220)) / 2 + 40; // 40px padding
-                const minDistanceY = ((node1.height || 60) + (node2.height || 60)) / 2 + 40;
+                // Add soft rigid collision avoidance if they overlap or get too close
+                const minDistanceX = ((node1.width || 220) + (node2.width || 220)) / 2 + 20; // 20px padding
+                const minDistanceY = ((node1.height || 60) + (node2.height || 60)) / 2 + 20;
 
                 if (Math.abs(dx) < minDistanceX && Math.abs(dy) < minDistanceY) {
-                    force += 1000; // Strong push when overlapping bounding boxes
+                    force += 150; // Softer push when overlapping bounding boxes
                 }
 
                 const fx = (dx / dist) * force;
@@ -324,6 +324,12 @@ class GraphView {
             } else {
                 node.vx *= DAMPING;
                 node.vy *= DAMPING;
+
+                // Cap maximum velocity to prevent jumping
+                const MAX_VELOCITY = 20;
+                node.vx = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, node.vx));
+                node.vy = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, node.vy));
+
                 node.x += node.vx;
                 node.y += node.vy;
             }
