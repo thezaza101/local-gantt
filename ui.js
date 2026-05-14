@@ -1925,29 +1925,33 @@ class UI {
         row.className = 'card mb-2 personnel-row';
         row.dataset.id = person.id;
 
-        // Dynamically build the team selection dropdown based on currently visible team rows
-        // If not saved yet, we just read from the DOM what teams are currently defined
-        const teamRows = document.querySelectorAll('.team-row');
-        let optionsHtml = '';
-        teamRows.forEach(tr => {
-            const teamId = tr.dataset.id;
-            const teamName = tr.querySelector('.team-name').value.trim();
-            if (teamName) {
-                const selected = person.teams && person.teams.includes(teamId) ? 'selected' : '';
-                optionsHtml += `<option value="${this.escapeHtml(teamId)}" ${selected}>${this.escapeHtml(teamName)}</option>`;
-            }
-        });
-        // Also add options from saved state if they aren't in DOM yet (e.g. if loaded before teams)
-        // A better approach is to use this.planner.getTeams() as the source of truth, but we need to account for unsaved changes in the modal.
-        // For simplicity, we can just map over planner.getTeams() and allow re-render on save.
-
         let teamOptionsHtml = '';
         const savedTeams = this.planner.getTeams();
-        savedTeams.forEach(t => {
-            const tObj = typeof t === 'string' ? { id: t, name: t } : t;
-            const selected = person.teams && person.teams.includes(tObj.id) ? 'selected' : '';
-            teamOptionsHtml += `<option value="${this.escapeHtml(tObj.id)}" ${selected}>${this.escapeHtml(tObj.name)}</option>`;
-        });
+
+        if (savedTeams.length === 0) {
+            teamOptionsHtml = '<li><span class="dropdown-item-text text-muted small">No teams configured</span></li>';
+        } else {
+            savedTeams.forEach(t => {
+                const tObj = typeof t === 'string' ? { id: t, name: t } : t;
+                const isSelected = person.teams && person.teams.includes(tObj.id);
+                const checked = isSelected ? 'checked' : '';
+                const safeId = this.escapeHtml(tObj.id);
+                const safeName = this.escapeHtml(tObj.name);
+
+                teamOptionsHtml += `
+                    <li>
+                        <div class="dropdown-item d-flex align-items-center py-1">
+                            <div class="form-check m-0 w-100">
+                                <input class="form-check-input person-team-checkbox" type="checkbox" id="personTeam_${this.escapeHtml(person.id)}_${safeId}" value="${safeId}" ${checked}>
+                                <label class="form-check-label small w-100" for="personTeam_${this.escapeHtml(person.id)}_${safeId}" style="cursor: pointer;">
+                                    ${safeName}
+                                </label>
+                            </div>
+                        </div>
+                    </li>
+                `;
+            });
+        }
 
         row.innerHTML = `
             <div class="card-body py-2 px-3 d-flex align-items-start gap-2">
@@ -1959,9 +1963,14 @@ class UI {
                         <input type="text" class="form-control form-control-sm person-role" placeholder="Role" value="${this.escapeHtml(person.role || '')}">
                     </div>
                     <div class="col-3">
-                        <select class="form-select form-select-sm person-teams" multiple title="Select Teams (Hold Ctrl/Cmd)">
-                            ${teamOptionsHtml}
-                        </select>
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary btn-sm dropdown-toggle w-100 text-start bg-white text-dark border" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" title="Select Teams">
+                                Select Teams...
+                            </button>
+                            <ul class="dropdown-menu w-100 p-0 shadow-sm person-teams-dropdown" style="max-height: 200px; overflow-y: auto;">
+                                ${teamOptionsHtml}
+                            </ul>
+                        </div>
                     </div>
                     <div class="col-3">
                         <input type="text" class="form-control form-control-sm person-notes" placeholder="Notes" value="${this.escapeHtml(person.notes || '')}">
@@ -2031,8 +2040,10 @@ class UI {
             const name = row.querySelector('.person-name').value.trim();
             const role = row.querySelector('.person-role').value.trim();
             const notes = row.querySelector('.person-notes').value.trim();
-            const teamSelect = row.querySelector('.person-teams');
-            const selectedTeams = Array.from(teamSelect.selectedOptions).map(opt => opt.value);
+
+            const selectedTeams = [];
+            const teamCheckboxes = row.querySelectorAll('.person-team-checkbox:checked');
+            teamCheckboxes.forEach(cb => selectedTeams.push(cb.value));
 
             if (name) {
                 personnel.push({

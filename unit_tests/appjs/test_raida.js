@@ -3,6 +3,10 @@ describe('RAIDA (raida.js)', () => {
     // Helper to generate a mock planner
     const createMockPlanner = (mockData = {}) => {
         return {
+            getNowTimestamp: () => {
+                const now = new Date();
+                return now.toISOString().replace('T', ' ').substring(0, 19);
+            },
             getState: () => ({
                 settings: {
                     raidaOverdueDays: 14,
