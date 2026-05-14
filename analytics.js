@@ -310,6 +310,101 @@ class Analytics {
     }
 
     /**
+     * Gets all Tracker items (Risks, Issues, Dependencies, Assumptions, Decisions)
+     * that belong to the current plan or are global (planId is null/empty).
+     * @param {Object} plan The current plan
+     * @returns {Object} Object containing arrays of ridad items
+     */
+    getScopeTrackerItems(plan) {
+        if (!this.planner) return { risks: [], issues: [], dependencies: [], assumptions: [], decisions: [] };
+
+        const planId = plan ? plan.id : null;
+        const isScopeMatch = (item) => !item.planId || item.planId === planId;
+
+        return {
+            risks: (this.planner.getRisks() || []).filter(isScopeMatch),
+            issues: (this.planner.getIssues() || []).filter(isScopeMatch),
+            dependencies: (this.planner.getDependencies() || []).filter(isScopeMatch),
+            assumptions: (this.planner.getAssumptions() || []).filter(isScopeMatch),
+            decisions: (this.planner.getDecisions() || []).filter(isScopeMatch)
+        };
+    }
+
+    /**
+     * Calculates RAIDA item counts by type (Risk, Issue, etc.).
+     * @param {Object} plan The current plan
+     * @returns {Object} Data object { labels: [...], values: [...] }
+     */
+    calculateRaidaCountsByType(plan) {
+        const items = this.getScopeTrackerItems(plan);
+        return {
+            labels: ['Risks', 'Issues', 'Dependencies', 'Assumptions', 'Decisions'],
+            values: [
+                items.risks.length,
+                items.issues.length,
+                items.dependencies.length,
+                items.assumptions.length,
+                items.decisions.length
+            ]
+        };
+    }
+
+    /**
+     * Calculates RAIDA item counts grouped by status.
+     * @param {Object} plan The current plan
+     * @returns {Object} Data object for Status breakdown
+     */
+    calculateRaidaCountsByStatus(plan) {
+        const items = this.getScopeTrackerItems(plan);
+        const data = {
+            risks: {},
+            issues: {},
+            dependencies: {},
+            assumptions: {},
+            decisions: {}
+        };
+
+        const countStatuses = (arr, target) => {
+            arr.forEach(item => {
+                const status = item.status || 'None';
+                target[status] = (target[status] || 0) + 1;
+            });
+        };
+
+        countStatuses(items.risks, data.risks);
+        countStatuses(items.issues, data.issues);
+        countStatuses(items.dependencies, data.dependencies);
+        countStatuses(items.assumptions, data.assumptions);
+        countStatuses(items.decisions, data.decisions);
+
+        // Collect all unique statuses
+        const allStatuses = new Set();
+        Object.values(data).forEach(typeObj => {
+            Object.keys(typeObj).forEach(status => allStatuses.add(status));
+        });
+
+        const sortedStatuses = Array.from(allStatuses).sort();
+
+        const datasets = [];
+        const types = ['risks', 'issues', 'dependencies', 'assumptions', 'decisions'];
+        const typeLabels = ['Risks', 'Issues', 'Dependencies', 'Assumptions', 'Decisions'];
+        const typeColors = ['#ff6b6b', '#fcc419', '#339af0', '#cc5de8', '#20c997']; // specific colors for types
+
+        types.forEach((type, idx) => {
+            datasets.push({
+                label: typeLabels[idx],
+                backgroundColor: typeColors[idx],
+                data: sortedStatuses.map(status => data[type][status] || 0)
+            });
+        });
+
+        return {
+            labels: sortedStatuses,
+            datasets: datasets
+        };
+    }
+
+    /**
      * Calculates Demand vs Capacity summary.
      * Combines data from CapacityEngine and filters tasks to calculate demand.
      * @param {Object} plan - The plan data model
@@ -695,6 +790,10 @@ class Analytics {
         // Calculate Demand/Capacity using FILTERED tasks
         const demandCapacityData = this.calculateDemandCapacity(plan, filteredTasks);
 
+        // Calculate RAIDA Chart Data
+        const raidaCountsByTypeData = this.calculateRaidaCountsByType(plan);
+        const raidaCountsByStatusData = this.calculateRaidaCountsByStatus(plan);
+
         // Build UI Framework
         container.innerHTML = `
             <div class="container-fluid p-0">
@@ -752,6 +851,35 @@ class Analytics {
                             <div class="card-body d-flex flex-column justify-content-center align-items-center">
                                 <div style="width: 80%; height: 250px; position: relative;">
                                     <canvas id="chartEffortByType"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RAIDA Charts -->
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-muted">RAIDA Items by Type</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="raidaCountsByType" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
+                            </div>
+                            <div class="card-body d-flex flex-column align-items-center">
+                                <div style="width: 100%; height: 180px; position: relative;">
+                                    <canvas id="chartRaidaCountsByType"></canvas>
+                                </div>
+                                ${this.renderTaskCountTable(raidaCountsByTypeData)}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 col-lg-8">
+                        <div class="card h-100 shadow-sm">
+                            <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
+                                <h6 class="mb-0 text-muted">RAIDA Items by Status</h6>
+                                <button class="btn btn-sm btn-link text-muted p-0 export-chart-btn" data-chart-id="raidaCountsByStatus" title="Export Chart to Image" style="text-decoration: none;">⬇️</button>
+                            </div>
+                            <div class="card-body d-flex flex-column">
+                                <div style="height: 200px; position: relative;">
+                                    <canvas id="chartRaidaCountsByStatus"></canvas>
                                 </div>
                             </div>
                         </div>
@@ -839,9 +967,72 @@ class Analytics {
             this.renderChartEffortByType(effortByTypeData);
             this.renderChartTagEffortOverTime(tagEffortOverTimeData);
             this.renderChartCapacityVsDemand(demandCapacityData);
+            this.renderChartRaidaCountsByType(raidaCountsByTypeData);
+            this.renderChartRaidaCountsByStatus(raidaCountsByStatusData);
 
             this.bindExportEvents();
         }, 0);
+    }
+
+    renderChartRaidaCountsByType(data) {
+        const ctx = document.getElementById('chartRaidaCountsByType');
+        if (!ctx || !data.labels) return;
+
+        const typeColors = ['#ff6b6b', '#fcc419', '#339af0', '#cc5de8', '#20c997'];
+
+        this.charts['raidaCountsByType'] = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: data.labels,
+                datasets: [{
+                    data: data.values,
+                    backgroundColor: typeColors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    }
+                }
+            }
+        });
+    }
+
+    renderChartRaidaCountsByStatus(data) {
+        const ctx = document.getElementById('chartRaidaCountsByStatus');
+        if (!ctx || !data.labels || data.labels.length === 0) return;
+
+        this.charts['raidaCountsByStatus'] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: data.labels,
+                datasets: data.datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                        labels: { boxWidth: 12, font: { size: 11 } }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                }
+            }
+        });
     }
 
     /**
