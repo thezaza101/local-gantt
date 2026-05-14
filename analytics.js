@@ -319,7 +319,7 @@ class Analytics {
         if (!this.planner) return { risks: [], issues: [], dependencies: [], assumptions: [], decisions: [] };
 
         const planId = plan ? plan.id : null;
-        const isScopeMatch = (item) => !item.planId || item.planId === planId;
+        const isScopeMatch = (item) => !item.planId || item.planId === planId || item.planId === 'global';
 
         return {
             risks: (this.planner.getRisks() || []).filter(isScopeMatch),
@@ -721,16 +721,6 @@ class Analytics {
                 delete this.charts[key];
             }
         });
-
-        if (!plan || !plan.tasks || plan.tasks.length === 0) {
-            container.innerHTML = `
-                <div class="text-center text-muted">
-                    <h5>Analytics Panel</h5>
-                    <p class="small">Add tasks to see analytics.</p>
-                </div>
-            `;
-            return;
-        }
 
         // Generate UI for Analytics Filters
         const uniqueTags = this.getUniqueTags();
