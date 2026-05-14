@@ -371,5 +371,10 @@ class Raida {
         });
 
         container.innerHTML = html;
+
+        const toggleBtn = document.getElementById('toggleRaidaCollapseBtn');
+        if (toggleBtn) {
+            toggleBtn.textContent = '↕ Collapse All';
+        }
     }
 }
