@@ -391,7 +391,7 @@ class Tracker {
                 <div class="col-md-4 mb-2"><label class="form-label">Status</label><select class="form-select" id="trackerStatus"><option value="">None</option><option value="Open">Open</option><option value="Mitigated">Mitigated</option><option value="Accepted">Accepted</option><option value="Closed">Closed</option></select></div>
                 <div class="col-md-6 mb-2"><label class="form-label">Mitigation Plan</label><textarea class="form-control" id="riskMitigationPlan" rows="2"></textarea></div>
                 <div class="col-md-6 mb-2"><label class="form-label">Trigger Indicators</label><textarea class="form-control" id="riskTriggerIndicators" rows="2"></textarea></div>
-                <div class="col-md-6 mb-2"><label class="form-label">Risk Owner</label><input type="text" class="form-control" id="riskOwner"></div>
+                <div class="col-md-6 mb-2"><label class="form-label">Risk Owner</label><input type="text" class="form-control" id="riskOwner" list="personnelDatalist"></div>
                 <div class="col-md-6 mb-2"><label class="form-label">Due Date for Mitigation</label><input type="date" class="form-control" id="riskDueDate"></div>
             `;
         } else if (type === 'issues') {
@@ -401,7 +401,7 @@ class Tracker {
                 <div class="col-md-4 mb-2"><label class="form-label">Target Resolution Date</label><input type="date" class="form-control" id="issueTargetDate"></div>
                 <div class="col-md-6 mb-2"><label class="form-label">Business Impact</label><textarea class="form-control" id="issueBusinessImpact" rows="2"></textarea></div>
                 <div class="col-md-6 mb-2"><label class="form-label">Workaround</label><textarea class="form-control" id="issueWorkaround" rows="2"></textarea></div>
-                <div class="col-md-12 mb-2"><label class="form-label">Escalation Owner</label><input type="text" class="form-control" id="issueEscalationOwner"></div>
+                <div class="col-md-12 mb-2"><label class="form-label">Escalation Owner</label><input type="text" class="form-control" id="issueEscalationOwner" list="personnelDatalist"></div>
             `;
         } else if (type === 'dependencies') {
             html = `
@@ -485,7 +485,7 @@ class Tracker {
         } else if (type === 'decisions') {
             html = `
                 <div class="col-md-4 mb-2"><label class="form-label">Status</label><select class="form-select" id="trackerStatus"><option value="">None</option><option value="Pending">Pending</option><option value="In Progress">In Progress</option><option value="Made">Made</option><option value="Deferred">Deferred</option></select></div>
-                <div class="col-md-4 mb-2"><label class="form-label">Decision Owner</label><input type="text" class="form-control" id="decOwner"></div>
+                <div class="col-md-4 mb-2"><label class="form-label">Decision Owner</label><input type="text" class="form-control" id="decOwner" list="personnelDatalist"></div>
                 <div class="col-md-4 mb-2"><label class="form-label">Deadline</label><input type="date" class="form-control" id="decDeadline"></div>
                 <div class="col-md-6 mb-2"><label class="form-label">Options</label><textarea class="form-control" id="decOptions" rows="2"></textarea></div>
                 <div class="col-md-6 mb-2"><label class="form-label">Recommendation</label><textarea class="form-control" id="decRecommendation" rows="2"></textarea></div>

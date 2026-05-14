@@ -3622,9 +3622,25 @@ class UI {
         }
     }
 
+    populatePersonnelDatalist() {
+        const personnelDatalist = document.getElementById('personnelDatalist');
+        if (!personnelDatalist) return;
+
+        const personnel = this.planner.getPersonnel ? this.planner.getPersonnel() : [];
+        personnelDatalist.innerHTML = '';
+
+        personnel.forEach(p => {
+            const option = document.createElement('option');
+            option.value = p.name;
+            personnelDatalist.appendChild(option);
+        });
+    }
+
     populateTeamSelects() {
         const teams = this.planner.getTeams ? this.planner.getTeams() : [];
         const personnel = this.planner.getPersonnel ? this.planner.getPersonnel() : [];
+
+        this.populatePersonnelDatalist();
 
         // teamFilterSelect removed
 
