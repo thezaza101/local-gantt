@@ -2147,7 +2147,7 @@ class UI {
         const taskNotes = document.getElementById('taskNotes').value || '';
 
         let existingTags = document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
-        let dependencies = document.getElementById('taskDependencies').value.split(',').map(dep => dep.trim()).filter(dep => dep);
+        let dependencies = Array.from(document.querySelectorAll('.task-taskdeps-assoc-checkbox:checked')).map(cb => cb.value);
 
         // Remove old tags belonging to the groups so we can add the newly checked ones
         const tagGroups = this.planner.getTagGroups();
@@ -2529,6 +2529,41 @@ class UI {
             endMarkerDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted">No vertical markers</span></li>';
         }
 
+        // Setup Task Predecessor Checkboxes
+        const populateTaskPredecessorCheckboxes = () => {
+            const container = document.getElementById('taskTaskDepsList');
+            if (!container) return;
+            container.innerHTML = '';
+
+            const currentPlan = this.planner.getCurrentPlan();
+            if (!currentPlan || !currentPlan.tasks) {
+                container.innerHTML = `<span class="text-muted small">No tasks available</span>`;
+                return;
+            }
+
+            const tasks = currentPlan.tasks;
+            if (tasks.length === 0 || (tasks.length === 1 && tasks[0].id === taskId)) {
+                container.innerHTML = `<span class="text-muted small">No other tasks available</span>`;
+                return;
+            }
+
+            tasks.forEach(taskItem => {
+                if (taskItem.id === taskId) return; // Exclude self
+
+                const div = document.createElement('div');
+                div.className = 'form-check';
+                div.innerHTML = `
+                    <input class="form-check-input task-taskdeps-assoc-checkbox" type="checkbox" value="${this.escapeHtml(taskItem.id)}" id="ttcb_taskdeps_${this.escapeHtml(taskItem.id)}">
+                    <label class="form-check-label text-truncate d-block" for="ttcb_taskdeps_${this.escapeHtml(taskItem.id)}" title="${this.escapeHtml(taskItem.title || '')}">
+                        [${this.escapeHtml(taskItem.id)}] ${this.escapeHtml(taskItem.title || '')}
+                    </label>
+                `;
+                container.appendChild(div);
+            });
+        };
+
+        populateTaskPredecessorCheckboxes();
+
         // Setup Tracker Checkboxes
         const populateTrackerCheckboxes = (type, containerId) => {
             const container = document.getElementById(containerId);
@@ -2589,7 +2624,11 @@ class UI {
                 // Don't show the status tag in the "Tags" input field to avoid duplication
                 const tagsToDisplay = (task.tags || []).filter(t => !task.status || t.toLowerCase() !== task.status.toLowerCase());
                 document.getElementById('taskTags').value = tagsToDisplay.join(', ');
-                document.getElementById('taskDependencies').value = (task.dependencies || []).join(', ');
+
+                const taskDepsCheckboxes = document.querySelectorAll('.task-taskdeps-assoc-checkbox');
+                taskDepsCheckboxes.forEach(cb => {
+                    cb.checked = (task.dependencies || []).includes(cb.value);
+                });
 
                 document.getElementById('taskTeam').value = task.team || '';
 
@@ -2642,7 +2681,6 @@ class UI {
             document.getElementById('taskId').readOnly = false;
             document.getElementById('originalTaskId').value = '';
             document.getElementById('taskStatus').value = '';
-            document.getElementById('taskDependencies').value = '';
             document.getElementById('taskTeam').value = '';
             const personnelCheckboxes = document.querySelectorAll('.task-personnel-checkbox');
             personnelCheckboxes.forEach(cb => cb.checked = false);

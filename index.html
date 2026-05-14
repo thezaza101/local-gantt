@@ -508,8 +508,8 @@
                                         </ul>
                                         <div class="tab-content border rounded p-2 bg-white" id="taskTrackerTabsContent" style="min-height: 100px; max-height: 200px; overflow-y: auto;">
                                             <div class="tab-pane fade" id="task-taskdeps-pane" role="tabpanel">
-                                                <label for="taskDependencies" class="form-label small text-muted">Dependencies (comma-separated Task IDs)</label>
-                                                <input type="text" class="form-control form-control-sm" id="taskDependencies" placeholder="e.g. TASK-101, TASK-102">
+                                                <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search task predecessors..." data-target="taskTaskDepsList">
+                                                <div id="taskTaskDepsList" class="tracker-checkbox-list"></div>
                                             </div>
                                             <div class="tab-pane fade show active" id="task-risks-pane" role="tabpanel">
                                                 <input type="text" class="form-control form-control-sm mb-2 task-tracker-search" placeholder="Search risks..." data-target="taskRisksList">
