@@ -433,7 +433,9 @@ Outputs structured data used by graphs.
           "tags": ["backend", "security"],
           "team": "T00001",
           "personnel": ["P00001"],
-          "effort": {"design": 3, "dev": 8, "test": 4}
+          "effort": {"design": 3, "dev": 8, "test": 4},
+          "followUpDate": "2026-01-20",
+          "notes": "Need to confirm auth provider."
         }
       ]
     }

@@ -167,7 +167,31 @@ class Raida {
         staleTasks.sort((a, b) => a.lastChecked - b.lastChecked);
         upcomingTasks.sort((a, b) => a.date - b.date);
 
-        // 8. Decisions blocking progress
+        // 8. Follow-up reminders
+        const followUpItems = [];
+        const todayStr = this.planner.getNowTimestamp().split(' ')[0]; // YYYY-MM-DD
+
+        const checkFollowUp = (item, type) => {
+            if (item.status === 'Closed' || item.status === 'Resolved' || item.status === 'Completed' || item.status === 'Removed') return;
+            if (item.followUpDate && item.followUpDate <= todayStr) {
+                followUpItems.push({item, type});
+            }
+        };
+
+        risks.forEach(r => checkFollowUp(r, 'risks'));
+        issues.forEach(i => checkFollowUp(i, 'issues'));
+        deps.forEach(d => checkFollowUp(d, 'dependencies'));
+        assump.forEach(a => checkFollowUp(a, 'assumptions'));
+        decisions.forEach(d => checkFollowUp(d, 'decisions'));
+        tasks.forEach(t => checkFollowUp(t, 'tasks'));
+
+        followUpItems.sort((a, b) => {
+            if (a.item.followUpDate < b.item.followUpDate) return -1;
+            if (a.item.followUpDate > b.item.followUpDate) return 1;
+            return 0;
+        });
+
+        // 9. Decisions blocking progress
         const blockingDecisions = [];
         decisions.forEach(d => {
             if (d.status === 'Pending' || d.status === 'Deferred') {
@@ -314,6 +338,32 @@ class Raida {
         });
 
         createSection('Decisions blocking progress', blockingDecisions, renderTrackerItem);
+
+        createSection('Follow up reminders', followUpItems, (data) => {
+            const {item, type} = data;
+            const dateStr = item.followUpDate;
+            const desc = item.notes ? `Notes: ${item.notes}` : '';
+
+            if (type === 'tasks') {
+                const safeTitle = escapeHtml(item.title || item.id);
+                const reason = `Follow-up: ${dateStr}${desc ? ' | ' + desc : ''}`;
+                return `
+                    <li class="list-group-item list-group-item-action cursor-pointer d-flex justify-content-between align-items-center" onclick="if(window.UIController) window.UIController.openTaskModal('${item.id}')" style="cursor: pointer;">
+                        <div class="d-flex align-items-center gap-2">
+                            <input type="checkbox" class="form-check-input mt-0 raida-copy-checkbox" data-id="${escapeHtml(item.id)}" data-title="${safeTitle}" data-reason="${escapeHtml(reason)}" onclick="event.stopPropagation()">
+                            <div>
+                                <strong>[${escapeHtml(item.id)}]</strong> ${getTitle(item)}
+                                <small class="text-danger ms-2">Follow-up: ${dateStr}</small>
+                                ${desc ? `<span class="badge bg-info text-dark ms-2">${escapeHtml(desc)}</span>` : ''}
+                            </div>
+                        </div>
+                        <span class="badge bg-light text-dark border">TASK</span>
+                    </li>
+                `;
+            } else {
+                return renderTrackerItem({item, type, desc, dateStr: `Follow-up: ${dateStr}`});
+            }
+        });
 
         container.innerHTML = html;
     }

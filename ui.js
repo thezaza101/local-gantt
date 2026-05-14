@@ -2143,6 +2143,8 @@ class UI {
 
         const originalTaskId = document.getElementById('originalTaskId').value;
         const taskStatus = document.getElementById('taskStatus').value;
+        const taskFollowUpDate = document.getElementById('taskFollowUpDate').value || null;
+        const taskNotes = document.getElementById('taskNotes').value || '';
 
         let existingTags = document.getElementById('taskTags').value.split(',').map(tag => tag.trim()).filter(tag => tag);
         let dependencies = document.getElementById('taskDependencies').value.split(',').map(dep => dep.trim()).filter(dep => dep);
@@ -2252,7 +2254,9 @@ class UI {
                 dev: parseFloat(document.getElementById('taskEffortDev').value) || 0,
                 test: parseFloat(document.getElementById('taskEffortTest').value) || 0
             },
-            excludeFromAnalytics: document.getElementById('taskExcludeFromAnalytics').checked
+            excludeFromAnalytics: document.getElementById('taskExcludeFromAnalytics').checked,
+            followUpDate: taskFollowUpDate,
+            notes: taskNotes
         };
 
         const getAssocs = (type) => Array.from(document.querySelectorAll(`.task-tracker-assoc-checkbox[data-type="${type}"]:checked`)).map(cb => cb.value);
@@ -2612,6 +2616,9 @@ class UI {
 
                 document.getElementById('taskExcludeFromAnalytics').checked = task.excludeFromAnalytics === true;
 
+                document.getElementById('taskFollowUpDate').value = task.followUpDate || '';
+                document.getElementById('taskNotes').value = task.notes || '';
+
                 const checkAssocsFromTracker = (type) => {
                     const items = this.planner[`get${type.charAt(0).toUpperCase() + type.slice(1)}`]();
                     items.forEach(item => {
@@ -2640,6 +2647,8 @@ class UI {
             const personnelCheckboxes = document.querySelectorAll('.task-personnel-checkbox');
             personnelCheckboxes.forEach(cb => cb.checked = false);
             document.getElementById('taskExcludeFromAnalytics').checked = false;
+            document.getElementById('taskFollowUpDate').value = '';
+            document.getElementById('taskNotes').value = '';
 
             taskFillLegendSelect.value = 'default_fill';
             taskBorderLegendSelect.value = 'default_border';

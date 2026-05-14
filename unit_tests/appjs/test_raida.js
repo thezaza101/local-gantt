@@ -37,6 +37,30 @@ describe('RAIDA (raida.js)', () => {
         assertEqual(raida.planner, mockPlanner, 'Planner instance should be assigned to raida.planner');
     });
 
+    test('Raida.render includes follow-up reminders', () => {
+        const container = document.createElement('div');
+        container.id = 'raidaContent';
+        document.body.appendChild(container);
+
+        try {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const planner = createMockPlanner({
+                tasks: [{ id: 'T1', title: 'Task 1', followUpDate: todayStr, status: 'Open' }],
+                risks: [{ id: 'R1', title: 'Risk 1', followUpDate: '2020-01-01', status: 'Open' }]
+            });
+            planner.getNowTimestamp = () => new Date().toISOString();
+
+            const raida = new Raida(planner);
+            raida.render();
+
+            assertTrue(container.innerHTML.includes('Follow up reminders'), 'Should include follow up section');
+            assertTrue(container.innerHTML.includes('Task 1'), 'Should include Task 1 follow up');
+            assertTrue(container.innerHTML.includes('Risk 1'), 'Should include Risk 1 follow up');
+        } finally {
+            document.body.removeChild(container);
+        }
+    });
+
     test('Raida.render early exits if container is missing', () => {
         const mockPlanner = createMockPlanner();
         const raida = new Raida(mockPlanner);
