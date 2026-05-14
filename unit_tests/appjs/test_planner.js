@@ -98,12 +98,15 @@ describe('Planner Engine (planner.js)', () => {
     test('Can update settings including raidaExcludeTaskStatuses', () => {
         const planner = new Planner();
         planner.updateSettings({
-            raidaExcludeTaskStatuses: ['Done', 'Abandoned']
+            raidaExcludeTaskStatuses: ['Done', 'Abandoned'],
+            raidaExcludeTrackerStatuses: ['Closed', 'Resolved']
         });
 
         const state = planner.getState();
         assertEqual(state.settings.raidaExcludeTaskStatuses.length, 2);
         assertEqual(state.settings.raidaExcludeTaskStatuses[0], 'Done');
+        assertEqual(state.settings.raidaExcludeTrackerStatuses.length, 2);
+        assertEqual(state.settings.raidaExcludeTrackerStatuses[0], 'Closed');
     });
 
     test('updateTask updates task properties', () => {

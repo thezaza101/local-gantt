@@ -14,6 +14,7 @@ class Raida {
         const overdueDays = parseInt(settings.raidaOverdueDays) || 14;
         const staleDays = parseInt(settings.raidaStaleDays) || 7;
         const excludedTaskStatuses = settings.raidaExcludeTaskStatuses || ['Completed', 'Removed'];
+        const excludedTrackerStatuses = settings.raidaExcludeTrackerStatuses || ['Closed', 'Resolved', 'Mitigated', 'Completed', 'Removed'];
 
         const now = new Date();
         const overdueDateThreshold = new Date(now.getTime() + overdueDays * 24 * 60 * 60 * 1000);
@@ -52,7 +53,7 @@ class Raida {
         const upcomingItems = [];
 
         const checkDate = (item, dateField, type) => {
-            if (item[dateField] && item.status !== 'Closed' && item.status !== 'Resolved' && item.status !== 'Mitigated' && item.status !== 'Completed') {
+            if (item[dateField] && (!item.status || !excludedTrackerStatuses.includes(item.status))) {
                 const d = new Date(item[dateField]);
                 if (d <= overdueDateThreshold) {
                     upcomingItems.push({ item, type, date: d, dateStr: item[dateField] });
@@ -75,7 +76,7 @@ class Raida {
         // 2. Not checked recently (RAIDA items)
         const staleItems = [];
         const checkStale = (item, type) => {
-            if (item.status === 'Closed' || item.status === 'Resolved' || item.status === 'Mitigated' || item.status === 'Completed') return;
+            if (item.status && excludedTrackerStatuses.includes(item.status)) return;
             if (item.lastChecked) {
                 const d = new Date(item.lastChecked);
                 if (d <= staleDateThreshold) {
@@ -96,16 +97,17 @@ class Raida {
         // 3. High severity / critical items open
         const criticalItems = [];
         risks.forEach(r => {
-            if (r.status !== 'Closed' && r.status !== 'Mitigated' && r.probability === 'High' && r.severity === 'Critical') criticalItems.push({item: r, type: 'risks', desc: 'Probability High + Impact Critical'});
+            if ((!r.status || !excludedTrackerStatuses.includes(r.status)) && r.probability === 'High' && r.severity === 'Critical') criticalItems.push({item: r, type: 'risks', desc: 'Probability High + Impact Critical'});
         });
         issues.forEach(i => {
-            if (i.status !== 'Closed' && i.status !== 'Resolved' && i.severity === 'Critical') criticalItems.push({item: i, type: 'issues', desc: 'Severity Critical'});
+            if ((!i.status || !excludedTrackerStatuses.includes(i.status)) && i.severity === 'Critical') criticalItems.push({item: i, type: 'issues', desc: 'Severity Critical'});
         });
         assump.forEach(a => {
-            if (a.status !== 'Closed' && a.impact === 'Critical') criticalItems.push({item: a, type: 'assumptions', desc: 'Impact if wrong: Critical'});
+            if ((!a.status || !excludedTrackerStatuses.includes(a.status)) && a.impact === 'Critical') criticalItems.push({item: a, type: 'assumptions', desc: 'Impact if wrong: Critical'});
         });
         deps.forEach(d => {
-            if (d.status === 'Blocked') criticalItems.push({item: d, type: 'dependencies', desc: 'Status Blocked'});
+            // Still specifically looking for Blocked dependencies regardless of excluded statuses (unless Blocked itself is excluded)
+            if (d.status === 'Blocked' && !excludedTrackerStatuses.includes(d.status)) criticalItems.push({item: d, type: 'dependencies', desc: 'Status Blocked'});
         });
         decisions.forEach(d => {
             if (d.status === 'Pending' && d.deadline) {
@@ -116,16 +118,16 @@ class Raida {
 
         // 4. Items with no owner
         const ownerlessItems = [];
-        risks.forEach(r => { if (r.status !== 'Closed' && !r.owner) ownerlessItems.push({item: r, type: 'risks'}); });
-        issues.forEach(i => { if (i.status !== 'Closed' && !i.escalationOwner) ownerlessItems.push({item: i, type: 'issues'}); });
-        assump.forEach(a => { if (a.status !== 'Closed' && !a.owner) ownerlessItems.push({item: a, type: 'assumptions'}); });
-        deps.forEach(d => { if (d.status !== 'Completed' && !d.owningTeam) ownerlessItems.push({item: d, type: 'dependencies'}); });
-        decisions.forEach(d => { if (d.status !== 'Made' && !d.owner) ownerlessItems.push({item: d, type: 'decisions'}); });
+        risks.forEach(r => { if ((!r.status || !excludedTrackerStatuses.includes(r.status)) && !r.owner) ownerlessItems.push({item: r, type: 'risks'}); });
+        issues.forEach(i => { if ((!i.status || !excludedTrackerStatuses.includes(i.status)) && !i.escalationOwner) ownerlessItems.push({item: i, type: 'issues'}); });
+        assump.forEach(a => { if ((!a.status || !excludedTrackerStatuses.includes(a.status)) && !a.owner) ownerlessItems.push({item: a, type: 'assumptions'}); });
+        deps.forEach(d => { if ((!d.status || !excludedTrackerStatuses.includes(d.status)) && !d.owningTeam) ownerlessItems.push({item: d, type: 'dependencies'}); });
+        decisions.forEach(d => { if ((!d.status || !excludedTrackerStatuses.includes(d.status)) && !d.owner) ownerlessItems.push({item: d, type: 'decisions'}); });
 
         // 5. Items with no associated tasks
         const orphanedItems = [];
         const checkOrphaned = (item, type) => {
-            if (item.status === 'Closed' || item.status === 'Resolved' || item.status === 'Mitigated' || item.status === 'Completed') return;
+            if (item.status && excludedTrackerStatuses.includes(item.status)) return;
             if (!item.associatedTasks || item.associatedTasks.length === 0) {
                 orphanedItems.push({item, type});
             }
@@ -172,7 +174,10 @@ class Raida {
         const todayStr = this.planner.getNowTimestamp().split(' ')[0]; // YYYY-MM-DD
 
         const checkFollowUp = (item, type) => {
-            if (item.status === 'Closed' || item.status === 'Resolved' || item.status === 'Completed' || item.status === 'Removed') return;
+            if (item.status) {
+                if (type === 'tasks' && excludedTaskStatuses.includes(item.status)) return;
+                if (type !== 'tasks' && excludedTrackerStatuses.includes(item.status)) return;
+            }
             if (item.followUpDate && item.followUpDate <= todayStr) {
                 followUpItems.push({item, type});
             }

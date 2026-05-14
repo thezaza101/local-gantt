@@ -12,6 +12,7 @@ class Planner {
                 raidaOverdueDays: 14,
                 raidaStaleDays: 7,
                 raidaExcludeTaskStatuses: ['Completed', 'Removed'],
+                raidaExcludeTrackerStatuses: ['Closed', 'Resolved', 'Mitigated', 'Completed', 'Removed'],
                 fillLegends: [
                     {
                         id: 'default_fill',
@@ -585,6 +586,9 @@ class Planner {
         }
         if (newSettings.raidaExcludeTaskStatuses !== undefined) {
             this.file.settings.raidaExcludeTaskStatuses = newSettings.raidaExcludeTaskStatuses;
+        }
+        if (newSettings.raidaExcludeTrackerStatuses !== undefined) {
+            this.file.settings.raidaExcludeTrackerStatuses = newSettings.raidaExcludeTrackerStatuses;
         }
         if (newSettings.trackerTruncateLength !== undefined) {
             this.file.settings.trackerTruncateLength = newSettings.trackerTruncateLength;

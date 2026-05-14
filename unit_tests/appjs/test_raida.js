@@ -27,7 +27,8 @@ describe('RAIDA (raida.js)', () => {
             getStatusColors: () => ({
                 'Not started': '#cccccc',
                 'In progress': '#0000ff'
-            })
+            }),
+            getNowTimestamp: () => new Date().toISOString()
         };
     };
 
@@ -146,7 +147,8 @@ describe('RAIDA (raida.js)', () => {
             settings: {
                 raidaOverdueDays: 14,
                 raidaStaleDays: 7,
-                raidaExcludeTaskStatuses: ['Completed', 'Removed']
+                raidaExcludeTaskStatuses: ['Completed', 'Removed'],
+                raidaExcludeTrackerStatuses: ['Closed', 'Resolved', 'Mitigated', 'Completed', 'Removed']
             },
             plans: [{ id: 'plan-1', tasks: mockPlanner.getCurrentPlan().tasks }]
         });
