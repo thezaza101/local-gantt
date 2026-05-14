@@ -34,6 +34,31 @@ class UI {
         const openRaidaBtn = document.getElementById("openRaidaBtn");
         const closeRaidaBtn = document.getElementById("closeRaidaBtn");
 
+        const toggleRaidaCollapseBtn = document.getElementById("toggleRaidaCollapseBtn");
+        if (toggleRaidaCollapseBtn) {
+            toggleRaidaCollapseBtn.addEventListener("click", () => {
+                const isCurrentlyExpanded = toggleRaidaCollapseBtn.textContent.includes('Collapse All');
+                const nextExpandedState = !isCurrentlyExpanded;
+
+                const collapses = document.querySelectorAll('#raidaContent .collapse');
+                const toggles = document.querySelectorAll('#raidaContent [data-bs-toggle="collapse"]');
+
+                collapses.forEach(c => {
+                    if (nextExpandedState) {
+                        c.classList.add('show');
+                    } else {
+                        c.classList.remove('show');
+                    }
+                });
+
+                toggles.forEach(t => {
+                    t.setAttribute('aria-expanded', nextExpandedState);
+                });
+
+                toggleRaidaCollapseBtn.textContent = nextExpandedState ? '↕ Collapse All' : '↕ Expand All';
+            });
+        }
+
         const copyRaidaSelectedBtn = document.getElementById("copyRaidaSelectedBtn");
         if (copyRaidaSelectedBtn) {
             copyRaidaSelectedBtn.addEventListener("click", () => {
