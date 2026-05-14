@@ -448,6 +448,41 @@ class Analytics {
         let overallMinDate = null;
         let overallMaxDate = null;
 
+        // Calculate overall dates based on ALL valid tasks to maintain full time scale
+        const allTasks = plan.tasks ? plan.tasks.filter(t => !t.excludeFromAnalytics) : [];
+        allTasks.forEach(task => {
+            if (!task.startDate || !task.endDate) return;
+            const startParts = task.startDate.split('-');
+            const endParts = task.endDate.split('-');
+            if (startParts.length !== 3 || endParts.length !== 3) return;
+            const startDate = new Date(startParts[0], startParts[1] - 1, startParts[2]);
+            const endDate = new Date(endParts[0], endParts[1] - 1, endParts[2]);
+            if (isNaN(startDate) || isNaN(endDate)) return;
+
+            if (!overallMinDate || startDate < overallMinDate) overallMinDate = startDate;
+            if (!overallMaxDate || endDate > overallMaxDate) overallMaxDate = endDate;
+        });
+
+        // Constrain overall dates by date range filter if active
+        if (this.filterState && this.filterState.startDate) {
+            const parts = this.filterState.startDate.split('-');
+            if (parts.length === 3) {
+                const filterStart = new Date(parts[0], parts[1] - 1, parts[2]);
+                if (!isNaN(filterStart) && (!overallMinDate || filterStart > overallMinDate)) {
+                    overallMinDate = filterStart;
+                }
+            }
+        }
+        if (this.filterState && this.filterState.endDate) {
+            const parts = this.filterState.endDate.split('-');
+            if (parts.length === 3) {
+                const filterEnd = new Date(parts[0], parts[1] - 1, parts[2]);
+                if (!isNaN(filterEnd) && (!overallMaxDate || filterEnd < overallMaxDate)) {
+                    overallMaxDate = filterEnd;
+                }
+            }
+        }
+
         filteredTasks.forEach(task => {
             if (!task.startDate || !task.endDate) return;
 
@@ -459,10 +494,6 @@ class Analytics {
             const endDate = new Date(endParts[0], endParts[1] - 1, endParts[2]);
 
             if (isNaN(startDate) || isNaN(endDate)) return;
-
-            // Track overall min/max dates
-            if (!overallMinDate || startDate < overallMinDate) overallMinDate = startDate;
-            if (!overallMaxDate || endDate > overallMaxDate) overallMaxDate = endDate;
 
             const tags = task.tags && Array.isArray(task.tags) ? task.tags : [];
             const status = task.status || 'Not started';

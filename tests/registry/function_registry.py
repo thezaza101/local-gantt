@@ -62,8 +62,8 @@ FUNCTION_REGISTRY = {
         "tested": False,
         "functions": {
             "calculateTagAggregates": {
-                "tested": False,
-                "test_file": None
+                "tested": True,
+                "test_file": "tests/functions/analytics_functions_test.py"
             },
             "calculateEffortByTag": {
                 "tested": True,

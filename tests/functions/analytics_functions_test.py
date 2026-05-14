@@ -63,3 +63,46 @@ def test_calculate_task_count_by_status(page: Page, base_url: str):
     assert result_map.get("in-progress") == 2
     assert result_map.get("completed") == 1
     assert result_map.get("not-started") == 1
+
+def test_calculate_tag_aggregates(page: Page, base_url: str):
+    """Verifies that calculateTagAggregates properly aggregates dates and preserves full plan duration."""
+    load_app(page, base_url)
+    inject_mock_state(page)
+
+    test_data = {
+        "tasks": [
+            # A task completely outside the filtered tasks to define overall boundaries
+            {"id": "T1", "startDate": "2024-01-01", "endDate": "2024-01-10", "tags": ["other"], "status": "Completed"},
+            # Tasks within the filter that only span a subset of time
+            {"id": "T2", "startDate": "2024-01-15", "endDate": "2024-01-20", "tags": ["frontend"], "status": "In progress"},
+            {"id": "T3", "startDate": "2024-01-18", "endDate": "2024-01-25", "tags": ["frontend", "backend"], "status": "Not started"}
+        ]
+    }
+
+    # We pretend the user has filtered only for "frontend" tags.
+    filtered_tasks = [t for t in test_data["tasks"] if "frontend" in t["tags"]]
+
+    result = page.evaluate("""([plan, filtered]) => {
+        // Mock a filter state so it doesn't crash when checking this.filterState
+        window.AnalyticsEngine.filterState = {};
+        return window.AnalyticsEngine.calculateTagAggregates(plan, filtered);
+    }""", [test_data, filtered_tasks])
+
+    # Check overall dates encompass ALL valid tasks (T1, T2, T3) -> 2024-01-01 to 2024-01-25
+    min_date = result.get("minDate")
+    max_date = result.get("maxDate")
+
+    assert min_date is not None, "minDate should not be null"
+    assert "2024-01-01" in str(min_date)
+    assert max_date is not None, "maxDate should not be null"
+    assert "2024-01-25" in str(max_date)
+
+    # Check tags aggregation
+    tags = result.get("tags", [])
+
+    assert len(tags) == 2  # frontend, backend (from the filtered tasks)
+
+    frontend_tag = next(t for t in tags if t["tag"] == "frontend")
+    assert frontend_tag["totalTasks"] == 2
+    assert "2024-01-15" in str(frontend_tag["minStartDate"])
+    assert "2024-01-25" in str(frontend_tag["maxEndDate"])

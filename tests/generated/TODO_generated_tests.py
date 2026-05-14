@@ -565,11 +565,6 @@ def test_populateTeamSelects(page: Page):
     # TODO: Implement test for populateTeamSelects in ui.js
     pass
 
-@pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateTagAggregates")
-def test_calculateTagAggregates(page: Page):
-    # TODO: Implement test for calculateTagAggregates in analytics.js
-    pass
-
 @pytest.mark.skip(reason="TODO: implement test for analytics.js -> getFilteredTasks")
 def test_getFilteredTasks(page: Page):
     # TODO: Implement test for getFilteredTasks in analytics.js
