@@ -181,6 +181,7 @@ class Tracker {
         if (filteredItems.length === 0) {
             tbody.innerHTML = `<tr><td colspan="${columns.length + 1}" class="text-center text-muted">No ${type} found matching filters.</td></tr>`;
         } else {
+            const baseLink = this.planner.getState()?.settings?.baseLink;
             filteredItems.forEach(item => {
                 const tr = document.createElement('tr');
                 const isChecked = this.selectedItems.has(item.id) ? 'checked' : '';
@@ -198,6 +199,8 @@ class Tracker {
 
                     if (col.id === 'scope') {
                         cellsHTML += `<td>${item.planId ? '<span class="badge bg-secondary">Plan Scope</span>' : '<span class="badge bg-info">Global Scope</span>'}</td>`;
+                    } else if (col.id === 'id' && baseLink) {
+                        cellsHTML += `<td>${this.escapeHtml(rawVal)} <a href="${baseLink}${item.id}" target="_blank" onclick="event.stopPropagation();" title="Open Base Link" style="text-decoration:none; margin-left:5px;">🔗</a></td>`;
                     } else {
                         cellsHTML += `<td>${this.escapeHtml(rawVal)}</td>`;
                     }
