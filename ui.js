@@ -1770,6 +1770,23 @@ class UI {
             });
         }
 
+        const raidaExcludeTrackerStatusesSelect = document.getElementById('settingsRaidaExcludeTrackerStatuses');
+        if (raidaExcludeTrackerStatusesSelect) {
+            raidaExcludeTrackerStatusesSelect.innerHTML = '';
+            const trackerStatuses = ['Open', 'Mitigated', 'Accepted', 'Closed', 'In Progress', 'Resolved', 'Active', 'At Risk', 'Blocked', 'Completed', 'Removed', 'Validated', 'Invalidated', 'Under Review', 'Pending', 'Made', 'Deferred'];
+            const excludedTrackerStatuses = settings.raidaExcludeTrackerStatuses || ['Closed', 'Resolved', 'Mitigated', 'Completed', 'Removed'];
+
+            trackerStatuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status;
+                if (excludedTrackerStatuses.includes(status)) {
+                    option.selected = true;
+                }
+                raidaExcludeTrackerStatusesSelect.appendChild(option);
+            });
+        }
+
         const trackerSettings = this.planner.getTrackerSettings();
         const truncateLengthInput = document.getElementById('settingsTrackerTruncateLength');
         if (truncateLengthInput) truncateLengthInput.value = trackerSettings.truncateLength;
@@ -1991,6 +2008,9 @@ class UI {
         const raidaExcludeStatusesSelect = document.getElementById('settingsRaidaExcludeStatuses');
         const raidaExcludeTaskStatuses = raidaExcludeStatusesSelect ? Array.from(raidaExcludeStatusesSelect.selectedOptions).map(opt => opt.value) : ['Completed', 'Removed'];
 
+        const raidaExcludeTrackerStatusesSelect = document.getElementById('settingsRaidaExcludeTrackerStatuses');
+        const raidaExcludeTrackerStatuses = raidaExcludeTrackerStatusesSelect ? Array.from(raidaExcludeTrackerStatusesSelect.selectedOptions).map(opt => opt.value) : ['Closed', 'Resolved', 'Mitigated', 'Completed', 'Removed'];
+
         const truncateLengthInput = document.getElementById('settingsTrackerTruncateLength');
         const trackerTruncateLength = truncateLengthInput ? parseInt(truncateLengthInput.value) || 50 : 50;
 
@@ -2045,7 +2065,7 @@ class UI {
             }
         });
 
-        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays, raidaExcludeTaskStatuses, trackerTruncateLength, trackerColumns });
+        this.planner.updateSettings({ baseLink, teams, personnel, raidaOverdueDays, raidaStaleDays, raidaExcludeTaskStatuses, raidaExcludeTrackerStatuses, trackerTruncateLength, trackerColumns });
 
         this.saveTagGroups();
         this.saveLegends();

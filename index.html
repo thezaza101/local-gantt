@@ -934,12 +934,21 @@
                                         <input type="number" class="form-control" id="settingsRaidaStaleDays" value="7" min="0">
                                     </div>
                                 </div>
-                                <div class="mb-3">
-                                    <label for="settingsRaidaExcludeStatuses" class="form-label">Task Statuses to Exclude from Tasks Section</label>
-                                    <select multiple class="form-select" id="settingsRaidaExcludeStatuses" size="4">
-                                        <!-- Populated via JS -->
-                                    </select>
-                                    <div class="form-text">Tasks with these statuses will be ignored in the 'Tasks not checked recently' and 'Upcoming Task Deadlines' lists. Hold Ctrl/Cmd to select multiple.</div>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="settingsRaidaExcludeStatuses" class="form-label">Task Statuses to Exclude from Tasks Section</label>
+                                        <select multiple class="form-select" id="settingsRaidaExcludeStatuses" size="4">
+                                            <!-- Populated via JS -->
+                                        </select>
+                                        <div class="form-text">Tasks with these statuses will be ignored in the 'Tasks not checked recently' and 'Upcoming Task Deadlines' lists. Hold Ctrl/Cmd to select multiple.</div>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="settingsRaidaExcludeTrackerStatuses" class="form-label">Tracker Statuses to Exclude from Tracker Section</label>
+                                        <select multiple class="form-select" id="settingsRaidaExcludeTrackerStatuses" size="4">
+                                            <!-- Populated via JS -->
+                                        </select>
+                                        <div class="form-text">Tracker items with these statuses will be ignored in RAIDA (e.g. Overdue, Not Checked Recently, etc.). Hold Ctrl/Cmd to select multiple.</div>
+                                    </div>
                                 </div>
                             </form>
                         </div>
