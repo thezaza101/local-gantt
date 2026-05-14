@@ -12,6 +12,11 @@ WORKFLOW_REGISTRY = {
                 "name": "add_task",
                 "tested": False,
                 "test_file": None
+            },
+            {
+                "name": "followup_dashboard_workflow",
+                "tested": True,
+                "test_file": "tests/workflows/followup_test.py"
             }
         ]
     },

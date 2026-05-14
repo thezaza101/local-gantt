@@ -22,12 +22,17 @@ Each task can be assigned to a single team and multiple key personnel via the Ta
 - `task.team`: String representing the team `id` assigned to a task.
 - `task.personnel`: Array of strings representing the personnel `id`s assigned to a task.
 - `capacity.team`: String representing the team `id` assigned to a capacity entry.
+- `task.followUpDate`: (Optional) String representing a future date for a task reminder (e.g. `YYYY-MM-DD`).
+- `task.notes`: (Optional) String for multi-line notes on the task.
 
 ## Tracker (Risks, Issues, Dependencies, Assumptions, Decisions)
 The Tracker provides a centralized view for managing program-level and plan-level Risks, Issues, Dependencies, Assumptions, and Decisions (RIDAD).
 
 ### Global vs Plan Scope
 Tracker entities exist independently of tasks and are stored globally in the JSON data model (`file.risks`, `file.issues`, etc.). Each entity uses a `planId` field to define its scope. A `planId` of `null` or `""` means the item is global across all plans.
+
+### Follow Up Dates and Notes
+Both Tracker items and Tasks can have an optional `followUpDate` and `notes` field. If a `followUpDate` is provided and the date is less than or equal to today, the item will automatically surface in the RAIDA Summary dashboard under the "Follow up reminders" category.
 
 ### Task Associations
 To maintain a single source of truth and prevent bi-directional synchronization bugs, task relationships are stored exclusively on the tracker entity using an `associatedTasks` array of task IDs. When a task is saved in the UI, the system dynamically queries and updates the relevant tracker entities to align with the selections made in the task modal.
@@ -60,5 +65,6 @@ It highlights:
 - Recently auto-created dependencies
 - Decisions blocking progress
 - Tasks with upcoming deadlines
+- Follow up reminders (Tasks and Tracker items where `followUpDate` is on or before today)
 
 It respects the Global/Plan scope filter and is configurable through the Global Settings. Users can exclude specific task statuses (e.g., "Completed", "Removed") from appearing in the Task-related sections. Additionally, users can use the "Copy Selected" button to quickly copy selected RAIDA summary items to their clipboard for sharing.

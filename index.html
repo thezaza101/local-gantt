@@ -440,6 +440,16 @@
                             <div class="border rounded p-3 bg-light" data-bs-theme="light">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
+                                        <label for="taskFollowUpDate" class="form-label">Follow Up Date</label>
+                                        <input type="date" class="form-control" id="taskFollowUpDate">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="taskNotes" class="form-label">Notes</label>
+                                        <textarea class="form-control" id="taskNotes" rows="1"></textarea>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
                                         <label for="taskTeam" class="form-label">Team</label>
                                         <select class="form-select" id="taskTeam">
                                             <option value="">Unassigned</option>
@@ -773,6 +783,7 @@
                                 <li class="mb-2"><strong>➕/🗑️ Manage Rows:</strong> Hover over a row number in the chart to insert empty rows above or delete empty rows.</li>
                                 <li class="mb-2"><strong>📍 Manage Markers:</strong> Add, edit, or delete timeline markers.</li>
                                 <li class="mb-2"><strong>📋 Task List:</strong> View all tasks in a searchable list format.</li>
+                                <li class="mb-2"><strong>📝 Follow Ups & Notes:</strong> Set a Follow Up Date and save Notes on tasks/tracker items for reminders.</li>
                             </ul>
                         </div>
                         <div class="col-md-6 mb-4">
@@ -1490,6 +1501,17 @@
                             <div class="col-md-12">
                                 <label for="trackerItemDescription" class="form-label">Description</label>
                                 <textarea class="form-control" id="trackerItemDescription" rows="3"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="trackerItemFollowUpDate" class="form-label">Follow Up Date</label>
+                                <input type="date" class="form-control" id="trackerItemFollowUpDate">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="trackerItemNotes" class="form-label">Notes</label>
+                                <textarea class="form-control" id="trackerItemNotes" rows="1"></textarea>
                             </div>
                         </div>
 

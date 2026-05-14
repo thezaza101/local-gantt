@@ -1276,7 +1276,9 @@ class Planner {
                     { id: 'status', label: 'Status', visible: true },
                     { id: 'owner', label: 'Owner', visible: true },
                     { id: 'triggerIndicators', label: 'Trigger Indicators', visible: true },
-                    { id: 'dueDate', label: 'Due Date', visible: true }
+                    { id: 'dueDate', label: 'Due Date', visible: true },
+                    { id: 'followUpDate', label: 'Follow Up Date', visible: true },
+                    { id: 'notes', label: 'Notes', visible: true }
                 ],
                 issues: [
                     { id: 'id', label: 'ID', visible: true },
@@ -1289,7 +1291,9 @@ class Planner {
                     { id: 'workaround', label: 'Workaround', visible: true },
                     { id: 'businessImpact', label: 'Business Impact', visible: true },
                     { id: 'targetDate', label: 'Target Date', visible: true },
-                    { id: 'triggerIndicators', label: 'Trigger Indicators', visible: true }
+                    { id: 'triggerIndicators', label: 'Trigger Indicators', visible: true },
+                    { id: 'followUpDate', label: 'Follow Up Date', visible: true },
+                    { id: 'notes', label: 'Notes', visible: true }
                 ],
                 dependencies: [
                     { id: 'id', label: 'ID', visible: true },
@@ -1299,7 +1303,9 @@ class Planner {
                     { id: 'status', label: 'Status', visible: true },
                     { id: 'requiredDate', label: 'Required-by Date', visible: true },
                     { id: 'owningTeamFromTask', label: 'Owning Team / From Task(s)', visible: true },
-                    { id: 'affectedTeamsToTask', label: 'Affected Teams / To Task', visible: true }
+                    { id: 'affectedTeamsToTask', label: 'Affected Teams / To Task', visible: true },
+                    { id: 'followUpDate', label: 'Follow Up Date', visible: true },
+                    { id: 'notes', label: 'Notes', visible: true }
                 ],
                 assumptions: [
                     { id: 'id', label: 'ID', visible: true },
@@ -1308,7 +1314,9 @@ class Planner {
                     { id: 'description', label: 'Description', visible: true },
                     { id: 'status', label: 'Status', visible: true },
                     { id: 'impact', label: 'Impact', visible: true },
-                    { id: 'expiryDate', label: 'Expiry Date', visible: true }
+                    { id: 'expiryDate', label: 'Expiry Date', visible: true },
+                    { id: 'followUpDate', label: 'Follow Up Date', visible: true },
+                    { id: 'notes', label: 'Notes', visible: true }
                 ],
                 decisions: [
                     { id: 'id', label: 'ID', visible: true },
@@ -1321,7 +1329,9 @@ class Planner {
                     { id: 'options', label: 'Options', visible: true },
                     { id: 'recommendation', label: 'Recommendation', visible: true },
                     { id: 'outcome', label: 'Outcome', visible: true },
-                    { id: 'impact', label: 'Impact', visible: true }
+                    { id: 'impact', label: 'Impact', visible: true },
+                    { id: 'followUpDate', label: 'Follow Up Date', visible: true },
+                    { id: 'notes', label: 'Notes', visible: true }
                 ]
             }
         };

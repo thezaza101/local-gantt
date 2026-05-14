@@ -274,6 +274,8 @@ describe('Tracker (tracker.js)', () => {
             <span id="trackerLastUpdatedDisplay"></span>
             <span id="trackerLastCheckedDisplay"></span>
             <select id="trackerItemScope"></select>
+            <input id="trackerItemFollowUpDate">
+            <textarea id="trackerItemNotes"></textarea>
             <button id="deleteTrackerItemBtn" class="d-none"></button>
             <ul id="trackerItemTeamsDropdown"></ul>
             <ul id="trackerItemPersonnelDropdown"></ul>
@@ -329,6 +331,8 @@ describe('Tracker (tracker.js)', () => {
             <input id="trackerItemTags" value="NewTag">
             <select id="trackerItemScope"><option value="Plan1">Plan1</option></select>
             <select id="trackerStatus"><option value="Mitigated">Mitigated</option></select>
+            <input id="trackerItemFollowUpDate" value="2025-01-01">
+            <textarea id="trackerItemNotes">Test Note</textarea>
             <!-- Risk specific fields to avoid null errors -->
             <select id="riskProbability"><option value="Low"></option></select>
             <select id="riskSeverity"><option value="Low"></option></select>
@@ -374,6 +378,8 @@ describe('Tracker (tracker.js)', () => {
          assertTrue(updateCalledWith.data.tags.includes('Mitigated'));
          assertEqual(updateCalledWith.data.status, 'Mitigated');
          assertEqual(updateCalledWith.data.planId, 'Plan1');
+         assertEqual(updateCalledWith.data.followUpDate, '2025-01-01');
+         assertEqual(updateCalledWith.data.notes, 'Test Note');
 
          assertTrue(modalHidden);
 

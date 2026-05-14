@@ -337,6 +337,8 @@ class Tracker {
                 document.getElementById('trackerItemId').readOnly = false;
                 document.getElementById('trackerItemTitle').value = item.title || '';
                 document.getElementById('trackerItemDescription').value = item.description || '';
+                document.getElementById('trackerItemFollowUpDate').value = item.followUpDate || '';
+                document.getElementById('trackerItemNotes').value = item.notes || '';
 
                 const scopeSelect = document.getElementById('trackerItemScope');
                 if (scopeSelect) scopeSelect.value = item.planId || '';
@@ -790,6 +792,8 @@ class Tracker {
         }
 
         const description = document.getElementById('trackerItemDescription').value.trim();
+        const followUpDate = document.getElementById('trackerItemFollowUpDate').value || null;
+        const notes = document.getElementById('trackerItemNotes').value || '';
 
         let tags = document.getElementById('trackerItemTags').value.split(',').map(t => t.trim()).filter(t => t);
         const statusField = document.getElementById('trackerStatus');
@@ -810,7 +814,9 @@ class Tracker {
             id, title, description, tags: uniqueTags, status,
             associatedTeams, associatedPersonnel, associatedTasks,
             planId: planId || null,
-            lastUpdated: nowStr
+            lastUpdated: nowStr,
+            followUpDate,
+            notes
         };
 
         if (type === 'risks') {
