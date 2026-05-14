@@ -34,7 +34,8 @@ const TEST_REGISTRY = {
             "updateEntity": true,
             "deleteEntity": true,
             "calculatePlanDiff": true,
-            "applyPlanMerge": true
+            "applyPlanMerge": true,
+            "setLastCheckedOfMarkedTasks": true
         }
     },
     "storage.js": {

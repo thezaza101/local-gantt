@@ -286,4 +286,22 @@ describe('Planner Engine (planner.js)', () => {
         assertEqual(planner.getTaskById('T-300'), null);
     });
 
+
+    test('Can update lastChecked for marked tasks', () => {
+        const planner = new Planner();
+        planner.addPlan('Test Plan');
+
+        planner.addTask({ id: 'T-100', title: 'Task 1', isMarked: true });
+        planner.addTask({ id: 'T-200', title: 'Task 2', isMarked: false });
+
+        const changed = planner.setLastCheckedOfMarkedTasks();
+        assertTrue(changed);
+
+        const task1 = planner.getTaskById('T-100');
+        const task2 = planner.getTaskById('T-200');
+
+        assertTrue(task1.lastChecked !== undefined);
+        assertTrue(task2.lastChecked === undefined);
+    });
+
 });

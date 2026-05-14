@@ -1275,6 +1275,15 @@ class UI {
             });
         }
 
+        const bulkSetLastCheckedBtn = document.getElementById('bulkSetLastCheckedBtn');
+        if (bulkSetLastCheckedBtn) {
+            bulkSetLastCheckedBtn.addEventListener('click', () => {
+                if (this.planner.setLastCheckedOfMarkedTasks()) {
+                    this.updateUI();
+                }
+            });
+        }
+
         // Tag Filter Events
         const tagFiltersContainer = document.getElementById('tagFiltersContainer');
         if (tagFiltersContainer) {

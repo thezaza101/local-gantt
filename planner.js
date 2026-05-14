@@ -379,6 +379,22 @@ class Planner {
         return changed;
     }
 
+    setLastCheckedOfMarkedTasks() {
+        const plan = this.getCurrentPlan();
+        if (!plan || !plan.tasks) return false;
+
+        let changed = false;
+        const nowStr = this.getNowTimestamp();
+
+        plan.tasks.forEach(task => {
+            if (task.isMarked) {
+                task.lastChecked = nowStr;
+                changed = true;
+            }
+        });
+        return changed;
+    }
+
     convertMarksToSelection() {
         const plan = this.getCurrentPlan();
         if (!plan || !plan.tasks) return false;
