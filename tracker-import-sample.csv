@@ -1,8 +1,0 @@
-id,title,type,description
-R101,A New Risk,risk,Risk description from CSV
-I101,A New Issue,issue,Issue description from CSV
-D101,A New Dependency,dependency,Dependency description from CSV
-A101,A New Assumption,assumption,Assumption description from CSV
-C101,A New Decision,decision,Decision description from CSV
-,An Item without ID,risk,This item will get an auto-generated ID
-R101,A conflicting risk ID,risk,This item will get an auto-generated ID and note the original ID
