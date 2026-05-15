@@ -85,6 +85,10 @@ class GraphView {
             titleLabel.innerText = `Graph View: ${id}${entity && entity.title ? ' - ' + entity.title : ''}`;
         }
 
+        // Ensure graph is actually built when opened.
+        // It relies on modal.show() triggering the "shown.bs.modal" event
+        // to resize the canvas and then buildGraph(), but it doesn't hurt to ensure it here
+        // as well for synchronous verification scripts if needed.
         this.modal.show();
     }
 
@@ -189,6 +193,7 @@ class GraphView {
                     id: id,
                     label: entity.title || id,
                     type: entity._type,
+                    status: entity.status || '',
                     depth: depth,
                     x: (Math.random() - 0.5) * 100, // Initialize near center
                     y: (Math.random() - 0.5) * 100,
@@ -226,6 +231,7 @@ class GraphView {
                         id: edge.target,
                         label: tEntity.title || edge.target,
                         type: tEntity._type,
+                        status: tEntity.status || '',
                         depth: this.depth,
                         x: (Math.random() - 0.5) * 100,
                         y: (Math.random() - 0.5) * 100,
@@ -364,13 +370,8 @@ class GraphView {
         this.ctx.scale(this.transform.scale, this.transform.scale);
 
         // Draw edges
-        this.ctx.strokeStyle = '#999';
-        this.ctx.lineWidth = 1.5;
         this.edges.forEach(edge => {
-            this.ctx.beginPath();
-            this.ctx.moveTo(edge.source.x, edge.source.y);
-            this.ctx.lineTo(edge.target.x, edge.target.y);
-            this.ctx.stroke();
+            this.drawEdge(edge);
         });
 
         // Draw nodes
@@ -379,6 +380,49 @@ class GraphView {
         });
 
         this.ctx.restore();
+    }
+
+    drawEdge(edge, context = this.ctx) {
+        context.strokeStyle = '#999';
+        context.fillStyle = '#999';
+        context.lineWidth = 1.5;
+
+        const dx = edge.target.x - edge.source.x;
+        const dy = edge.target.y - edge.source.y;
+        const angle = Math.atan2(dy, dx);
+
+        const hw = (edge.target.width || 220) / 2;
+        const hh = (edge.target.height || 60) / 2;
+
+        let tx = edge.target.x;
+        let ty = edge.target.y;
+
+        // Calculate intersection with target rectangle
+        if (Math.abs(dx) > 0.01 && Math.abs(dy) > 0.01) {
+            const tx1 = hw / Math.abs(dx);
+            const ty1 = hh / Math.abs(dy);
+            const t = Math.min(tx1, ty1);
+            tx = edge.target.x - dx * t;
+            ty = edge.target.y - dy * t;
+        } else if (Math.abs(dx) > 0.01) {
+            tx = edge.target.x - (dx > 0 ? hw : -hw);
+        } else if (Math.abs(dy) > 0.01) {
+            ty = edge.target.y - (dy > 0 ? hh : -hh);
+        }
+
+        context.beginPath();
+        context.moveTo(edge.source.x, edge.source.y);
+        context.lineTo(tx, ty);
+        context.stroke();
+
+        // Draw Arrowhead
+        const headlen = 10;
+        context.beginPath();
+        context.moveTo(tx, ty);
+        context.lineTo(tx - headlen * Math.cos(angle - Math.PI / 6), ty - headlen * Math.sin(angle - Math.PI / 6));
+        context.lineTo(tx - headlen * Math.cos(angle + Math.PI / 6), ty - headlen * Math.sin(angle + Math.PI / 6));
+        context.lineTo(tx, ty);
+        context.fill();
     }
 
     drawNode(node, context = this.ctx) {
@@ -434,8 +478,12 @@ class GraphView {
         // Calculate height based on lines
         const lineHeight = 14;
         const padding = 10;
-        // top text (type) + lines + bottom text (ID)
-        const height = padding * 2 + 12 + (lines.length * lineHeight) + 12;
+
+        let statusHeight = 0;
+        if (node.status) statusHeight = 15;
+
+        // top text (type) + lines + bottom text (ID) + optional status
+        const height = padding * 2 + 12 + (lines.length * lineHeight) + 12 + statusHeight;
 
         const x = node.x - width / 2;
         const y = node.y - height / 2;
@@ -479,6 +527,14 @@ class GraphView {
         context.font = '9px Arial';
         context.fillStyle = '#666';
         context.fillText(node.id, node.x, currentY);
+        currentY += 12;
+
+        // Status
+        if (node.status) {
+            context.font = 'bold 9px Arial';
+            context.fillStyle = strokeColor;
+            context.fillText(`[${node.status.toUpperCase()}]`, node.x, currentY);
+        }
 
         // Save bounds for hit testing later
         node.width = width;
@@ -595,13 +651,8 @@ class GraphView {
         tCtx.translate(this.transform.x, this.transform.y);
         tCtx.scale(this.transform.scale, this.transform.scale);
 
-        tCtx.strokeStyle = '#999';
-        tCtx.lineWidth = 1.5;
         this.edges.forEach(edge => {
-            tCtx.beginPath();
-            tCtx.moveTo(edge.source.x, edge.source.y);
-            tCtx.lineTo(edge.target.x, edge.target.y);
-            tCtx.stroke();
+            this.drawEdge(edge, tCtx);
         });
 
         this.nodes.forEach(node => {
