@@ -18,6 +18,7 @@ class GraphView {
 
         // Physics state
         this.animationFrameId = null;
+        this.physicsFrozen = false;
     }
 
     init() {
@@ -40,6 +41,14 @@ class GraphView {
         document.getElementById('downloadGraphBtn').addEventListener('click', () => {
             this.downloadImage();
         });
+
+        this.freezeBtn = document.getElementById('freezeGraphBtn');
+        if (this.freezeBtn) {
+            this.freezeBtn.addEventListener('click', () => {
+                this.physicsFrozen = !this.physicsFrozen;
+                this.freezeBtn.innerHTML = this.physicsFrozen ? '▶️ Unfreeze' : '⏸️ Freeze';
+            });
+        }
 
         // Resize canvas correctly
         this.modalElement.addEventListener('shown.bs.modal', () => {
@@ -69,6 +78,17 @@ class GraphView {
         this.currentRootId = id;
         this.currentRootType = type;
         this.depthInput.value = this.depth;
+
+        const entity = this.getEntity(id);
+        const titleLabel = document.getElementById('graphViewModalLabel');
+        if (titleLabel) {
+            titleLabel.innerText = `Graph View: ${id}${entity && entity.title ? ' - ' + entity.title : ''}`;
+        }
+
+        // Ensure graph is actually built when opened.
+        // It relies on modal.show() triggering the "shown.bs.modal" event
+        // to resize the canvas and then buildGraph(), but it doesn't hurt to ensure it here
+        // as well for synchronous verification scripts if needed.
         this.modal.show();
     }
 
@@ -173,6 +193,7 @@ class GraphView {
                     id: id,
                     label: entity.title || id,
                     type: entity._type,
+                    status: entity.status || '',
                     depth: depth,
                     x: (Math.random() - 0.5) * 100, // Initialize near center
                     y: (Math.random() - 0.5) * 100,
@@ -210,6 +231,7 @@ class GraphView {
                         id: edge.target,
                         label: tEntity.title || edge.target,
                         type: tEntity._type,
+                        status: tEntity.status || '',
                         depth: this.depth,
                         x: (Math.random() - 0.5) * 100,
                         y: (Math.random() - 0.5) * 100,
@@ -244,16 +266,19 @@ class GraphView {
     }
 
     tick() {
-        this.updatePhysics();
+        if (!this.physicsFrozen) {
+            this.updatePhysics();
+        }
         this.draw();
         this.animationFrameId = requestAnimationFrame(() => this.tick());
     }
 
     updatePhysics() {
-        const k = Math.sqrt((this.canvas.width * this.canvas.height) / (this.nodes.length || 1)); // optimal distance
-        const REPULSION = 5000;
-        const ATTRACTION = 0.05;
-        const DAMPING = 0.85;
+        // Reduced optimal distance to bring nodes closer
+        const k = Math.max(150, Math.sqrt((this.canvas.width * this.canvas.height) / (this.nodes.length || 1)));
+        const REPULSION = 5000; // Decrease base repulsion so they don't fly apart
+        const ATTRACTION = 0.08; // Increase attraction to pull together
+        const DAMPING = 0.60; // Lower damping (more friction) to settle quickly and prevent jumping
 
         // Repulsive forces
         for (let i = 0; i < this.nodes.length; i++) {
@@ -266,7 +291,17 @@ class GraphView {
                 let dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist === 0) dist = 0.1;
 
-                const force = REPULSION / (dist * dist);
+                // Base repulsion
+                let force = REPULSION / (dist * dist);
+
+                // Add soft rigid collision avoidance if they overlap or get too close
+                const minDistanceX = ((node1.width || 220) + (node2.width || 220)) / 2 + 20; // 20px padding
+                const minDistanceY = ((node1.height || 60) + (node2.height || 60)) / 2 + 20;
+
+                if (Math.abs(dx) < minDistanceX && Math.abs(dy) < minDistanceY) {
+                    force += 50; // Softer push when overlapping bounding boxes to prevent jitter
+                }
+
                 const fx = (dx / dist) * force;
                 const fy = (dy / dist) * force;
 
@@ -296,8 +331,8 @@ class GraphView {
 
         // Gravity towards center for disconnected parts
         this.nodes.forEach(node => {
-            node.vx -= node.x * 0.01;
-            node.vy -= node.y * 0.01;
+            node.vx -= node.x * 0.005; // Less gravity to prevent cramming in center
+            node.vy -= node.y * 0.005;
         });
 
         // Update positions
@@ -313,6 +348,12 @@ class GraphView {
             } else {
                 node.vx *= DAMPING;
                 node.vy *= DAMPING;
+
+                // Cap maximum velocity to prevent jumping
+                const MAX_VELOCITY = 20;
+                node.vx = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, node.vx));
+                node.vy = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, node.vy));
+
                 node.x += node.vx;
                 node.y += node.vy;
             }
@@ -329,13 +370,8 @@ class GraphView {
         this.ctx.scale(this.transform.scale, this.transform.scale);
 
         // Draw edges
-        this.ctx.strokeStyle = '#999';
-        this.ctx.lineWidth = 1.5;
         this.edges.forEach(edge => {
-            this.ctx.beginPath();
-            this.ctx.moveTo(edge.source.x, edge.source.y);
-            this.ctx.lineTo(edge.target.x, edge.target.y);
-            this.ctx.stroke();
+            this.drawEdge(edge);
         });
 
         // Draw nodes
@@ -346,19 +382,63 @@ class GraphView {
         this.ctx.restore();
     }
 
-    drawNode(node) {
-        const radius = 35;
+    drawEdge(edge, context = this.ctx) {
+        context.strokeStyle = '#999';
+        context.fillStyle = '#999';
+        context.lineWidth = 1.5;
+
+        const dx = edge.target.x - edge.source.x;
+        const dy = edge.target.y - edge.source.y;
+        const angle = Math.atan2(dy, dx);
+
+        const hw = (edge.target.width || 220) / 2;
+        const hh = (edge.target.height || 60) / 2;
+
+        let tx = edge.target.x;
+        let ty = edge.target.y;
+
+        // Calculate intersection with target rectangle
+        if (Math.abs(dx) > 0.01 && Math.abs(dy) > 0.01) {
+            const tx1 = hw / Math.abs(dx);
+            const ty1 = hh / Math.abs(dy);
+            const t = Math.min(tx1, ty1);
+            tx = edge.target.x - dx * t;
+            ty = edge.target.y - dy * t;
+        } else if (Math.abs(dx) > 0.01) {
+            tx = edge.target.x - (dx > 0 ? hw : -hw);
+        } else if (Math.abs(dy) > 0.01) {
+            ty = edge.target.y - (dy > 0 ? hh : -hh);
+        }
+
+        context.beginPath();
+        context.moveTo(edge.source.x, edge.source.y);
+        context.lineTo(tx, ty);
+        context.stroke();
+
+        // Draw Arrowhead
+        const headlen = 10;
+        context.beginPath();
+        context.moveTo(tx, ty);
+        context.lineTo(tx - headlen * Math.cos(angle - Math.PI / 6), ty - headlen * Math.sin(angle - Math.PI / 6));
+        context.lineTo(tx - headlen * Math.cos(angle + Math.PI / 6), ty - headlen * Math.sin(angle + Math.PI / 6));
+        context.lineTo(tx, ty);
+        context.fill();
+    }
+
+    drawNode(node, context = this.ctx) {
+        const width = 220;
+        const cornerRadius = 10;
 
         // Color mapping
         let fillColor = '#fff';
         let strokeColor = '#333';
 
         if (node.id === this.currentRootId) {
-            this.ctx.shadowColor = 'rgba(0,0,0,0.5)';
-            this.ctx.shadowBlur = 10;
+            context.shadowColor = 'rgba(0,0,0,0.5)';
+            context.shadowBlur = 10;
         } else {
-            this.ctx.shadowColor = 'transparent';
-            this.ctx.shadowBlur = 0;
+            context.shadowColor = 'transparent';
+            context.shadowBlur = 0;
         }
 
         switch (node.type) {
@@ -370,35 +450,95 @@ class GraphView {
             case 'Decision': fillColor = '#e0f7fa'; strokeColor = '#0097a7'; break;
         }
 
-        this.ctx.beginPath();
-        this.ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-        this.ctx.fillStyle = fillColor;
-        this.ctx.fill();
-        this.ctx.lineWidth = 3;
-        this.ctx.strokeStyle = strokeColor;
-        this.ctx.stroke();
+        // Text wrap logic
+        let label = node.label || '';
+        const maxCharsPerLine = 35;
+        const words = label.split(' ');
+        let lines = [];
+        let currentLine = '';
+
+        // simple wrap
+        for(let i=0; i<words.length; i++) {
+             if (currentLine.length + words[i].length + 1 > maxCharsPerLine) {
+                 if (currentLine.length > 0) {
+                     lines.push(currentLine);
+                     currentLine = words[i];
+                 } else {
+                     // Word itself is longer than maxCharsPerLine
+                     lines.push(words[i].substring(0, maxCharsPerLine));
+                     currentLine = words[i].substring(maxCharsPerLine);
+                 }
+             } else {
+                 if (currentLine.length === 0) currentLine = words[i];
+                 else currentLine += ' ' + words[i];
+             }
+        }
+        if (currentLine.length > 0) lines.push(currentLine);
+
+        // Calculate height based on lines
+        const lineHeight = 14;
+        const padding = 10;
+
+        let statusHeight = 0;
+        if (node.status) statusHeight = 15;
+
+        // top text (type) + lines + bottom text (ID) + optional status
+        const height = padding * 2 + 12 + (lines.length * lineHeight) + 12 + statusHeight;
+
+        const x = node.x - width / 2;
+        const y = node.y - height / 2;
+
+        const isRoot = node.id === this.currentRootId;
+
+        context.beginPath();
+        context.roundRect(x, y, width, height, cornerRadius);
+        context.fillStyle = fillColor;
+        context.fill();
+        context.lineWidth = isRoot ? 5 : 3;
+        context.strokeStyle = isRoot ? '#000' : strokeColor; // Darker stroke for root
+        context.stroke();
 
         // Draw Text
-        this.ctx.shadowColor = 'transparent'; // reset shadow for text
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
+        context.shadowColor = 'transparent'; // reset shadow for text
+        context.textAlign = 'center';
+        context.textBaseline = 'top';
 
         // Type Label
-        this.ctx.font = 'bold 10px Arial';
-        this.ctx.fillStyle = strokeColor;
-        this.ctx.fillText(node.type.toUpperCase(), node.x, node.y - 12);
+        let currentY = y + padding;
+        context.font = 'bold 10px Arial';
+        context.fillStyle = isRoot ? '#000' : strokeColor;
 
-        // Title (truncated)
-        this.ctx.font = '12px Arial';
-        this.ctx.fillStyle = '#000';
-        let label = node.label || '';
-        if (label.length > 10) label = label.substring(0, 10) + '...';
-        this.ctx.fillText(label, node.x, node.y + 5);
+        let typeText = node.type.toUpperCase();
+        if (isRoot) typeText += ' (FOCUS)';
+
+        context.fillText(typeText, node.x, currentY);
+        currentY += 15;
+
+        // Title
+        context.font = '12px Arial';
+        context.fillStyle = '#000';
+        for (let i=0; i<lines.length; i++) {
+             context.fillText(lines[i], node.x, currentY);
+             currentY += lineHeight;
+        }
+        currentY += 5;
 
         // ID
-        this.ctx.font = '9px Arial';
-        this.ctx.fillStyle = '#666';
-        this.ctx.fillText(node.id, node.x, node.y + 18);
+        context.font = '9px Arial';
+        context.fillStyle = '#666';
+        context.fillText(node.id, node.x, currentY);
+        currentY += 12;
+
+        // Status
+        if (node.status) {
+            context.font = 'bold 9px Arial';
+            context.fillStyle = strokeColor;
+            context.fillText(`[${node.status.toUpperCase()}]`, node.x, currentY);
+        }
+
+        // Save bounds for hit testing later
+        node.width = width;
+        node.height = height;
     }
 
     // --- Interactions ---
@@ -427,9 +567,11 @@ class GraphView {
             let clickedNode = null;
             for (let i = this.nodes.length - 1; i >= 0; i--) {
                 const node = this.nodes[i];
-                const dx = wPos.x - node.x;
-                const dy = wPos.y - node.y;
-                if (dx * dx + dy * dy <= 35 * 35) { // radius is 35
+                const halfW = (node.width || 220) / 2;
+                const halfH = (node.height || 60) / 2;
+
+                if (wPos.x >= node.x - halfW && wPos.x <= node.x + halfW &&
+                    wPos.y >= node.y - halfH && wPos.y <= node.y + halfH) {
                     clickedNode = node;
                     break;
                 }
@@ -509,59 +651,12 @@ class GraphView {
         tCtx.translate(this.transform.x, this.transform.y);
         tCtx.scale(this.transform.scale, this.transform.scale);
 
-        tCtx.strokeStyle = '#999';
-        tCtx.lineWidth = 1.5;
         this.edges.forEach(edge => {
-            tCtx.beginPath();
-            tCtx.moveTo(edge.source.x, edge.source.y);
-            tCtx.lineTo(edge.target.x, edge.target.y);
-            tCtx.stroke();
+            this.drawEdge(edge, tCtx);
         });
 
         this.nodes.forEach(node => {
-            const radius = 35;
-            let fillColor = '#fff';
-            let strokeColor = '#333';
-
-            if (node.id === this.currentRootId) {
-                tCtx.shadowColor = 'rgba(0,0,0,0.5)';
-                tCtx.shadowBlur = 10;
-            } else {
-                tCtx.shadowColor = 'transparent';
-                tCtx.shadowBlur = 0;
-            }
-
-            switch (node.type) {
-                case 'Task': fillColor = '#e3f2fd'; strokeColor = '#1976d2'; break;
-                case 'Risk': fillColor = '#ffebee'; strokeColor = '#d32f2f'; break;
-                case 'Issue': fillColor = '#fff3e0'; strokeColor = '#f57c00'; break;
-                case 'Dependency': fillColor = '#f3e5f5'; strokeColor = '#7b1fa2'; break;
-                case 'Assumption': fillColor = '#e8f5e9'; strokeColor = '#388e3c'; break;
-                case 'Decision': fillColor = '#e0f7fa'; strokeColor = '#0097a7'; break;
-            }
-
-            tCtx.beginPath();
-            tCtx.arc(node.x, node.y, radius, 0, 2 * Math.PI);
-            tCtx.fillStyle = fillColor;
-            tCtx.fill();
-            tCtx.lineWidth = 3;
-            tCtx.strokeStyle = strokeColor;
-            tCtx.stroke();
-
-            tCtx.shadowColor = 'transparent';
-            tCtx.textAlign = 'center';
-            tCtx.textBaseline = 'middle';
-            tCtx.font = 'bold 10px Arial';
-            tCtx.fillStyle = strokeColor;
-            tCtx.fillText(node.type.toUpperCase(), node.x, node.y - 12);
-            tCtx.font = '12px Arial';
-            tCtx.fillStyle = '#000';
-            let label = node.label || '';
-            if (label.length > 10) label = label.substring(0, 10) + '...';
-            tCtx.fillText(label, node.x, node.y + 5);
-            tCtx.font = '9px Arial';
-            tCtx.fillStyle = '#666';
-            tCtx.fillText(node.id, node.x, node.y + 18);
+            this.drawNode(node, tCtx);
         });
         tCtx.restore();
 
