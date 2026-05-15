@@ -78,6 +78,13 @@ class GraphView {
         this.currentRootId = id;
         this.currentRootType = type;
         this.depthInput.value = this.depth;
+
+        const entity = this.getEntity(id);
+        const titleLabel = document.getElementById('graphViewModalLabel');
+        if (titleLabel) {
+            titleLabel.innerText = `Graph View: ${id}${entity && entity.title ? ' - ' + entity.title : ''}`;
+        }
+
         this.modal.show();
     }
 
@@ -433,12 +440,14 @@ class GraphView {
         const x = node.x - width / 2;
         const y = node.y - height / 2;
 
+        const isRoot = node.id === this.currentRootId;
+
         context.beginPath();
         context.roundRect(x, y, width, height, cornerRadius);
         context.fillStyle = fillColor;
         context.fill();
-        context.lineWidth = 3;
-        context.strokeStyle = strokeColor;
+        context.lineWidth = isRoot ? 5 : 3;
+        context.strokeStyle = isRoot ? '#000' : strokeColor; // Darker stroke for root
         context.stroke();
 
         // Draw Text
@@ -449,8 +458,12 @@ class GraphView {
         // Type Label
         let currentY = y + padding;
         context.font = 'bold 10px Arial';
-        context.fillStyle = strokeColor;
-        context.fillText(node.type.toUpperCase(), node.x, currentY);
+        context.fillStyle = isRoot ? '#000' : strokeColor;
+
+        let typeText = node.type.toUpperCase();
+        if (isRoot) typeText += ' (FOCUS)';
+
+        context.fillText(typeText, node.x, currentY);
         currentY += 15;
 
         // Title
