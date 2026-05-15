@@ -1,0 +1,49 @@
+<<<<<<< SEARCH
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="taskListSearch" placeholder="Search by ID or Description...">
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover" id="taskListTable">
+                            <thead style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Description</th>
+                                    <th>Total Effort</th>
+                                </tr>
+                            </thead>
+=======
+                <div class="modal-body">
+                    <div class="mb-3 d-flex gap-2 flex-wrap" id="taskListTypeToggles">
+                        <input type="checkbox" class="btn-check task-list-type-toggle" id="toggleTaskListTasks" value="Task" autocomplete="off" checked>
+                        <label class="btn btn-outline-primary btn-sm" for="toggleTaskListTasks">Tasks</label>
+
+                        <input type="checkbox" class="btn-check task-list-type-toggle" id="toggleTaskListRisks" value="Risk" autocomplete="off">
+                        <label class="btn btn-outline-danger btn-sm" for="toggleTaskListRisks">Risks</label>
+
+                        <input type="checkbox" class="btn-check task-list-type-toggle" id="toggleTaskListIssues" value="Issue" autocomplete="off">
+                        <label class="btn btn-outline-warning btn-sm" for="toggleTaskListIssues">Issues</label>
+
+                        <input type="checkbox" class="btn-check task-list-type-toggle" id="toggleTaskListDependencies" value="Dependency" autocomplete="off">
+                        <label class="btn btn-outline-info btn-sm" for="toggleTaskListDependencies">Dependencies</label>
+
+                        <input type="checkbox" class="btn-check task-list-type-toggle" id="toggleTaskListAssumptions" value="Assumption" autocomplete="off">
+                        <label class="btn btn-outline-secondary btn-sm" for="toggleTaskListAssumptions">Assumptions</label>
+
+                        <input type="checkbox" class="btn-check task-list-type-toggle" id="toggleTaskListDecisions" value="Decision" autocomplete="off">
+                        <label class="btn btn-outline-success btn-sm" for="toggleTaskListDecisions">Decisions</label>
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" class="form-control" id="taskListSearch" placeholder="Search by ID or Description...">
+                    </div>
+                    <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-sm table-hover" id="taskListTable">
+                            <thead style="position: sticky; top: 0; background-color: #fff; z-index: 1;">
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Description</th>
+                                    <th>Total Effort</th>
+                                    <th>Type</th>
+                                </tr>
+                            </thead>
+>>>>>>> REPLACE
