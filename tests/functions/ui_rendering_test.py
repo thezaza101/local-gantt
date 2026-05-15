@@ -11,6 +11,7 @@ def test_render_task_list_table(page: Page, base_url: str):
 
     # By default, SAMPLE_PLAN has one task 'T1'
     # Evaluate UIController to render task list
+    page.evaluate("document.getElementById('toggleTaskListTasks').checked = true")
     page.evaluate("window.UIController.renderTaskListTable('')")
 
     # Check that T1 is rendered
@@ -20,7 +21,7 @@ def test_render_task_list_table(page: Page, base_url: str):
 
     # Test filtering functionality
     page.evaluate("window.UIController.renderTaskListTable('nomatch')")
-    expect(tbody).to_contain_text("No tasks found.")
+    expect(tbody).to_contain_text("No items found.")
 
 def test_render_marker_table(page: Page, base_url: str):
     """Verifies that renderMarkerTable correctly updates #markerTableBody."""

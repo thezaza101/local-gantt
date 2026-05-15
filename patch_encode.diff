@@ -1,0 +1,11 @@
+<<<<<<< SEARCH
+            let idHtml = this.escapeHtml(item.id);
+            if (baseLink) {
+                idHtml += ` <a href="${baseLink}${item.id}" target="_blank" onclick="event.stopPropagation();" title="Open Base Link" style="text-decoration:none; margin-left:5px;">🔗</a>`;
+            }
+=======
+            let idHtml = this.escapeHtml(item.id);
+            if (baseLink) {
+                idHtml += ` <a href="${baseLink}${encodeURIComponent(item.id)}" target="_blank" onclick="event.stopPropagation();" title="Open Base Link" style="text-decoration:none; margin-left:5px;">🔗</a>`;
+            }
+>>>>>>> REPLACE

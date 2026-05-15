@@ -1601,6 +1601,14 @@ class UI {
         const searchInput = document.getElementById('taskListSearch');
         searchInput.value = ''; // Reset search
 
+        // Reset toggles to default: only Tasks selected
+        document.getElementById('toggleTaskListTasks').checked = true;
+        document.getElementById('toggleTaskListRisks').checked = false;
+        document.getElementById('toggleTaskListIssues').checked = false;
+        document.getElementById('toggleTaskListDependencies').checked = false;
+        document.getElementById('toggleTaskListAssumptions').checked = false;
+        document.getElementById('toggleTaskListDecisions').checked = false;
+
         this.renderTaskListTable('');
 
         // Bind search event just once (if not already bound)
@@ -1610,6 +1618,17 @@ class UI {
             });
             searchInput.dataset.bound = 'true';
         }
+
+        // Bind toggle events
+        const toggles = document.querySelectorAll('.task-list-type-toggle');
+        toggles.forEach(toggle => {
+            if (!toggle.dataset.bound) {
+                toggle.addEventListener('change', () => {
+                    this.renderTaskListTable(searchInput.value.toLowerCase());
+                });
+                toggle.dataset.bound = 'true';
+            }
+        });
 
         modal.show();
     }
@@ -1621,32 +1640,70 @@ class UI {
         const tbody = document.getElementById('taskListTableBody');
         tbody.innerHTML = '';
 
-        const tasks = currentPlan.tasks || [];
+        const showTasks = document.getElementById('toggleTaskListTasks').checked;
+        const showRisks = document.getElementById('toggleTaskListRisks').checked;
+        const showIssues = document.getElementById('toggleTaskListIssues').checked;
+        const showDeps = document.getElementById('toggleTaskListDependencies').checked;
+        const showAssumps = document.getElementById('toggleTaskListAssumptions').checked;
+        const showDecs = document.getElementById('toggleTaskListDecisions').checked;
 
-        const filteredTasks = tasks.filter(task => {
-            const idMatch = (task.id || '').toLowerCase().includes(searchTerm);
-            const descMatch = (task.title || '').toLowerCase().includes(searchTerm);
+        let items = [];
+
+        if (showTasks) {
+            (currentPlan.tasks || []).forEach(t => items.push({ ...t, _type: 'Task' }));
+        }
+        if (showRisks) {
+            this.planner.getRisks().forEach(r => items.push({ ...r, _type: 'Risk' }));
+        }
+        if (showIssues) {
+            this.planner.getIssues().forEach(i => items.push({ ...i, _type: 'Issue' }));
+        }
+        if (showDeps) {
+            this.planner.getDependencies().forEach(d => items.push({ ...d, _type: 'Dependency' }));
+        }
+        if (showAssumps) {
+            this.planner.getAssumptions().forEach(a => items.push({ ...a, _type: 'Assumption' }));
+        }
+        if (showDecs) {
+            this.planner.getDecisions().forEach(d => items.push({ ...d, _type: 'Decision' }));
+        }
+
+        const filteredItems = items.filter(item => {
+            const idMatch = (item.id || '').toLowerCase().includes(searchTerm);
+            const descMatch = ((item.title || item.description) || '').toLowerCase().includes(searchTerm);
             return idMatch || descMatch;
         });
 
-        if (filteredTasks.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3" class="text-center text-muted">No tasks found.</td></tr>';
+        if (filteredItems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">No items found.</td></tr>';
             return;
         }
 
-        filteredTasks.forEach(task => {
-            const effortDesign = task.effort && task.effort.design ? parseFloat(task.effort.design) : 0;
-            const effortDev = task.effort && task.effort.dev ? parseFloat(task.effort.dev) : 0;
-            const effortTest = task.effort && task.effort.test ? parseFloat(task.effort.test) : 0;
-            const totalEffort = effortDesign + effortDev + effortTest;
+        const baseLink = (this.planner.file.settings && this.planner.file.settings.baseLink) ? this.planner.file.settings.baseLink : '';
+
+        filteredItems.forEach(item => {
+            let totalEffortStr = '-';
+            if (item._type === 'Task') {
+                const effortDesign = item.effort && item.effort.design ? parseFloat(item.effort.design) : 0;
+                const effortDev = item.effort && item.effort.dev ? parseFloat(item.effort.dev) : 0;
+                const effortTest = item.effort && item.effort.test ? parseFloat(item.effort.test) : 0;
+                totalEffortStr = effortDesign + effortDev + effortTest;
+            }
 
             const tr = document.createElement('tr');
-            const removedStyle = (task.status === 'Removed') ? 'text-decoration: line-through; opacity: 0.5;' : '';
+            const removedStyle = (item.status === 'Removed') ? 'text-decoration: line-through; opacity: 0.5;' : '';
             tr.style.cssText = removedStyle;
+
+            let idHtml = this.escapeHtml(item.id);
+            if (baseLink) {
+                idHtml += ` <a href="${baseLink}${encodeURIComponent(item.id)}" target="_blank" onclick="event.stopPropagation();" title="Open Base Link" style="text-decoration:none; margin-left:5px;">🔗</a>`;
+            }
+
             tr.innerHTML = `
-                <td>${this.escapeHtml(task.id)}</td>
-                <td>${this.escapeHtml(task.title)}</td>
-                <td>${totalEffort}</td>
+                <td>${idHtml}</td>
+                <td>${this.escapeHtml(item.title || item.description)}</td>
+                <td>${totalEffortStr}</td>
+                <td>${this.escapeHtml(item._type)}</td>
             `;
             tbody.appendChild(tr);
         });
