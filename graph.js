@@ -18,6 +18,7 @@ class GraphView {
 
         // Physics state
         this.animationFrameId = null;
+        this.physicsFrozen = false;
     }
 
     init() {
@@ -40,6 +41,14 @@ class GraphView {
         document.getElementById('downloadGraphBtn').addEventListener('click', () => {
             this.downloadImage();
         });
+
+        this.freezeBtn = document.getElementById('freezeGraphBtn');
+        if (this.freezeBtn) {
+            this.freezeBtn.addEventListener('click', () => {
+                this.physicsFrozen = !this.physicsFrozen;
+                this.freezeBtn.innerHTML = this.physicsFrozen ? '▶️ Unfreeze' : '⏸️ Freeze';
+            });
+        }
 
         // Resize canvas correctly
         this.modalElement.addEventListener('shown.bs.modal', () => {
@@ -244,7 +253,9 @@ class GraphView {
     }
 
     tick() {
-        this.updatePhysics();
+        if (!this.physicsFrozen) {
+            this.updatePhysics();
+        }
         this.draw();
         this.animationFrameId = requestAnimationFrame(() => this.tick());
     }
@@ -252,7 +263,7 @@ class GraphView {
     updatePhysics() {
         // Reduced optimal distance to bring nodes closer
         const k = Math.max(150, Math.sqrt((this.canvas.width * this.canvas.height) / (this.nodes.length || 1)));
-        const REPULSION = 20000; // Decrease base repulsion so they don't fly apart
+        const REPULSION = 5000; // Decrease base repulsion so they don't fly apart
         const ATTRACTION = 0.08; // Increase attraction to pull together
         const DAMPING = 0.60; // Lower damping (more friction) to settle quickly and prevent jumping
 
@@ -275,7 +286,7 @@ class GraphView {
                 const minDistanceY = ((node1.height || 60) + (node2.height || 60)) / 2 + 20;
 
                 if (Math.abs(dx) < minDistanceX && Math.abs(dy) < minDistanceY) {
-                    force += 150; // Softer push when overlapping bounding boxes
+                    force += 50; // Softer push when overlapping bounding boxes to prevent jitter
                 }
 
                 const fx = (dx / dist) * force;
