@@ -420,7 +420,12 @@ class UI {
                             window.checkFileVersionWarning(data);
                             if (this.planner.loadState(data)) {
                                 console.log("File imported successfully!");
-                                document.title = `Project Plan - ${file.name}`;
+                                let fileNameWithoutExtension = file.name;
+                                if (fileNameWithoutExtension.toLowerCase().endsWith('.json')) {
+                                    fileNameWithoutExtension = fileNameWithoutExtension.slice(0, -5);
+                                }
+                                document.title = `${fileNameWithoutExtension} - Project Plan`;
+                                this.currentFileName = file.name;
                                 // Here we would normally trigger a re-render of the Gantt chart
                                 // and other components in a later phase.
                                 this.updateUI();
@@ -460,7 +465,7 @@ class UI {
                 const state = this.planner.getState();
 
                 if (this.exportType === 'full') {
-                    Storage.exportPlanFile(state);
+                    Storage.exportPlanFile(state, this.currentFileName);
                     console.log("File exported.");
                 } else if (this.exportType === 'single') {
                     const currentPlanIndex = this.planner.currentPlanIndex;
