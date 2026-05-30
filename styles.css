@@ -204,6 +204,14 @@ body.presenter-mode #exitPresenterModeBtn {
     border-top-width: 2px;
 }
 
+.gantt-marker-background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    z-index: 5; /* Under tasks (20), over grid lines */
+    pointer-events: none;
+}
+
 /* Importance Variants */
 .marker-major { border-width: 3px !important; }
 .marker-minor { border-width: 2px !important; }
@@ -266,6 +274,21 @@ body.presenter-mode #exitPresenterModeBtn {
     background-color: rgba(255,255,255,0.8);
     padding: 0 4px;
     border-radius: 4px;
+}
+
+.gantt-marker-background-label {
+    position: sticky;
+    top: 5px;
+    left: 5px;
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 2px 6px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background-color: rgba(255, 255, 255, 0.8);
+    border-radius: 4px;
+    max-width: calc(100% - 10px);
 }
 
 /* Gantt Tasks */

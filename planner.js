@@ -505,6 +505,10 @@ class Planner {
             newMarker.date = markerData.date || plan.timeline.startDate;
         } else if (newMarker.type === 'horizontal') {
             newMarker.row = parseInt(markerData.row, 10) || 1;
+        } else if (newMarker.type === 'background') {
+            newMarker.date = markerData.date || plan.timeline.startDate;
+            newMarker.endDate = markerData.endDate || plan.timeline.endDate;
+            newMarker.opacity = markerData.opacity !== undefined ? parseFloat(markerData.opacity) : 0.2;
         }
 
         plan.markers.push(newMarker);
@@ -530,8 +534,14 @@ class Planner {
             // Cleanup fields based on type
             if (updatedMarker.type === 'vertical') {
                 delete updatedMarker.row;
+                delete updatedMarker.endDate;
+                delete updatedMarker.opacity;
             } else if (updatedMarker.type === 'horizontal') {
                 delete updatedMarker.date;
+                delete updatedMarker.endDate;
+                delete updatedMarker.opacity;
+            } else if (updatedMarker.type === 'background') {
+                delete updatedMarker.row;
             }
 
             plan.markers[markerIndex] = updatedMarker;

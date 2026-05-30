@@ -254,6 +254,47 @@ class Gantt {
                             </div>
                         </div>
                     `;
+                } else if (marker.type === 'background') {
+                    const markerStartDate = new Date(marker.date);
+                    const markerEndDate = marker.endDate ? new Date(marker.endDate) : markerStartDate;
+
+                    // Calculate overlap with visible timeline
+                    const effectiveStart = markerStartDate > startDate ? markerStartDate : startDate;
+                    const effectiveEnd = markerEndDate < endDate ? markerEndDate : endDate;
+
+                    if (effectiveStart <= effectiveEnd) {
+                        const daysOffset = Math.floor((effectiveStart - startDate) / (1000 * 60 * 60 * 24));
+                        const durationDays = Math.floor((effectiveEnd - effectiveStart) / (1000 * 60 * 60 * 24)) + 1;
+
+                        const leftPos = daysOffset * this.cellWidth;
+                        const width = durationDays * this.cellWidth;
+
+                        const opacity = marker.opacity !== undefined ? marker.opacity : 0.2;
+
+                        // Parse RGB from hex string if possible to apply opacity properly in CSS without external libraries
+                        let r = 255, g = 77, b = 77; // default #ff4d4d
+                        if (markerColor.startsWith('#')) {
+                            let hex = markerColor.replace('#', '');
+                            if (hex.length === 3) {
+                                hex = hex.split('').map(c => c + c).join('');
+                            }
+                            if (hex.length === 6) {
+                                r = parseInt(hex.substring(0, 2), 16);
+                                g = parseInt(hex.substring(2, 4), 16);
+                                b = parseInt(hex.substring(4, 6), 16);
+                            }
+                        }
+
+                        const bgColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+
+                        markersHtml += `
+                            <div class="gantt-marker-background" style="left: ${leftPos}px; width: ${width}px; background-color: ${bgColor};">
+                                <div class="gantt-marker-background-label" style="color: ${markerColor};">
+                                    ${safeLabel}
+                                </div>
+                            </div>
+                        `;
+                    }
                 } else {
                     // Vertical marker
                     const markerDate = new Date(marker.date);
