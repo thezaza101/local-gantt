@@ -280,15 +280,20 @@ body.presenter-mode #exitPresenterModeBtn {
     position: sticky;
     top: 5px;
     left: 5px;
-    font-size: 0.9em;
-    font-weight: bold;
+    font-size: 0.85em;
+    font-weight: normal;
     padding: 2px 6px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background-color: rgba(255, 255, 255, 0.8);
+    background-color: transparent;
     border-radius: 4px;
     max-width: calc(100% - 10px);
+    z-index: 25; /* above markers but below tasks if they overlap, but here it's mostly top area */
+}
+
+[data-bs-theme="dark"] .gantt-marker-background-label {
+    color: #e9ecef !important;
 }
 
 /* Gantt Tasks */

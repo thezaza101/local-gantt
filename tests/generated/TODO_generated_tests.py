@@ -200,6 +200,11 @@ def test_setExcludeFromAnalyticsOfMarkedTasks(page: Page):
     # TODO: Implement test for setExcludeFromAnalyticsOfMarkedTasks in planner.js
     pass
 
+@pytest.mark.skip(reason="TODO: implement test for planner.js -> setLastCheckedOfMarkedTasks")
+def test_setLastCheckedOfMarkedTasks(page: Page):
+    # TODO: Implement test for setLastCheckedOfMarkedTasks in planner.js
+    pass
+
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> convertMarksToSelection")
 def test_convertMarksToSelection(page: Page):
     # TODO: Implement test for convertMarksToSelection in planner.js
@@ -303,6 +308,26 @@ def test_deleteEntity(page: Page):
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> getEntityById")
 def test_getEntityById(page: Page):
     # TODO: Implement test for getEntityById in planner.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for planner.js -> logChange")
+def test_logChange(page: Page):
+    # TODO: Implement test for logChange in planner.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for planner.js -> getDifferences")
+def test_getDifferences(page: Page):
+    # TODO: Implement test for getDifferences in planner.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for planner.js -> getChangeLog")
+def test_getChangeLog(page: Page):
+    # TODO: Implement test for getChangeLog in planner.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for planner.js -> clearChangeLog")
+def test_clearChangeLog(page: Page):
+    # TODO: Implement test for clearChangeLog in planner.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for planner.js -> getTaskById")
@@ -555,9 +580,24 @@ def test_exportLegendImage(page: Page):
     # TODO: Implement test for exportLegendImage in ui.js
     pass
 
+@pytest.mark.skip(reason="TODO: implement test for ui.js -> renderChangeLog")
+def test_renderChangeLog(page: Page):
+    # TODO: Implement test for renderChangeLog in ui.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for ui.js -> initChangeLog")
+def test_initChangeLog(page: Page):
+    # TODO: Implement test for initChangeLog in ui.js
+    pass
+
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> updateUI")
 def test_updateUI(page: Page):
     # TODO: Implement test for updateUI in ui.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for ui.js -> populatePersonnelDatalist")
+def test_populatePersonnelDatalist(page: Page):
+    # TODO: Implement test for populatePersonnelDatalist in ui.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for ui.js -> populateTeamSelects")
@@ -595,6 +635,21 @@ def test_calculateEffortByTask(page: Page):
     # TODO: Implement test for calculateEffortByTask in analytics.js
     pass
 
+@pytest.mark.skip(reason="TODO: implement test for analytics.js -> getScopeTrackerItems")
+def test_getScopeTrackerItems(page: Page):
+    # TODO: Implement test for getScopeTrackerItems in analytics.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateRaidaCountsByType")
+def test_calculateRaidaCountsByType(page: Page):
+    # TODO: Implement test for calculateRaidaCountsByType in analytics.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateRaidaCountsByStatus")
+def test_calculateRaidaCountsByStatus(page: Page):
+    # TODO: Implement test for calculateRaidaCountsByStatus in analytics.js
+    pass
+
 @pytest.mark.skip(reason="TODO: implement test for analytics.js -> calculateDemandCapacity")
 def test_calculateDemandCapacity(page: Page):
     # TODO: Implement test for calculateDemandCapacity in analytics.js
@@ -608,6 +663,16 @@ def test_calculateTagEffortByPeriod(page: Page):
 @pytest.mark.skip(reason="TODO: implement test for analytics.js -> render")
 def test_render(page: Page):
     # TODO: Implement test for render in analytics.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for analytics.js -> renderChartRaidaCountsByType")
+def test_renderChartRaidaCountsByType(page: Page):
+    # TODO: Implement test for renderChartRaidaCountsByType in analytics.js
+    pass
+
+@pytest.mark.skip(reason="TODO: implement test for analytics.js -> renderChartRaidaCountsByStatus")
+def test_renderChartRaidaCountsByStatus(page: Page):
+    # TODO: Implement test for renderChartRaidaCountsByStatus in analytics.js
     pass
 
 @pytest.mark.skip(reason="TODO: implement test for analytics.js -> bindFilterEvents")

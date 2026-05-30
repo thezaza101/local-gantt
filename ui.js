@@ -2868,6 +2868,12 @@ class UI {
             let positionHtml = '';
             if (marker.type === 'vertical') {
                 positionHtml = `Date: ${marker.date}`;
+            } else if (marker.type === 'background') {
+                const s = new Date(marker.date);
+                const e = new Date(marker.endDate);
+                const diffTime = Math.abs(e - s);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                positionHtml = `${marker.date} + ${diffDays} days`;
             } else {
                 positionHtml = `Before Row: ${marker.row}`;
             }
