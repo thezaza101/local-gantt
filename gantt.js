@@ -216,10 +216,11 @@ class Gantt {
 
         // Generate markers
         let markersHtml = '';
-        if (plan.markers && plan.markers.length > 0) {
-            const plannerState = window.PlannerState || (window.UIController ? window.UIController.planner : null);
+        const plannerState = window.PlannerState || (window.UIController ? window.UIController.planner : null);
+        const effectiveMarkers = plannerState ? plannerState.getEffectiveMarkers(plan) : (plan.markers || []);
 
-            plan.markers.forEach(marker => {
+        if (effectiveMarkers && effectiveMarkers.length > 0) {
+            effectiveMarkers.forEach(marker => {
                 // Check individual marker visibility
                 if (marker.visible === false) return;
 

@@ -1,5 +1,20 @@
 # Features
 
+## Marker Groups
+The Marker Groups feature allows grouping timeline markers (vertical, horizontal, background) into distinct sets. These sets can be independently named, toggled for visibility, and applied selectively to specific plans.
+
+### Management
+Marker Groups are managed via the `Manage Markers` modal (`index.html`).
+- **Default Plan Markers:** The original marker array, stored directly on the plan (`plan.markers`), functions as the default group. It always applies to the current plan.
+- **Custom Groups:** Created through the "+ Add Group" tab, these are stored in `file.settings.markerGroups`. They can be named, have their visibility toggled on/off, and be configured to apply to one or multiple plans via a dropdown.
+- **Visibility:** Toggling a group's visibility hides all its markers from the Gantt chart and task snapping dropdowns instantly.
+- **Effective Markers:** During rendering, the planner merges `plan.markers` and any applicable custom group markers into a single array (`getEffectiveMarkers(plan)`), ensuring all relevant markers are displayed. Horizontal markers will shift together when inserting or deleting rows in the chart.
+
+### Data Model
+- `settings.markerGroups`: Array of group objects `{ id, name, visible, applyToPlans, markers }`.
+- `applyToPlans`: Array of strings containing plan IDs the group applies to.
+- `markers`: Array of marker objects following the standard marker structure (type, label, color, date, etc.).
+
 ## Teams
 The Teams feature allows assigning tasks to specific teams and filtering both analytics and capacity by those teams.
 

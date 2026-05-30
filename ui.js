@@ -3,6 +3,7 @@
 class UI {
     constructor() {
         this.planner = window.PlannerState;
+        this.currentMarkerGroupId = 'default';
 
         // Setup initial UI components
         this.bindEvents();
@@ -10,6 +11,46 @@ class UI {
 
     bindEvents() {
         this.initChangeLog();
+
+        // Marker Group Events
+        const markerGroupNameInput = document.getElementById('markerGroupNameInput');
+        if (markerGroupNameInput) {
+            markerGroupNameInput.addEventListener('change', (e) => {
+                if (this.currentMarkerGroupId !== 'default') {
+                    this.planner.updateMarkerGroup(this.currentMarkerGroupId, { name: e.target.value });
+                    this.renderMarkerGroupTabs();
+                    this.updateUI();
+                }
+            });
+        }
+
+        const markerGroupVisibleCheck = document.getElementById('markerGroupVisibleCheck');
+        if (markerGroupVisibleCheck) {
+            markerGroupVisibleCheck.addEventListener('change', (e) => {
+                if (this.currentMarkerGroupId !== 'default') {
+                    this.planner.updateMarkerGroup(this.currentMarkerGroupId, { visible: e.target.checked });
+                    this.renderMarkerGroupTabs();
+                    this.updateUI();
+                }
+            });
+        }
+
+        const deleteMarkerGroupBtn = document.getElementById('deleteMarkerGroupBtn');
+        if (deleteMarkerGroupBtn) {
+            deleteMarkerGroupBtn.addEventListener('click', () => {
+                if (this.currentMarkerGroupId !== 'default') {
+                    if (confirm('Are you sure you want to delete this group and all its markers?')) {
+                        if (this.planner.deleteMarkerGroup(this.currentMarkerGroupId)) {
+                            this.currentMarkerGroupId = 'default';
+                            this.renderMarkerGroupTabs();
+                            this.renderMarkerTable();
+                            this.updateUI();
+                        }
+                    }
+                }
+            });
+        }
+
         const analyticsContainer = document.getElementById("analyticsContainer");
         const openAnalyticsBtn = document.getElementById("openAnalyticsBtn");
         const closeAnalyticsBtn = document.getElementById("closeAnalyticsBtn");
@@ -2621,8 +2662,9 @@ class UI {
         startMarkerDropdown.innerHTML = '';
         endMarkerDropdown.innerHTML = '';
 
-        if (currentPlan && currentPlan.markers) {
-            const verticalMarkers = currentPlan.markers.filter(m => m.type === 'vertical');
+        if (currentPlan) {
+            const effectiveMarkers = this.planner.getEffectiveMarkers(currentPlan);
+            const verticalMarkers = effectiveMarkers.filter(m => m.type === 'vertical' && m.visible !== false);
             if (verticalMarkers.length > 0) {
                 startMarkerBtn.disabled = false;
                 endMarkerBtn.disabled = false;
@@ -2869,12 +2911,139 @@ class UI {
         taskModal.show();
     }
 
+    renderMarkerGroupTabs() {
+        const tabsContainer = document.getElementById('markerGroupTabs');
+        if (!tabsContainer) return;
+
+        tabsContainer.innerHTML = '';
+
+        // Default tab
+        const defaultLi = document.createElement('li');
+        defaultLi.className = 'nav-item';
+        defaultLi.role = 'presentation';
+        const defaultBtn = document.createElement('button');
+        defaultBtn.className = `nav-link ${this.currentMarkerGroupId === 'default' ? 'active' : ''}`;
+        defaultBtn.textContent = 'Default Plan Markers';
+        defaultBtn.type = 'button';
+        defaultBtn.role = 'tab';
+        defaultBtn.addEventListener('click', () => {
+            this.currentMarkerGroupId = 'default';
+            this.renderMarkerGroupTabs();
+            this.renderMarkerTable();
+        });
+        defaultLi.appendChild(defaultBtn);
+        tabsContainer.appendChild(defaultLi);
+
+        const groups = this.planner.getMarkerGroups();
+        groups.forEach(group => {
+            const li = document.createElement('li');
+            li.className = 'nav-item';
+            li.role = 'presentation';
+            const btn = document.createElement('button');
+            btn.className = `nav-link ${this.currentMarkerGroupId === group.id ? 'active' : ''}`;
+
+            // Add a small indicator if not visible
+            let label = group.name || 'Unnamed Group';
+            if (group.visible === false) {
+                label = `👁️‍🗨️ ${label}`;
+            }
+            btn.textContent = label;
+
+            btn.type = 'button';
+            btn.role = 'tab';
+            btn.addEventListener('click', () => {
+                this.currentMarkerGroupId = group.id;
+                this.renderMarkerGroupTabs();
+                this.renderMarkerTable();
+            });
+            li.appendChild(btn);
+            tabsContainer.appendChild(li);
+        });
+
+        // Add New Group tab
+        const addLi = document.createElement('li');
+        addLi.className = 'nav-item ms-auto';
+        addLi.role = 'presentation';
+        const addBtn = document.createElement('button');
+        addBtn.className = 'nav-link text-primary';
+        addBtn.textContent = '+ Add Group';
+        addBtn.type = 'button';
+        addBtn.role = 'tab';
+        addBtn.addEventListener('click', () => {
+            const newName = prompt('Enter new marker group name:');
+            if (newName && newName.trim()) {
+                const newGroup = this.planner.addMarkerGroup(newName);
+                if (newGroup) {
+                    this.currentMarkerGroupId = newGroup.id;
+                    this.renderMarkerGroupTabs();
+                    this.renderMarkerTable();
+                    this.updateUI();
+                }
+            }
+        });
+        addLi.appendChild(addBtn);
+        tabsContainer.appendChild(addLi);
+
+        // Update settings visibility
+        const settingsContainer = document.getElementById('markerGroupSettings');
+        if (this.currentMarkerGroupId === 'default') {
+            if(settingsContainer) settingsContainer.style.display = 'none';
+        } else {
+            if(settingsContainer) settingsContainer.style.display = 'block';
+            const group = groups.find(g => g.id === this.currentMarkerGroupId);
+            if (group) {
+                document.getElementById('markerGroupNameInput').value = group.name || '';
+                document.getElementById('markerGroupVisibleCheck').checked = group.visible !== false;
+
+                // Render plans dropdown checkboxes
+                const plansDropdown = document.getElementById('markerGroupPlansDropdown');
+                if (plansDropdown) {
+                    plansDropdown.innerHTML = '';
+                    const allPlans = this.planner.file.plans || [];
+                    if (allPlans.length === 0) {
+                        plansDropdown.innerHTML = '<li><span class="dropdown-item-text text-muted small">No plans available</span></li>';
+                    } else {
+                        allPlans.forEach(plan => {
+                            const li = document.createElement('li');
+                            const label = document.createElement('label');
+                            label.className = 'dropdown-item d-flex align-items-center gap-2 mb-0 cursor-pointer';
+                            const cb = document.createElement('input');
+                            cb.type = 'checkbox';
+                            cb.className = 'form-check-input mt-0 marker-group-plan-check';
+                            cb.value = plan.id;
+                            cb.checked = (group.applyToPlans || []).includes(plan.id);
+
+                            // Immediately save when toggled
+                            cb.addEventListener('change', () => {
+                                const selectedPlans = Array.from(document.querySelectorAll('.marker-group-plan-check:checked')).map(el => el.value);
+                                this.planner.updateMarkerGroup(this.currentMarkerGroupId, { applyToPlans: selectedPlans });
+                                this.updateUI(); // gantt might need refresh
+                            });
+
+                            label.appendChild(cb);
+                            label.appendChild(document.createTextNode(plan.name));
+                            li.appendChild(label);
+                            plansDropdown.appendChild(li);
+                        });
+                    }
+                }
+            }
+        }
+    }
+
     openMarkerManagementModal() {
         const currentPlan = this.planner.getCurrentPlan();
         if (!currentPlan) return;
 
         const modalEl = document.getElementById('markerManagementModal');
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+
+        // Reset to default on first open if needed, or preserve last viewed
+        if (this.currentMarkerGroupId !== 'default' && !this.planner.getMarkerGroups().find(g => g.id === this.currentMarkerGroupId)) {
+            this.currentMarkerGroupId = 'default';
+        }
+
+        this.renderMarkerGroupTabs();
         this.renderMarkerTable();
         modal.show();
     }
@@ -2886,7 +3055,14 @@ class UI {
         const tbody = document.getElementById('markerTableBody');
         tbody.innerHTML = '';
 
-        const markers = currentPlan.markers || [];
+        let markers = [];
+        if (this.currentMarkerGroupId === 'default') {
+            markers = currentPlan.markers || [];
+        } else {
+            const group = this.planner.getMarkerGroups().find(g => g.id === this.currentMarkerGroupId);
+            if (group) markers = group.markers || [];
+        }
+
         if (markers.length === 0) {
             tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No markers added yet.</td></tr>';
             return;
@@ -2923,7 +3099,7 @@ class UI {
 
             const visibleCheckbox = tr.querySelector('.toggle-marker-visible');
             visibleCheckbox.addEventListener('change', (e) => {
-                if (this.planner.updateMarker(marker.id, { visible: e.target.checked })) {
+                if (this.planner.updateMarker(marker.id, { visible: e.target.checked }, this.currentMarkerGroupId)) {
                     this.updateUI();
                 } else {
                     e.target.checked = !e.target.checked; // revert on failure
@@ -2943,7 +3119,7 @@ class UI {
             } else {
                 deleteBtn.addEventListener('click', () => {
                     if (confirm('Are you sure you want to delete this marker?')) {
-                        if (this.planner.deleteMarker(marker.id)) {
+                        if (this.planner.deleteMarker(marker.id, this.currentMarkerGroupId)) {
                             this.renderMarkerTable();
                             this.updateUI();
                         }
@@ -2977,6 +3153,7 @@ class UI {
         document.getElementById('markerTypeBackground').disabled = false;
 
         document.getElementById('markerId').value = '';
+        document.getElementById('markerGroupId').value = this.currentMarkerGroupId;
         document.getElementById('markerTypeVertical').checked = true;
 
         // Trigger change event to set correct field visibility
@@ -2989,7 +3166,15 @@ class UI {
         document.getElementById('markerOpacityValue').textContent = "0.2";
 
         if (markerId) {
-            const marker = (currentPlan.markers || []).find(m => m.id === markerId);
+            let markers = [];
+            if (this.currentMarkerGroupId === 'default') {
+                markers = currentPlan.markers || [];
+            } else {
+                const group = this.planner.getMarkerGroups().find(g => g.id === this.currentMarkerGroupId);
+                if (group) markers = group.markers || [];
+            }
+
+            const marker = markers.find(m => m.id === markerId);
             if (marker) {
                 document.getElementById('markerId').value = marker.id;
                 document.getElementById('markerLabel').value = marker.label || '';
@@ -3095,12 +3280,13 @@ class UI {
         markerData.visible = document.getElementById('markerVisible').checked;
 
         const markerId = document.getElementById('markerId').value;
+        const groupId = document.getElementById('markerGroupId').value || 'default';
         let success = false;
 
         if (markerId) {
-            success = this.planner.updateMarker(markerId, markerData);
+            success = this.planner.updateMarker(markerId, markerData, groupId);
         } else {
-            success = this.planner.addMarker(markerData);
+            success = this.planner.addMarker(markerData, groupId);
         }
 
         if (success) {

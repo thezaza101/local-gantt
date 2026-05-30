@@ -576,24 +576,57 @@
                     <h5 class="modal-title" id="markerManagementModalLabel">Manage Markers</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body">
-                    <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="addNewMarkerBtn">+ Add New Marker</button>
-                    <table class="table table-sm" id="markerTable">
-                        <thead>
-                            <tr>
-                                <th>Label</th>
-                                <th>Type</th>
-                                <th>Position</th>
-                                <th>Color</th>
-                                <th>Importance</th>
-                                <th>Visible</th>
-                                <th style="width: 100px;">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="markerTableBody">
-                            <!-- Marker rows injected here -->
-                        </tbody>
-                    </table>
+                <div class="modal-body pt-0 px-0">
+                    <ul class="nav nav-tabs px-3 pt-3 mb-3" id="markerGroupTabs" role="tablist">
+                        <!-- Tabs injected here -->
+                    </ul>
+                    <div class="px-3" id="markerGroupSettings" style="display: none;">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="markerGroupNameInput" class="form-label">Group Name</label>
+                                <input type="text" class="form-control form-control-sm" id="markerGroupNameInput">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Apply to Plans</label>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-start" type="button" id="markerGroupPlansBtn" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                                        Select Plans...
+                                    </button>
+                                    <ul class="dropdown-menu w-100 shadow-sm" id="markerGroupPlansDropdown" aria-labelledby="markerGroupPlansBtn" style="max-height: 200px; overflow-y: auto;">
+                                        <!-- Checkboxes injected here -->
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="markerGroupVisibleCheck" checked>
+                                <label class="form-check-label" for="markerGroupVisibleCheck">Visible</label>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-danger" id="deleteMarkerGroupBtn">Delete Group</button>
+                        </div>
+                        <hr>
+                    </div>
+
+                    <div class="px-3" id="markerTableContainer">
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="addNewMarkerBtn">+ Add New Marker</button>
+                        <table class="table table-sm" id="markerTable">
+                            <thead>
+                                <tr>
+                                    <th>Label</th>
+                                    <th>Type</th>
+                                    <th>Position</th>
+                                    <th>Color</th>
+                                    <th>Importance</th>
+                                    <th>Visible</th>
+                                    <th style="width: 100px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="markerTableBody">
+                                <!-- Marker rows injected here -->
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -613,6 +646,7 @@
                 <div class="modal-body">
                     <form id="markerForm">
                         <input type="hidden" id="markerId">
+                        <input type="hidden" id="markerGroupId">
 
                         <div class="mb-3">
                             <label for="markerLabel" class="form-label">Label</label>
@@ -796,7 +830,7 @@
                                 <li class="mb-2"><strong>➕ Add Task:</strong> Create a new task in the current plan.</li>
                                 <li class="mb-2"><strong>🗃️ Bulk Operations:</strong> Select multiple tasks via checkboxes to apply tags, set statuses, or exclude them in bulk.</li>
                                 <li class="mb-2"><strong>➕/🗑️ Manage Rows:</strong> Hover over a row number in the chart to insert empty rows above or delete empty rows.</li>
-                                <li class="mb-2"><strong>📍 Manage Markers:</strong> Add, edit, or delete timeline markers.</li>
+                                <li class="mb-2"><strong>📍 Manage Markers:</strong> Add, edit, or delete timeline markers. Manage Custom Marker Groups for applying markers across multiple plans.</li>
                                 <li class="mb-2"><strong>📋 Task List:</strong> View all tasks in a searchable list format.</li>
                                 <li class="mb-2"><strong>📝 Follow Ups & Notes:</strong> Set a Follow Up Date and save Notes on tasks/tracker items for reminders.</li>
                             </ul>

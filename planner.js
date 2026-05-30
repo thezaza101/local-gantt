@@ -483,13 +483,23 @@ class Planner {
         return false;
     }
 
-    addMarker(markerData) {
+    addMarker(markerData, groupId = 'default') {
         const plan = this.getCurrentPlan();
         if (!plan) return false;
 
-        if (!plan.markers) {
-            plan.markers = [];
+        let targetArray = null;
+        if (groupId === 'default') {
+            if (!plan.markers) plan.markers = [];
+            targetArray = plan.markers;
+        } else {
+            const group = this.getMarkerGroups().find(g => g.id === groupId);
+            if (group) {
+                if (!group.markers) group.markers = [];
+                targetArray = group.markers;
+            }
         }
+
+        if (!targetArray) return false;
 
         const newMarker = {
             id: markerData.id || ('marker_' + Math.random().toString(36).substring(2, 9)),
@@ -511,10 +521,10 @@ class Planner {
             newMarker.opacity = markerData.opacity !== undefined ? parseFloat(markerData.opacity) : 0.2;
         }
 
-        plan.markers.push(newMarker);
+        targetArray.push(newMarker);
 
         // Optional: sort vertical markers by date for consistency
-        plan.markers.sort((a, b) => {
+        targetArray.sort((a, b) => {
             if (a.type === 'vertical' && b.type === 'vertical') {
                 return new Date(a.date) - new Date(b.date);
             }
@@ -523,13 +533,25 @@ class Planner {
         return true;
     }
 
-    updateMarker(markerId, markerData) {
+    updateMarker(markerId, markerData, groupId = 'default') {
         const plan = this.getCurrentPlan();
-        if (!plan || !plan.markers) return false;
+        if (!plan) return false;
 
-        const markerIndex = plan.markers.findIndex(m => m.id === markerId);
+        let targetArray = null;
+        if (groupId === 'default') {
+            targetArray = plan.markers;
+        } else {
+            const group = this.getMarkerGroups().find(g => g.id === groupId);
+            if (group) {
+                targetArray = group.markers;
+            }
+        }
+
+        if (!targetArray) return false;
+
+        const markerIndex = targetArray.findIndex(m => m.id === markerId);
         if (markerIndex !== -1) {
-            const updatedMarker = { ...plan.markers[markerIndex], ...markerData };
+            const updatedMarker = { ...targetArray[markerIndex], ...markerData };
 
             // Cleanup fields based on type
             if (updatedMarker.type === 'vertical') {
@@ -544,9 +566,9 @@ class Planner {
                 delete updatedMarker.row;
             }
 
-            plan.markers[markerIndex] = updatedMarker;
+            targetArray[markerIndex] = updatedMarker;
 
-            plan.markers.sort((a, b) => {
+            targetArray.sort((a, b) => {
                 if (a.type === 'vertical' && b.type === 'vertical') {
                     return new Date(a.date) - new Date(b.date);
                 }
@@ -557,13 +579,25 @@ class Planner {
         return false;
     }
 
-    deleteMarker(markerId) {
+    deleteMarker(markerId, groupId = 'default') {
         const plan = this.getCurrentPlan();
-        if (!plan || !plan.markers) return false;
+        if (!plan) return false;
 
-        const markerIndex = plan.markers.findIndex(m => m.id === markerId);
+        let targetArray = null;
+        if (groupId === 'default') {
+            targetArray = plan.markers;
+        } else {
+            const group = this.getMarkerGroups().find(g => g.id === groupId);
+            if (group) {
+                targetArray = group.markers;
+            }
+        }
+
+        if (!targetArray) return false;
+
+        const markerIndex = targetArray.findIndex(m => m.id === markerId);
         if (markerIndex !== -1) {
-            plan.markers.splice(markerIndex, 1);
+            targetArray.splice(markerIndex, 1);
             return true;
         }
         return false;
@@ -907,12 +941,13 @@ class Planner {
         }
 
         // Shift horizontal markers
-        if (plan.markers && plan.markers.length > 0) {
-            plan.markers.forEach(marker => {
+        const effectiveMarkers = this.getEffectiveMarkers(plan);
+        if (effectiveMarkers && effectiveMarkers.length > 0) {
+            effectiveMarkers.forEach(marker => {
                 if (marker.type === 'horizontal') {
                     const currentRow = (marker.row !== undefined && marker.row > 0) ? marker.row : 1;
                     if (currentRow >= targetRowIndex) {
-                        marker.row = currentRow + 1;
+                        this.updateMarker(marker.id, { row: currentRow + 1 }, marker._groupId);
                         hasChanges = true;
                     }
                 }
@@ -950,21 +985,20 @@ class Planner {
         }
 
         // Shift horizontal markers up and delete if on the target row
-        if (plan.markers && plan.markers.length > 0) {
-            const markersToDelete = [];
-            plan.markers.forEach((marker, index) => {
+        const effectiveMarkers = this.getEffectiveMarkers(plan);
+        if (effectiveMarkers && effectiveMarkers.length > 0) {
+            effectiveMarkers.forEach(marker => {
                 if (marker.type === 'horizontal') {
                     const currentRow = (marker.row !== undefined && marker.row > 0) ? marker.row : 1;
                     if (currentRow === targetRowIndex) {
-                        markersToDelete.push(marker.id);
+                        this.deleteMarker(marker.id, marker._groupId);
                         hasChanges = true;
                     } else if (currentRow > targetRowIndex) {
-                        marker.row = currentRow - 1;
+                        this.updateMarker(marker.id, { row: currentRow - 1 }, marker._groupId);
                         hasChanges = true;
                     }
                 }
             });
-            markersToDelete.forEach(id => this.deleteMarker(id));
         }
 
         return hasChanges;
@@ -1234,6 +1268,72 @@ class Planner {
         }
         console.error("Invalid state provided to loadState.");
         return false;
+    }
+
+    getMarkerGroups() {
+        if (!this.file.settings) this.file.settings = {};
+        if (!this.file.settings.markerGroups) {
+            this.file.settings.markerGroups = [];
+        }
+        return this.file.settings.markerGroups;
+    }
+
+    addMarkerGroup(name) {
+        if (!name || !name.trim()) return null;
+        const groups = this.getMarkerGroups();
+        const newGroup = {
+            id: 'mg_' + Math.random().toString(36).substring(2, 9),
+            name: name.trim(),
+            visible: true,
+            applyToPlans: [],
+            markers: []
+        };
+        groups.push(newGroup);
+        return newGroup;
+    }
+
+    updateMarkerGroup(groupId, updates) {
+        const groups = this.getMarkerGroups();
+        const group = groups.find(g => g.id === groupId);
+        if (group) {
+            if (updates.name !== undefined) group.name = updates.name.trim();
+            if (updates.visible !== undefined) group.visible = updates.visible;
+            if (updates.applyToPlans !== undefined) group.applyToPlans = updates.applyToPlans;
+            return true;
+        }
+        return false;
+    }
+
+    deleteMarkerGroup(groupId) {
+        const groups = this.getMarkerGroups();
+        const index = groups.findIndex(g => g.id === groupId);
+        if (index !== -1) {
+            groups.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+
+    getEffectiveMarkers(plan) {
+        if (!plan) return [];
+        let effectiveMarkers = [];
+
+        if (plan.markers) {
+            effectiveMarkers = effectiveMarkers.concat(
+                plan.markers.map(m => ({ ...m, _groupId: 'default' }))
+            );
+        }
+
+        const groups = this.getMarkerGroups();
+        groups.forEach(group => {
+            if (group.visible !== false && group.applyToPlans && group.applyToPlans.includes(plan.id) && group.markers) {
+                effectiveMarkers = effectiveMarkers.concat(
+                    group.markers.map(m => ({ ...m, _groupId: group.id }))
+                );
+            }
+        });
+
+        return effectiveMarkers;
     }
 
     getFillLegends() {
