@@ -1,14 +1,14 @@
 /* Storage Layer */
 
 class Storage {
-    static exportPlanFile(state) {
+    static exportPlanFile(state, fileName = "planning-file.json") {
         const json = JSON.stringify(state, null, 2);
         const blob = new Blob([json], { type: "application/json" });
         const url = URL.createObjectURL(blob);
 
         const a = document.createElement("a");
         a.href = url;
-        a.download = "planning-file.json";
+        a.download = fileName;
         document.body.appendChild(a);
         a.click();
 
