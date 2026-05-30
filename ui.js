@@ -2668,11 +2668,27 @@ class UI {
                 return;
             }
 
-            const tasks = currentPlan.tasks;
+            const tasks = currentPlan.tasks.slice(); // copy array
             if (tasks.length === 0 || (tasks.length === 1 && tasks[0].id === taskId)) {
                 container.innerHTML = `<span class="text-muted small">No other tasks available</span>`;
                 return;
             }
+
+            let currentTaskDeps = [];
+            if (taskId) {
+                const currentTask = this.planner.getTaskById(taskId);
+                if (currentTask && currentTask.dependencies) {
+                    currentTaskDeps = currentTask.dependencies;
+                }
+            }
+
+            tasks.sort((a, b) => {
+                const aIsDep = currentTaskDeps.includes(a.id);
+                const bIsDep = currentTaskDeps.includes(b.id);
+                if (aIsDep && !bIsDep) return -1;
+                if (!aIsDep && bIsDep) return 1;
+                return 0;
+            });
 
             tasks.forEach(taskItem => {
                 if (taskItem.id === taskId) return; // Exclude self
@@ -2696,11 +2712,20 @@ class UI {
             const container = document.getElementById(containerId);
             if (!container) return;
             container.innerHTML = '';
-            const items = this.planner[`get${type.charAt(0).toUpperCase() + type.slice(1)}`]();
+            const items = this.planner[`get${type.charAt(0).toUpperCase() + type.slice(1)}`]().slice();
             if (items.length === 0) {
                 container.innerHTML = `<span class="text-muted small">No ${type} available</span>`;
                 return;
             }
+
+            items.sort((a, b) => {
+                const aIsAssoc = a.associatedTasks && a.associatedTasks.includes(taskId);
+                const bIsAssoc = b.associatedTasks && b.associatedTasks.includes(taskId);
+                if (aIsAssoc && !bIsAssoc) return -1;
+                if (!aIsAssoc && bIsAssoc) return 1;
+                return 0;
+            });
+
             items.forEach(item => {
                 const div = document.createElement('div');
                 div.className = 'form-check';
