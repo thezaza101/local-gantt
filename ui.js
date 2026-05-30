@@ -1004,17 +1004,36 @@ class UI {
         markerTypeRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
                 const dateContainer = document.getElementById('markerDateContainer');
+                const endDateContainer = document.getElementById('markerEndDateContainer');
                 const rowContainer = document.getElementById('markerRowContainer');
+                const opacityContainer = document.getElementById('markerOpacityContainer');
 
                 if (e.target.value === 'vertical') {
                     dateContainer.style.display = 'block';
+                    if (endDateContainer) endDateContainer.style.display = 'none';
                     rowContainer.style.display = 'none';
-                } else {
+                    if (opacityContainer) opacityContainer.style.display = 'none';
+                } else if (e.target.value === 'horizontal') {
                     dateContainer.style.display = 'none';
+                    if (endDateContainer) endDateContainer.style.display = 'none';
                     rowContainer.style.display = 'block';
+                    if (opacityContainer) opacityContainer.style.display = 'none';
+                } else if (e.target.value === 'background') {
+                    dateContainer.style.display = 'block';
+                    if (endDateContainer) endDateContainer.style.display = 'block';
+                    rowContainer.style.display = 'none';
+                    if (opacityContainer) opacityContainer.style.display = 'block';
                 }
             });
         });
+
+        const opacitySlider = document.getElementById('markerOpacity');
+        const opacityValue = document.getElementById('markerOpacityValue');
+        if (opacitySlider && opacityValue) {
+            opacitySlider.addEventListener('input', (e) => {
+                opacityValue.textContent = e.target.value;
+            });
+        }
 
         // Task List Button
         const taskListBtn = document.getElementById("taskListBtn");
@@ -2955,6 +2974,7 @@ class UI {
         dateInput.readOnly = false;
         document.getElementById('markerTypeVertical').disabled = false;
         document.getElementById('markerTypeHorizontal').disabled = false;
+        document.getElementById('markerTypeBackground').disabled = false;
 
         document.getElementById('markerId').value = '';
         document.getElementById('markerTypeVertical').checked = true;
@@ -2963,7 +2983,10 @@ class UI {
         document.getElementById('markerTypeVertical').dispatchEvent(new Event('change'));
 
         document.getElementById('markerDate').value = currentPlan.timeline.startDate;
+        document.getElementById('markerEndDate').value = currentPlan.timeline.endDate || '';
         document.getElementById('markerColor').value = '#ff4d4d';
+        document.getElementById('markerOpacity').value = 0.2;
+        document.getElementById('markerOpacityValue').textContent = "0.2";
 
         if (markerId) {
             const marker = (currentPlan.markers || []).find(m => m.id === markerId);
@@ -2976,6 +2999,12 @@ class UI {
                 if (marker.type === 'horizontal') {
                     document.getElementById('markerTypeHorizontal').checked = true;
                     document.getElementById('markerRow').value = marker.row || 1;
+                } else if (marker.type === 'background') {
+                    document.getElementById('markerTypeBackground').checked = true;
+                    dateInput.value = marker.date || currentPlan.timeline.startDate;
+                    document.getElementById('markerEndDate').value = marker.endDate || currentPlan.timeline.endDate || '';
+                    document.getElementById('markerOpacity').value = marker.opacity || 0.2;
+                    document.getElementById('markerOpacityValue').textContent = marker.opacity || "0.2";
                 } else {
                     document.getElementById('markerTypeVertical').checked = true;
                     dateInput.value = marker.date || currentPlan.timeline.startDate;
@@ -2985,10 +3014,12 @@ class UI {
                     dateInput.readOnly = true;
                     document.getElementById('markerTypeVertical').disabled = true;
                     document.getElementById('markerTypeHorizontal').disabled = true;
+                    document.getElementById('markerTypeBackground').disabled = true;
                 } else {
                     dateInput.readOnly = false;
                     document.getElementById('markerTypeVertical').disabled = false;
                     document.getElementById('markerTypeHorizontal').disabled = false;
+                    document.getElementById('markerTypeBackground').disabled = false;
                 }
 
                 document.getElementById('markerRepeats').checked = marker.repeats !== false;
@@ -3035,13 +3066,29 @@ class UI {
                 return;
             }
             markerData.date = date;
-        } else {
+        } else if (type === 'horizontal') {
             const row = parseInt(document.getElementById('markerRow').value, 10);
             if (isNaN(row) || row < 1) {
                 alert("Valid row number (>= 1) is required for horizontal markers.");
                 return;
             }
             markerData.row = row;
+        } else if (type === 'background') {
+            const startDate = document.getElementById('markerDate').value;
+            const endDate = document.getElementById('markerEndDate').value;
+            const opacity = parseFloat(document.getElementById('markerOpacity').value);
+
+            if (!startDate || !endDate) {
+                alert("Start Date and End Date are required for background markers.");
+                return;
+            }
+            if (new Date(startDate) > new Date(endDate)) {
+                alert("Start Date cannot be after End Date.");
+                return;
+            }
+            markerData.date = startDate;
+            markerData.endDate = endDate;
+            markerData.opacity = isNaN(opacity) ? 0.2 : opacity;
         }
 
         markerData.repeats = document.getElementById('markerRepeats').checked;

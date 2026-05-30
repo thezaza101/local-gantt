@@ -626,21 +626,35 @@
                                     <input class="form-check-input marker-type-radio" type="radio" name="markerType" id="markerTypeVertical" value="vertical" checked>
                                     <label class="form-check-label" for="markerTypeVertical">Vertical (Date)</label>
                                 </div>
-                                <div class="form-check form-check-inline">
+                                <div class="form-check form-check-inline mt-1">
                                     <input class="form-check-input marker-type-radio" type="radio" name="markerType" id="markerTypeHorizontal" value="horizontal">
                                     <label class="form-check-label" for="markerTypeHorizontal">Horizontal (Row)</label>
+                                </div>
+                                <div class="form-check form-check-inline mt-1">
+                                    <input class="form-check-input marker-type-radio" type="radio" name="markerType" id="markerTypeBackground" value="background">
+                                    <label class="form-check-label" for="markerTypeBackground">Background (Date Range)</label>
                                 </div>
                             </div>
                         </div>
 
                         <div class="mb-3" id="markerDateContainer">
-                            <label for="markerDate" class="form-label">Date</label>
+                            <label for="markerDate" class="form-label">Date / Start Date</label>
                             <input type="date" class="form-control" id="markerDate">
+                        </div>
+
+                        <div class="mb-3" id="markerEndDateContainer" style="display: none;">
+                            <label for="markerEndDate" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="markerEndDate">
                         </div>
 
                         <div class="mb-3" id="markerRowContainer" style="display: none;">
                             <label for="markerRow" class="form-label">Appears Before Row</label>
                             <input type="number" class="form-control" id="markerRow" min="1" value="1">
+                        </div>
+
+                        <div class="mb-3" id="markerOpacityContainer" style="display: none;">
+                            <label for="markerOpacity" class="form-label">Opacity (<span id="markerOpacityValue">0.2</span>)</label>
+                            <input type="range" class="form-range" id="markerOpacity" min="0.05" max="1" step="0.05" value="0.2">
                         </div>
 
                         <div class="row mb-3">
