@@ -328,8 +328,8 @@ class Gantt {
         this.container.innerHTML = `
             <div class="d-flex" style="width: 100%; height: 100%; overflow: hidden;">
                 <!-- Left Sidebar for Row Numbers -->
-                <div class="gantt-sidebar d-flex flex-column z-3" style="width: 40px; flex-shrink: 0; background-color: #f8f9fa; border-right: 1px solid #dee2e6;">
-                    <div class="gantt-sidebar-header bg-white border-bottom" style="height: 48px; flex: none;">
+                <div class="gantt-sidebar d-flex flex-column z-3 border-end" style="width: 40px; flex-shrink: 0; ">
+                    <div class="gantt-sidebar-header border-bottom" style="height: 48px; flex: none;">
                         <!-- Placeholder to match Gantt header height -->
                     </div>
                     <div class="gantt-sidebar-rows flex-grow-1" style="position: relative;">
