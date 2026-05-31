@@ -3074,8 +3074,17 @@ class UI {
             let positionHtml = '';
             if (marker.type === 'vertical') {
                 positionHtml = `Date: ${marker.date}`;
-            } else {
+            } else if (marker.type === 'horizontal') {
                 positionHtml = `Before Row: ${marker.row}`;
+            } else if (marker.type === 'background') {
+                positionHtml = `Date: ${marker.date}`;
+                if (marker.endDate) {
+                    const sDate = new Date(marker.date);
+                    const eDate = new Date(marker.endDate);
+                    const diffTime = Math.abs(eDate - sDate);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    positionHtml += ` + ${diffDays} day(s)`;
+                }
             }
 
             const isVisible = marker.visible !== false;

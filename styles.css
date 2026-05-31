@@ -286,9 +286,12 @@ body.presenter-mode #exitPresenterModeBtn {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
+    background-color: transparent;
     max-width: calc(100% - 10px);
+}
+
+[data-bs-theme="dark"] .gantt-marker-background-label {
+    background-color: transparent;
 }
 
 /* Gantt Tasks */
@@ -655,6 +658,8 @@ body.presenter-mode #exitPresenterModeBtn {
 
 [data-bs-theme="dark"] .gantt-month {
     background-color: var(--bs-dark);
+    color: var(--bs-light);
+    font-weight: normal !important;
 }
 
 [data-bs-theme="dark"] .gantt-day {
