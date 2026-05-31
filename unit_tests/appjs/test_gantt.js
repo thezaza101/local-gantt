@@ -147,6 +147,7 @@ describe('Gantt Engine (gantt.js)', () => {
         // Mock PlannerState
         window.PlannerState = {
             getZoomLevel: () => 'daily',
+            getEffectiveMarkers: () => [],
             getFilterState: () => ({ visualMode: 'show', selectedTags: [], matchMode: 'any', searchText: '' }),
             getShowDependencies: () => false,
             getShowMarkerMajor: () => true,

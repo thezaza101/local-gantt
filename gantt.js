@@ -385,13 +385,13 @@ class Gantt {
                 <div class="gantt-wrapper position-relative" style="flex-grow: 1; height: 100%; overflow: auto;" id="gantt-wrapper-scroll">
                     <div class="gantt-content" style="width: ${totalWidth}px; min-height: 100%; position: relative;">
                         <!-- Headers -->
-                        <div class="gantt-header-days d-flex position-sticky bg-white z-2" style="top: 0;" id="gantt-header-bottom">
-                            ${headersHtml}
-                        </div>
-                        <div class="gantt-header d-flex position-sticky bg-white z-2" style="top: 25px;" id="gantt-header-top">
+                        <div class="gantt-header d-flex position-sticky bg-white z-2" style="top: 0;" id="gantt-header-top">
                             <div class="gantt-months d-flex w-100">
                                 ${topHeadersHtml}
                             </div>
+                        </div>
+                        <div class="gantt-header-days d-flex position-sticky bg-white z-2" style="top: 25px;" id="gantt-header-bottom">
+                            ${headersHtml}
                         </div>
 
                         <!-- Grid Background -->
