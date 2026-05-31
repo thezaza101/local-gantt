@@ -305,3 +305,35 @@ describe('Planner Engine (planner.js)', () => {
     });
 
 });
+
+    test('Can manage marker groups and get effective markers', () => {
+        const planner = new Planner();
+        planner.addPlan('Plan A');
+        const planA = planner.getCurrentPlan();
+
+        // Add default marker
+        planner.addMarker({ id: 'm_def', type: 'vertical', label: 'Def', date: '2023-01-01' }, 'default');
+
+        const group1 = planner.addMarkerGroup('Group 1');
+        planner.updateMarkerGroup(group1.id, { applyToPlans: [planA.id] });
+
+        planner.addMarker({ id: 'm_grp', type: 'horizontal', label: 'Grp', row: 1 }, group1.id);
+
+        const effectiveMarkers = planner.getEffectiveMarkers(planA);
+
+        // Today marker + def marker + group marker = 3 markers
+        assertEqual(effectiveMarkers.length, 3);
+
+        const grpMarker = effectiveMarkers.find(m => m.id === 'm_grp');
+        assertTrue(grpMarker !== undefined);
+        assertEqual(grpMarker._groupId, group1.id);
+
+        // Turn off visibility
+        planner.updateMarkerGroup(group1.id, { visible: false });
+        const hiddenEffectiveMarkers = planner.getEffectiveMarkers(planA);
+        assertEqual(hiddenEffectiveMarkers.length, 2);
+
+        // Delete group
+        planner.deleteMarkerGroup(group1.id);
+        assertEqual(planner.getMarkerGroups().length, 0);
+    });

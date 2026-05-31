@@ -49,5 +49,15 @@ WORKFLOW_REGISTRY = {
                 "test_file": "tests/workflows/tracker_test.py"
             }
         ]
+    },
+    "marker_groups": {
+        "description": "Marker Groups workflows",
+        "tests": [
+            {
+                "name": "marker_groups_workflow",
+                "tested": True,
+                "test_file": "tests/workflows/marker_groups_test.py"
+            }
+        ]
     }
 }

@@ -46,6 +46,60 @@
                     "T00003"
                 ]
             }
+        ],
+        "markerGroups": [
+            {
+                "id": "mg_alpha",
+                "name": "Alpha Phase Deadlines",
+                "visible": true,
+                "applyToPlans": [
+                    "plan-1"
+                ],
+                "markers": [
+                    {
+                        "id": "m_a1",
+                        "type": "vertical",
+                        "label": "Alpha Kickoff",
+                        "color": "#ff0000",
+                        "importance": "major",
+                        "repeats": true,
+                        "visible": true,
+                        "date": "2026-01-05"
+                    },
+                    {
+                        "id": "m_a2",
+                        "type": "vertical",
+                        "label": "Alpha Review",
+                        "color": "#ff0000",
+                        "importance": "minor",
+                        "repeats": true,
+                        "visible": true,
+                        "date": "2026-02-15"
+                    }
+                ]
+            },
+            {
+                "id": "mg_beta",
+                "name": "Beta Phase Deadlines",
+                "visible": true,
+                "applyToPlans": [
+                    "plan-1"
+                ],
+                "markers": [
+                    {
+                        "id": "m_b1",
+                        "type": "background",
+                        "label": "Beta Period",
+                        "color": "#0000ff",
+                        "importance": "note",
+                        "repeats": false,
+                        "visible": true,
+                        "date": "2026-03-01",
+                        "endDate": "2026-04-30",
+                        "opacity": 0.1
+                    }
+                ]
+            }
         ]
     },
     "plans": [
