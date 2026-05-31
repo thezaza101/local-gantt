@@ -286,13 +286,12 @@ body.presenter-mode #exitPresenterModeBtn {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    background-color: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
+    background-color: transparent;
     max-width: calc(100% - 10px);
 }
 
 [data-bs-theme="dark"] .gantt-marker-background-label {
-    background-color: rgba(33, 37, 41, 0.8);
+    background-color: transparent;
 }
 
 /* Gantt Tasks */

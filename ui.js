@@ -3082,7 +3082,7 @@ class UI {
                     const sDate = new Date(marker.date);
                     const eDate = new Date(marker.endDate);
                     const diffTime = Math.abs(eDate - sDate);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                     positionHtml += ` + ${diffDays} day(s)`;
                 }
             }
