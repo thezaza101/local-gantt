@@ -291,6 +291,10 @@ body.presenter-mode #exitPresenterModeBtn {
     max-width: calc(100% - 10px);
 }
 
+[data-bs-theme="dark"] .gantt-marker-background-label {
+    background-color: rgba(33, 37, 41, 0.8);
+}
+
 /* Gantt Tasks */
 .gantt-task {
     position: absolute;
@@ -655,6 +659,8 @@ body.presenter-mode #exitPresenterModeBtn {
 
 [data-bs-theme="dark"] .gantt-month {
     background-color: var(--bs-dark);
+    color: var(--bs-light);
+    font-weight: normal !important;
 }
 
 [data-bs-theme="dark"] .gantt-day {
