@@ -1058,7 +1058,7 @@ class Planner {
         return true;
     }
 
-    calculatePlanDiff(importedPlan, ignoredFields = []) {
+    calculatePlanDiff(importedPlan, ignoredFields = [], ignoreOlderTasks = false) {
         const currentPlan = this.getCurrentPlan();
         if (!currentPlan || !importedPlan) return null;
 
@@ -1079,6 +1079,10 @@ class Planner {
             if (!currTask) {
                 diff.tasks.new.push(impTask);
             } else {
+                if (ignoreOlderTasks && impTask.lastUpdated && currTask.lastUpdated && impTask.lastUpdated < currTask.lastUpdated) {
+                    return; // Skip this task as it is older
+                }
+
                 let isDifferent = false;
                 if (ignoredFields.length > 0) {
                     const currComp = JSON.parse(JSON.stringify(currTask));

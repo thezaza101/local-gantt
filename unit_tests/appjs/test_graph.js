@@ -108,6 +108,16 @@ describe('GraphView Engine (graph.js)', () => {
     test('open() sets root id and type, updates depth input, and shows modal', () => {
         setupMockDOM();
 
+        // Need mock planner to prevent errors in getEntity()
+        window.PlannerState = {
+            getCurrentPlan: () => ({ tasks: [] }),
+            getRisks: () => [],
+            getIssues: () => [],
+            getDependencies: () => [],
+            getAssumptions: () => [],
+            getDecisions: () => []
+        };
+
         try {
             const graph = new GraphView();
             graph.init();
