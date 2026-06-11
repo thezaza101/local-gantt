@@ -140,16 +140,61 @@ class Tracker {
         if (!this.sortState[type]) this.sortState[type] = { column: 'id', direction: 'asc' };
         if (!this.filterState[type]) this.filterState[type] = {};
 
-        columns.forEach(col => {
+columns.forEach(col => {
             const th = document.createElement('th');
             let sortIndicator = '';
             if (this.sortState[type].column === col.id) {
                 sortIndicator = this.sortState[type].direction === 'asc' ? ' ↑' : ' ↓';
             }
+
+            let filterElementHtml = '';
+            if (col.id === 'status') {
+                if (!this.filterState[type][col.id] || !Array.isArray(this.filterState[type][col.id])) {
+                    this.filterState[type][col.id] = [];
+                }
+                const selectedStatuses = this.filterState[type][col.id];
+                let statuses = [];
+                if (type === 'risks') statuses = ['Open', 'Mitigated', 'Accepted', 'Closed'];
+                else if (type === 'issues') statuses = ['Open', 'In Progress', 'Resolved', 'Closed'];
+                else if (type === 'dependencies') statuses = ['Active', 'At Risk', 'Blocked', 'Completed', 'Removed'];
+                else if (type === 'assumptions') statuses = ['Active', 'Validated', 'Invalidated', 'Under Review'];
+                else if (type === 'decisions') statuses = ['Pending', 'In Progress', 'Made', 'Deferred'];
+
+                let dropdownItems = '';
+                statuses.forEach(status => {
+                    const isChecked = selectedStatuses.includes(status) ? 'checked' : '';
+                    dropdownItems += `
+                        <li>
+                            <label class="dropdown-item d-flex align-items-center" style="font-weight:normal;" onclick="event.stopPropagation()">
+                                <input class="form-check-input me-2 tracker-status-filter-cb" type="checkbox" data-type="${type}" data-col="${this.escapeHtml(col.id)}" value="${this.escapeHtml(status)}" ${isChecked}>
+                                ${this.escapeHtml(status)}
+                            </label>
+                        </li>
+                    `;
+                });
+
+                const btnText = selectedStatuses.length > 0 ? `Filter (${selectedStatuses.length})` : 'Filter...';
+
+                filterElementHtml = `
+                    <div class="dropdown mt-1">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100 text-start d-flex justify-content-between align-items-center tracker-status-dropdown-btn" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false" data-type="${type}" style="font-size:0.875rem; padding:0.25rem 0.5rem; background:#fff;">
+                            <span>${btnText}</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-start shadow" style="min-width: 150px;">
+                            ${dropdownItems}
+                        </ul>
+                    </div>
+                `;
+            } else {
+                let currentVal = this.filterState[type][col.id];
+                if (Array.isArray(currentVal)) currentVal = '';
+                filterElementHtml = `<input type="text" class="form-control form-control-sm mt-1 tracker-filter-input" data-type="${type}" data-col="${this.escapeHtml(col.id)}" placeholder="Filter..." value="${this.escapeHtml(currentVal || '')}">`;
+            }
+
             th.innerHTML = `
                 <div class="d-flex flex-column">
                     <span class="cursor-pointer tracker-sort-header" data-type="${type}" data-col="${this.escapeHtml(col.id)}">${this.escapeHtml(col.label)}${sortIndicator}</span>
-                    <input type="text" class="form-control form-control-sm mt-1 tracker-filter-input" data-type="${type}" data-col="${this.escapeHtml(col.id)}" placeholder="Filter..." value="${this.escapeHtml(this.filterState[type][col.id] || '')}">
+                    ${filterElementHtml}
                 </div>
             `;
             trHead.appendChild(th);
@@ -157,12 +202,21 @@ class Tracker {
         thead.appendChild(trHead);
 
         // Apply filtering
-        let filteredItems = items.filter(item => {
+let filteredItems = items.filter(item => {
             return columns.every(col => {
-                const filterVal = (this.filterState[type][col.id] || '').toLowerCase();
-                if (!filterVal) return true;
-                const cellVal = this.getCellValue(item, col.id, type).toLowerCase();
-                return cellVal.includes(filterVal);
+                if (col.id === 'status') {
+                    const selectedStatuses = this.filterState[type][col.id] || [];
+                    if (!Array.isArray(selectedStatuses) || selectedStatuses.length === 0) return true;
+                    const cellVal = this.getCellValue(item, col.id, type);
+                    return selectedStatuses.some(s => cellVal.toLowerCase() === s.toLowerCase());
+                } else {
+                    let filterVal = this.filterState[type][col.id];
+                    if (Array.isArray(filterVal)) filterVal = '';
+                    filterVal = (filterVal || '').toLowerCase();
+                    if (!filterVal) return true;
+                    const cellVal = this.getCellValue(item, col.id, type).toLowerCase();
+                    return cellVal.includes(filterVal);
+                }
             });
         });
 
@@ -250,7 +304,7 @@ class Tracker {
             });
         });
 
-        thead.querySelectorAll('.tracker-filter-input').forEach(fi => {
+thead.querySelectorAll('.tracker-filter-input').forEach(fi => {
             fi.addEventListener('input', (e) => {
                 const t = e.target.getAttribute('data-type');
                 const col = e.target.getAttribute('data-col');
@@ -266,6 +320,38 @@ class Tracker {
                         const val = input.value;
                         input.value = '';
                         input.value = val;
+                    }
+                }, 0);
+            });
+        });
+
+        // Add listeners for status checkbox filters
+        thead.querySelectorAll('.tracker-status-filter-cb').forEach(cb => {
+            cb.addEventListener('change', (e) => {
+                const t = e.target.getAttribute('data-type');
+                const col = e.target.getAttribute('data-col');
+                const val = e.target.value;
+
+                if (!this.filterState[t][col] || !Array.isArray(this.filterState[t][col])) {
+                    this.filterState[t][col] = [];
+                }
+
+                if (e.target.checked) {
+                    if (!this.filterState[t][col].includes(val)) {
+                        this.filterState[t][col].push(val);
+                    }
+                } else {
+                    this.filterState[t][col] = this.filterState[t][col].filter(s => s !== val);
+                }
+
+                this.render();
+
+                // Re-open the dropdown
+                setTimeout(() => {
+                    const dropdownBtn = document.querySelector(`button.tracker-status-dropdown-btn[data-type="${t}"]`);
+                    if (dropdownBtn) {
+                        const bsDropdown = bootstrap.Dropdown.getOrCreateInstance(dropdownBtn);
+                        bsDropdown.show();
                     }
                 }, 0);
             });
