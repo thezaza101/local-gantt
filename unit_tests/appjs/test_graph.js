@@ -107,6 +107,9 @@ describe('GraphView Engine (graph.js)', () => {
 
     test('open() sets root id and type, updates depth input, and shows modal', () => {
         setupMockDOM();
+        window.PlannerState = {
+            getCurrentPlan: () => ({ tasks: [{id: 'TASK-001', title: 'Task 1'}] })
+        };
 
         // Need mock planner to prevent errors in getEntity()
         window.PlannerState = {
@@ -135,6 +138,7 @@ describe('GraphView Engine (graph.js)', () => {
             assertTrue(modalShown);
         } finally {
             cleanupMockDOM();
+            delete window.PlannerState;
         }
     });
 
