@@ -16,6 +16,7 @@ class Analytics {
             selectedTags: [],
             startDate: '',
             endDate: '',
+            selectedTeams: [],
             team: ''
         };
     }
@@ -141,15 +142,10 @@ class Analytics {
 
         const taskTags = (task.tags || []).map(t => t.trim()).filter(t => t);
 
-        // Handle Teams Filter (OR condition for teams: task must have at least one team tag if teams are selected)
+        // Handle Teams Filter
         let teamMatch = true;
         if (selectedTeams && selectedTeams.length > 0) {
-            const plannerTeams = this.planner && this.planner.getTeams ? this.planner.getTeams() : [];
-            const selectedTeamNames = selectedTeams.map(tId => {
-                const teamObj = plannerTeams.find(t => t.id === tId || t === tId);
-                return typeof teamObj === 'string' ? teamObj : (teamObj ? teamObj.name : tId);
-            });
-            teamMatch = selectedTeamNames.some(teamName => taskTags.includes(teamName));
+            teamMatch = selectedTeams.includes(task.team);
         }
 
         // Handle Tags Filter
@@ -841,6 +837,16 @@ class Analytics {
             }
         });
 
+        // Generate UI for Team Filters
+        const uniqueTeams = this.planner ? this.planner.getTeams() : [];
+        let teamFilterHtml = `<select class="form-select form-select-sm" id="analyticsTeamSelect" title="Select Team" style="max-width: 150px;">`;
+        teamFilterHtml += `<option value="">All Teams</option>`;
+        uniqueTeams.forEach(team => {
+            const isSelected = (this.filterState.selectedTeams && this.filterState.selectedTeams.includes(team.id)) ? 'selected' : '';
+            teamFilterHtml += `<option value="${this.escapeHtml(team.id)}" ${isSelected}>${this.escapeHtml(team.name)}</option>`;
+        });
+        teamFilterHtml += `</select>`;
+
         // Generate UI for Analytics Filters
         const uniqueTags = this.getUniqueTags();
         let tagFilterHtml = `<div class="d-flex flex-wrap gap-2 me-3">`;
@@ -868,6 +874,10 @@ class Analytics {
                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-1" id="analyticsSelectAllTagsBtn" style="font-size: 0.75rem;">All</button>
                     <button type="button" class="btn btn-sm btn-outline-secondary py-0 px-2 me-3" id="analyticsUnselectAllTagsBtn" style="font-size: 0.75rem;">None</button>
                     ${tagFilterHtml}
+                </div>
+                <div class="d-flex align-items-center gap-2 border-start ps-3" id="analyticsTeamFiltersContainer">
+                    <span class="fw-bold text-muted small">Team:</span>
+                    ${teamFilterHtml}
                 </div>
                 <div class="d-flex align-items-center gap-2 border-start ps-3" id="analyticsDateFiltersContainer">
                     <span class="fw-bold text-muted small">Date Range:</span>
@@ -994,8 +1004,8 @@ class Analytics {
                         </div>
                     </div>
 
-                    <!-- Middle Row: Top Tasks & Capacity vs Demand -->
-                    <div class="col-md-12 col-lg-4">
+                    <!-- Middle Row: Top Tasks -->
+                    <div class="col-md-12 col-lg-12">
                         <div class="card h-100 shadow-sm">
                             <div class="card-header bg-white py-2">
                                 <h6 class="mb-0 text-muted">Top Tasks by Effort</h6>
@@ -1005,7 +1015,8 @@ class Analytics {
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-12 col-lg-8">
+                    <!-- Capacity vs Demand -->
+                    <div class="col-md-12 col-lg-12">
                         <div class="card shadow-sm">
                             <div class="card-header bg-white py-2 d-flex justify-content-between align-items-center">
                                 <h6 class="mb-0 text-muted">Capacity vs Demand</h6>
@@ -1019,10 +1030,10 @@ class Analytics {
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-7">
-                                        <canvas id="chartCapacityVsDemand" style="aspect-ratio: 16/9; max-height: 300px; width: 100%;"></canvas>
+                                    <div class="col-md-8">
+                                        <canvas id="chartCapacityVsDemand" style="aspect-ratio: 21/9; max-height: 400px; width: 100%;"></canvas>
                                     </div>
-                                    <div class="col-md-5 overflow-auto" style="max-height: 300px;">
+                                    <div class="col-md-4 overflow-auto" style="max-height: 400px;">
                                         ${this.renderDemandCapacityTable(demandCapacityData)}
                                     </div>
                                 </div>
@@ -1171,6 +1182,12 @@ class Analytics {
             });
         }
 
+
+        const teamSelect = document.getElementById('analyticsTeamSelect');
+        if (teamSelect) {
+            teamSelect.addEventListener('change', () => this.updateFilterState());
+        }
+
         const colorCapacityDemandByStatusToggle = document.getElementById('analyticsColorCapacityDemandByStatus');
         if (colorCapacityDemandByStatusToggle) {
             colorCapacityDemandByStatusToggle.addEventListener('change', (e) => {
@@ -1224,6 +1241,11 @@ class Analytics {
         if (tagFiltersContainer) {
             const selectedTags = Array.from(tagFiltersContainer.querySelectorAll('.analytics-tag-checkbox:checked')).map(cb => cb.value);
             this.filterState.selectedTags = selectedTags;
+        }
+
+        const teamSelect = document.getElementById('analyticsTeamSelect');
+        if (teamSelect) {
+            this.filterState.selectedTeams = teamSelect.value ? [teamSelect.value] : [];
         }
 
         const startDateInput = document.getElementById('analyticsStartDate');

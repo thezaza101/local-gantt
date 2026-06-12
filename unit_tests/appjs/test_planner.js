@@ -291,8 +291,8 @@ describe('Planner Engine (planner.js)', () => {
         const planner = new Planner();
         planner.addPlan('Test Plan');
 
-        planner.addTask({ id: 'T-100', title: 'Task 1', isMarked: true });
-        planner.addTask({ id: 'T-200', title: 'Task 2', isMarked: false });
+        planner.getCurrentPlan().tasks.push({ id: 'T-100', title: 'Task 1', isMarked: true });
+        planner.getCurrentPlan().tasks.push({ id: 'T-200', title: 'Task 2', isMarked: false });
 
         const changed = planner.setLastCheckedOfMarkedTasks();
         assertTrue(changed);

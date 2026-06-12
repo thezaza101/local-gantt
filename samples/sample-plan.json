@@ -6,24 +6,22 @@
         "baseLink": "https://jira.company.com/browse/",
         "teams": [
             {
-                "id": "T00001",
-                "name": "Frontend",
-                "description": "Handles UI/UX"
+                "id": "t1",
+                "name": "Frontend Team",
+                "description": "UI/UX",
+                "showInGantt": true
             },
             {
-                "id": "T00002",
-                "name": "Backend",
-                "description": "Handles APIs and databases"
+                "id": "t2",
+                "name": "Backend Team",
+                "description": "API & DB",
+                "showInGantt": true
             },
             {
-                "id": "T00003",
-                "name": "Design",
-                "description": "Handles product design"
-            },
-            {
-                "id": "T00004",
-                "name": "DevOps",
-                "description": "Handles infrastructure"
+                "id": "t3",
+                "name": "QA Team",
+                "description": "Testing",
+                "showInGantt": true
             }
         ],
         "personnel": [
@@ -46,7 +44,6 @@
                     "T00003"
                 ]
             }
-            
         ],
         "markerGroups": [
             {
@@ -145,17 +142,56 @@
                     {
                         "startDate": "2026-01-01",
                         "endDate": "2026-02-28",
-                        "capacity": 120
+                        "capacity": 40,
+                        "team": "t1"
+                    },
+                    {
+                        "startDate": "2026-01-01",
+                        "endDate": "2026-02-28",
+                        "capacity": 40,
+                        "team": "t2"
+                    },
+                    {
+                        "startDate": "2026-01-01",
+                        "endDate": "2026-02-28",
+                        "capacity": 20,
+                        "team": "t3"
                     },
                     {
                         "startDate": "2026-03-01",
                         "endDate": "2026-04-30",
-                        "capacity": 100
+                        "capacity": 40,
+                        "team": "t1"
+                    },
+                    {
+                        "startDate": "2026-03-01",
+                        "endDate": "2026-04-30",
+                        "capacity": 40,
+                        "team": "t2"
+                    },
+                    {
+                        "startDate": "2026-03-01",
+                        "endDate": "2026-04-30",
+                        "capacity": 20,
+                        "team": "t3"
                     },
                     {
                         "startDate": "2026-05-01",
                         "endDate": "2026-06-30",
-                        "capacity": 80
+                        "capacity": 40,
+                        "team": "t1"
+                    },
+                    {
+                        "startDate": "2026-05-01",
+                        "endDate": "2026-06-30",
+                        "capacity": 40,
+                        "team": "t2"
+                    },
+                    {
+                        "startDate": "2026-05-01",
+                        "endDate": "2026-06-30",
+                        "capacity": 20,
+                        "team": "t3"
                     }
                 ]
             },
@@ -179,7 +215,7 @@
                         "dev": 6,
                         "test": 2
                     },
-                    "team": "T00001",
+                    "team": "t1",
                     "personnel": []
                 },
                 {
@@ -201,7 +237,7 @@
                         "dev": 3,
                         "test": 1
                     },
-                    "team": "T00002",
+                    "team": "t2",
                     "personnel": []
                 },
                 {
@@ -226,7 +262,7 @@
                         "dev": 5,
                         "test": 2
                     },
-                    "team": "T00003",
+                    "team": "t3",
                     "personnel": []
                 },
                 {
@@ -251,7 +287,7 @@
                         "dev": 4,
                         "test": 6
                     },
-                    "team": "T00004",
+                    "team": "t1",
                     "personnel": []
                 },
                 {
@@ -276,7 +312,7 @@
                         "dev": 8,
                         "test": 3
                     },
-                    "team": "T00001",
+                    "team": "t2",
                     "personnel": []
                 },
                 {
@@ -300,7 +336,7 @@
                         "dev": 7,
                         "test": 3
                     },
-                    "team": "T00002",
+                    "team": "t3",
                     "personnel": []
                 },
                 {
@@ -322,7 +358,7 @@
                         "dev": 5,
                         "test": 2
                     },
-                    "team": "T00003",
+                    "team": "t1",
                     "personnel": []
                 },
                 {
@@ -347,7 +383,7 @@
                         "dev": 0,
                         "test": 10
                     },
-                    "team": "T00004",
+                    "team": "t2",
                     "personnel": []
                 },
                 {
@@ -371,7 +407,7 @@
                         "dev": 8,
                         "test": 4
                     },
-                    "team": "T00001",
+                    "team": "t3",
                     "personnel": []
                 },
                 {
@@ -395,7 +431,7 @@
                         "dev": 2,
                         "test": 15
                     },
-                    "team": "T00002",
+                    "team": "t1",
                     "personnel": []
                 },
                 {
@@ -419,7 +455,7 @@
                         "dev": 20,
                         "test": 5
                     },
-                    "team": "T00003",
+                    "team": "t2",
                     "personnel": []
                 },
                 {
@@ -444,7 +480,7 @@
                         "dev": 15,
                         "test": 10
                     },
-                    "team": "T00004",
+                    "team": "t3",
                     "personnel": []
                 },
                 {
@@ -466,7 +502,7 @@
                         "dev": 0,
                         "test": 0
                     },
-                    "team": "T00001",
+                    "team": "t1",
                     "personnel": []
                 },
                 {
@@ -492,7 +528,7 @@
                         "dev": 0,
                         "test": 20
                     },
-                    "team": "T00002",
+                    "team": "t2",
                     "personnel": []
                 }
             ]
