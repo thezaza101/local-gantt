@@ -291,6 +291,8 @@ describe('Planner Engine (planner.js)', () => {
         const planner = new Planner();
         planner.addPlan('Test Plan');
 
+        // add it without timestamps so that setLastCheckedOfMarkedTasks has to actually set it
+        planner.getCurrentPlan().tasks = [];
         planner.getCurrentPlan().tasks.push({ id: 'T-100', title: 'Task 1', isMarked: true });
         planner.getCurrentPlan().tasks.push({ id: 'T-200', title: 'Task 2', isMarked: false });
 

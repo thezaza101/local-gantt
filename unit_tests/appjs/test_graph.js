@@ -111,6 +111,16 @@ describe('GraphView Engine (graph.js)', () => {
             getCurrentPlan: () => ({ tasks: [{id: 'TASK-001', title: 'Task 1'}] })
         };
 
+        // Need mock planner to prevent errors in getEntity()
+        window.PlannerState = {
+            getCurrentPlan: () => ({ tasks: [] }),
+            getRisks: () => [],
+            getIssues: () => [],
+            getDependencies: () => [],
+            getAssumptions: () => [],
+            getDecisions: () => []
+        };
+
         try {
             const graph = new GraphView();
             graph.init();

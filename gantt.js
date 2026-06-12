@@ -245,7 +245,8 @@ class Gantt {
                     const topPos = mappedRowIndex * this.rowHeight;
 
                     const repeats = marker.repeats !== false; // default to true if undefined
-                    const labelContent = repeats ? this.repeatString(safeLabel, 20) : `<span>${safeLabel}</span>`;
+                    const repeatCount = Math.ceil(totalWidth / 150) + 5;
+                    const labelContent = repeats ? this.repeatString(safeLabel, repeatCount) : `<span>${safeLabel}</span>`;
                     const repeatClass = repeats ? 'repeats' : 'no-repeats';
 
                     markersHtml += `
@@ -304,7 +305,8 @@ class Gantt {
                         const leftPos = daysOffset * this.cellWidth;
 
                         const repeats = marker.repeats !== false; // default to true if undefined
-                        const labelContent = repeats ? this.repeatString(safeLabel, 20) : `<span>${safeLabel}</span>`;
+                        const repeatCount = Math.ceil(requiredHeight / 100) + 5;
+                        const labelContent = repeats ? this.repeatString(safeLabel, repeatCount) : `<span>${safeLabel}</span>`;
                         const repeatClass = repeats ? 'repeats' : 'no-repeats';
 
                         markersHtml += `
@@ -385,12 +387,12 @@ class Gantt {
                 <div class="gantt-wrapper position-relative" style="flex-grow: 1; height: 100%; overflow: auto;" id="gantt-wrapper-scroll">
                     <div class="gantt-content" style="width: ${totalWidth}px; min-height: 100%; position: relative;">
                         <!-- Headers -->
-                        <div class="gantt-header d-flex position-sticky bg-white z-2" style="top: 0;" id="gantt-header-top">
+                        <div class="gantt-header d-flex position-sticky bg-white" style="top: 0; z-index: 25;" id="gantt-header-top">
                             <div class="gantt-months d-flex w-100">
                                 ${topHeadersHtml}
                             </div>
                         </div>
-                        <div class="gantt-header-days d-flex position-sticky bg-white z-2" style="top: 25px;" id="gantt-header-bottom">
+                        <div class="gantt-header-days d-flex position-sticky bg-white" style="top: 25px; z-index: 25;" id="gantt-header-bottom">
                             ${headersHtml}
                         </div>
 
