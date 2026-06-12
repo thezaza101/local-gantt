@@ -1235,6 +1235,10 @@
                                         <input class="form-check-input merge-ignore-check" type="checkbox" value="effort" id="ignoreEffortCheck">
                                         <label class="form-check-label small" for="ignoreEffortCheck">Effort</label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="personnel" id="ignorePersonnelCheck">
+                                        <label class="form-check-label small" for="ignorePersonnelCheck">Personnel</label>
+                                    </div>
                                 </div>
                                 <div class="col-6 col-md-4">
                                     <div class="form-check">
@@ -1245,7 +1249,31 @@
                                         <input class="form-check-input merge-ignore-check" type="checkbox" value="excludeFromAnalytics" id="ignoreExcludeCheck">
                                         <label class="form-check-label small" for="ignoreExcludeCheck">Exclude from Analytics</label>
                                     </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="isMarked" id="ignoreMarksCheck">
+                                        <label class="form-check-label small" for="ignoreMarksCheck">Marks</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="followUpDate" id="ignoreFollowUpDateCheck">
+                                        <label class="form-check-label small" for="ignoreFollowUpDateCheck">Follow-up Date</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="notes" id="ignoreNotesCheck">
+                                        <label class="form-check-label small" for="ignoreNotesCheck">Notes</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input merge-ignore-check" type="checkbox" value="lastUpdated,lastChecked" id="ignoreTimestampsCheck">
+                                        <label class="form-check-label small" for="ignoreTimestampsCheck">Timestamps</label>
+                                    </div>
                                 </div>
+                            </div>
+
+                            <hr class="my-2">
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="ignoreOldLastUpdatedCheck">
+                                <label class="form-check-label small fw-bold" for="ignoreOldLastUpdatedCheck">
+                                    Ignore imported task if its last updated timestamp is older
+                                </label>
                             </div>
                         </div>
                     </div>

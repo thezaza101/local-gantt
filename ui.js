@@ -1485,7 +1485,9 @@ class UI {
                 .flatMap(cb => cb.value.split(','))
                 .map(val => val.trim())
                 .filter(val => val.length > 0);
-            const diff = this.planner.calculatePlanDiff(selectedPlan, ignoredFields);
+            const ignoreOlderTasks = document.getElementById('ignoreOldLastUpdatedCheck') ? document.getElementById('ignoreOldLastUpdatedCheck').checked : false;
+
+            const diff = this.planner.calculatePlanDiff(selectedPlan, ignoredFields, ignoreOlderTasks);
             if (diff) {
                 this.pendingImportedPlan = selectedPlan;
                 this.pendingImportedPlanIgnoredFields = ignoredFields;
