@@ -290,7 +290,8 @@ class Gantt {
                         const bgColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
 
                         markersHtml += `
-                            <div class="gantt-marker-background" style="left: ${leftPos}px; width: ${width}px; background-color: ${bgColor};">
+                            <div class="gantt-marker-background" style="left: ${leftPos}px; width: ${width}px; background-color: ${bgColor};"></div>
+                            <div class="gantt-marker-background-label-container" style="left: ${leftPos}px; width: ${width}px;">
                                 <div class="gantt-marker-background-label" style="color: ${markerColor};">
                                     ${safeLabel}
                                 </div>
